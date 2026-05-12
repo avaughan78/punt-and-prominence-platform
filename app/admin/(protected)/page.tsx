@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 
-async function getStats(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function getStats(supabase: ReturnType<typeof createAdminClient>) {
   const [
     { count: totalCreators },
     { count: pendingCreators },
@@ -27,7 +27,7 @@ async function getStats(supabase: Awaited<ReturnType<typeof createClient>>) {
   }
 }
 
-async function getRecentMatches(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function getRecentMatches(supabase: ReturnType<typeof createAdminClient>) {
   const { data } = await supabase
     .from('matches')
     .select('id, status, created_at, punt_code, offer:offers(title), creator:profiles!matches_creator_id_fkey(display_name,instagram_handle), business:profiles!matches_business_id_fkey(business_name)')
@@ -37,7 +37,7 @@ async function getRecentMatches(supabase: Awaited<ReturnType<typeof createClient
 }
 
 export default async function AdminOverview() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const [stats, recentMatches] = await Promise.all([getStats(supabase), getRecentMatches(supabase)])
 
   const statusColour: Record<string, string> = {
