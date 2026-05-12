@@ -34,6 +34,7 @@ interface Props {
     latitude: number | null
     longitude: number | null
     avatar_url: string | null
+    follower_count: number | null
   }
   userId: string
 }
@@ -50,6 +51,7 @@ export function ProfileForm({ role, initial, userId }: Props) {
     latitude: initial.latitude ?? null as number | null,
     longitude: initial.longitude ?? null as number | null,
     avatar_url: initial.avatar_url ?? '',
+    follower_count: initial.follower_count ?? null as number | null,
   })
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -250,13 +252,34 @@ export function ProfileForm({ role, initial, userId }: Props) {
           />
         </>
       ) : (
-        <Input
-          label="Your name"
-          placeholder="Jane Smith"
-          value={form.display_name}
-          onChange={e => set('display_name', e.target.value)}
-          required
-        />
+        <>
+          <Input
+            label="Your name"
+            placeholder="Jane Smith"
+            value={form.display_name}
+            onChange={e => set('display_name', e.target.value)}
+            required
+          />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              Instagram followers
+            </label>
+            <input
+              type="number"
+              min={0}
+              placeholder="e.g. 5000"
+              value={form.follower_count ?? ''}
+              onChange={e => setForm(f => ({ ...f, follower_count: e.target.value ? parseInt(e.target.value) : null }))}
+              className="w-full px-4 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
+              style={{ fontFamily: "'Inter', sans-serif" }}
+            />
+            {form.follower_count != null && form.follower_count < 1000 && (
+              <p className="text-xs font-medium" style={{ color: '#F5B800' }}>
+                We recommend creators with 1,000+ followers — your profile may be flagged for review.
+              </p>
+            )}
+          </div>
+        </>
       )}
 
       <Input

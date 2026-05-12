@@ -59,7 +59,7 @@ export interface Match {
   updated_at: string
   // Joined
   invite?: Invite
-  creator?: Pick<Profile, 'id' | 'display_name' | 'instagram_handle' | 'avatar_url'>
+  creator?: Pick<Profile, 'id' | 'display_name' | 'instagram_handle' | 'avatar_url' | 'follower_count'>
   business?: Pick<Profile, 'id' | 'display_name' | 'business_name' | 'address_line'>
 }
 

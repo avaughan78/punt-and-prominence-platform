@@ -61,13 +61,18 @@ export function MatchCard({ match, role, onUpdated }: Props) {
           {role === 'creator' ? (
             <p className="text-xs font-medium mt-0.5" style={{ color: '#6b7280', fontFamily: "'Inter', sans-serif" }}>{businessName}</p>
           ) : match.creator?.instagram_handle ? (
-            <div className="mt-1">
+            <div className="mt-1 flex flex-col gap-1">
               <InstagramHandle
                 handle={match.creator.instagram_handle}
                 displayName={match.creator.display_name}
                 avatarUrl={match.creator.avatar_url}
                 size="sm"
               />
+              {match.creator.follower_count != null && (
+                <p className="text-xs text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  {match.creator.follower_count.toLocaleString()} followers
+                </p>
+              )}
             </div>
           ) : (
             <p className="text-xs text-gray-500 mt-0.5">{match.creator?.display_name}</p>
