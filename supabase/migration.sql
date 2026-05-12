@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   category          text,
   has_card_on_file  boolean NOT NULL DEFAULT false,
   card_last_four    text,
+  is_approved       boolean NOT NULL DEFAULT false,
   created_at        timestamptz NOT NULL DEFAULT now(),
   updated_at        timestamptz NOT NULL DEFAULT now()
 );
