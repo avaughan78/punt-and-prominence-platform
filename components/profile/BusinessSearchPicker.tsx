@@ -1,6 +1,13 @@
 'use client'
 import { useEffect, useRef } from 'react'
-import { Search, Loader2 } from 'lucide-react'
+import { Search } from 'lucide-react'
+
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    google?: any
+  }
+}
 
 interface Props {
   onSelect: (name: string, address: string, lat: number, lng: number) => void
