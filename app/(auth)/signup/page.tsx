@@ -73,7 +73,7 @@ export default function SignupPage() {
       // Fire welcome email (non-blocking)
       fetch('/api/auth/welcome', { method: 'POST' })
 
-      router.push(role === 'business' ? '/business' : '/creator')
+      router.push(role === 'business' ? '/business/onboarding' : '/creator')
     }
   }
 
@@ -128,8 +128,8 @@ export default function SignupPage() {
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <Input
-            label={role === 'business' ? 'Business name' : 'Your name'}
-            placeholder={role === 'business' ? 'The Mill Road Café' : 'Jane Smith'}
+            label="Your name"
+            placeholder="Jane Smith"
             value={displayName}
             onChange={e => setDisplayName(e.target.value)}
             required
