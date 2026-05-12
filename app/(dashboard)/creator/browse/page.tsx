@@ -119,6 +119,7 @@ export default function BrowsePage() {
               key={invite.id}
               invite={invite}
               mode="browse"
+              isApproved={isApproved}
               onClaimed={data => handleClaimed(data, invite.id)}
             />
           ))}

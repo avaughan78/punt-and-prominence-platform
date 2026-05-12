@@ -11,12 +11,13 @@ import type { Invite } from '@/lib/types'
 interface Props {
   invite: Invite
   mode: 'browse' | 'manage'
+  isApproved?: boolean
   onClaimed?: (matchData: { id: string; punt_code: string }) => void
   onToggle?: (id: string, active: boolean) => void
   onDelete?: (id: string) => void
 }
 
-export function InviteCard({ invite, mode, onClaimed, onToggle, onDelete }: Props) {
+export function InviteCard({ invite, mode, isApproved = true, onClaimed, onToggle, onDelete }: Props) {
   const [claiming, setClaiming] = useState(false)
   const [toggling, setToggling] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -156,7 +157,7 @@ export function InviteCard({ invite, mode, onClaimed, onToggle, onDelete }: Prop
         </div>
 
         {mode === 'browse' && (
-          <Button size="sm" onClick={handleClaim} loading={claiming} disabled={slotsLeft === 0}>
+          <Button size="sm" onClick={handleClaim} loading={claiming} disabled={slotsLeft === 0 || !isApproved}>
             {slotsLeft === 0 ? 'Full' : 'Claim invite'}
           </Button>
         )}
