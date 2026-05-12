@@ -20,8 +20,10 @@ export default function BrowsePage() {
 
   function handleClaimed(data: ClaimedData, offerId: string) {
     setClaimed(data)
-    // Decrement slot count locally
-    setOffers(prev => prev.map(o => o.id === offerId ? { ...o, slots_claimed: o.slots_claimed + 1 } : o))
+    setOffers(prev => prev
+      .map(o => o.id === offerId ? { ...o, slots_claimed: o.slots_claimed + 1 } : o)
+      .filter(o => o.slots_claimed < o.slots_total)
+    )
   }
 
   return (
