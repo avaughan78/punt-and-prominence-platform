@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
 import { AddressPicker } from './AddressPicker'
 import { MapPicker } from './MapPicker'
+import { BusinessSearchPicker } from './BusinessSearchPicker'
 import { createClient } from '@/lib/supabase/client'
 import type { Role } from '@/lib/types'
 
@@ -60,6 +61,10 @@ export function ProfileForm({ role, initial, userId }: Props) {
 
   function setAddress(address: string, lat: number, lng: number) {
     setForm(f => ({ ...f, address_line: address, latitude: lat, longitude: lng }))
+  }
+
+  function setFromGoogle(name: string, address: string, lat: number, lng: number) {
+    setForm(f => ({ ...f, display_name: name, address_line: address, latitude: lat, longitude: lng }))
   }
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -171,6 +176,7 @@ export function ProfileForm({ role, initial, userId }: Props) {
 
       {role === 'business' ? (
         <>
+          <BusinessSearchPicker onSelect={setFromGoogle} />
           <Input
             label="Business name"
             placeholder="The Mill Road Café"
