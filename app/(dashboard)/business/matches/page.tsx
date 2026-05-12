@@ -19,7 +19,8 @@ export default function BusinessMatchesPage() {
   useEffect(() => {
     fetch('/api/matches')
       .then(r => r.json())
-      .then(data => { setMatches(data); setLoading(false) })
+      .then(data => { setMatches(Array.isArray(data) ? data : []); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [])
 
   function handleUpdated(updated: Match) {

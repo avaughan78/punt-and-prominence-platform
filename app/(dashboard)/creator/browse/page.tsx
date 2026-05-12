@@ -14,7 +14,8 @@ export default function BrowsePage() {
   useEffect(() => {
     fetch('/api/offers')
       .then(r => r.json())
-      .then(data => { setOffers(data); setLoading(false) })
+      .then(data => { setOffers(Array.isArray(data) ? data : []); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [])
 
   function handleClaimed(data: ClaimedData, offerId: string) {

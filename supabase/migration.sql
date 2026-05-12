@@ -145,7 +145,7 @@ CREATE POLICY "invite_codes_select" ON public.invite_codes
 -- ============================================================
 -- SEED INVITE CODES (edit these before running)
 -- ============================================================
--- INSERT INTO public.invite_codes (code) VALUES
---   ('CAMBRIDGE2025'),
---   ('MILLROAD2025'),
---   ('PUNTER2025');
+INSERT INTO public.invite_codes (code) VALUES
+  ('CAMBRIDGE2025'),
+  ('MILLROAD2025'),
+  ('PUNTER2025');

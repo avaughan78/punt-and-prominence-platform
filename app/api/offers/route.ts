@@ -16,13 +16,17 @@ export async function GET() {
   if (role === 'business') {
     query = query.eq('business_id', user.id)
   } else {
-    // Creators see active offers with available slots
-    query = query.eq('is_active', true).filter('slots_claimed', 'lt', 'slots_total') as typeof query
+    query = query.eq('is_active', true)
   }
 
   const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+
+  // For creators, filter out full offers in JS (PostgREST can't compare two columns)
+  const result = role === 'creator'
+    ? (data ?? []).filter((o: { slots_claimed: number; slots_total: number }) => o.slots_claimed < o.slots_total)
+    : data
+  return NextResponse.json(result)
 }
 
 export async function POST(req: Request) {
