@@ -16,7 +16,7 @@ export async function GET() {
     .select(`
       *,
       offer:offers(*,business:profiles!offers_business_id_fkey(id,display_name,business_name,address_line)),
-      creator:profiles!matches_creator_id_fkey(id,display_name,instagram_handle),
+      creator:profiles!matches_creator_id_fkey(id,display_name,instagram_handle,avatar_url),
       business:profiles!matches_business_id_fkey(id,display_name,business_name,address_line)
     `)
     .eq(field, user.id)

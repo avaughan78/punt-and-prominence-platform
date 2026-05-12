@@ -64,6 +64,7 @@ export function MatchCard({ match, role, onUpdated }: Props) {
               <InstagramHandle
                 handle={match.creator.instagram_handle}
                 displayName={match.creator.display_name}
+                avatarUrl={match.creator.avatar_url}
                 size="sm"
               />
             </div>

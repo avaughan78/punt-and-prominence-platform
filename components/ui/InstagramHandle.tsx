@@ -4,6 +4,7 @@ import { useState } from 'react'
 interface Props {
   handle: string
   displayName?: string
+  avatarUrl?: string | null
   size?: 'sm' | 'md'
 }
 
@@ -22,8 +23,9 @@ function gradientColors(handle: string) {
   return palettes[handle.charCodeAt(0) % palettes.length]
 }
 
-export function InstagramHandle({ handle, displayName, size = 'md' }: Props) {
+export function InstagramHandle({ handle, displayName, avatarUrl, size = 'md' }: Props) {
   const [imgFailed, setImgFailed] = useState(false)
+  const photoSrc = avatarUrl || null
   const [c1, c2, c3] = gradientColors(handle)
   const label = displayName ?? handle
   const outerSz = size === 'sm' ? 32 : 44
@@ -54,9 +56,9 @@ export function InstagramHandle({ handle, displayName, size = 'md' }: Props) {
           className="rounded-full bg-white flex items-center justify-center overflow-hidden"
           style={{ width: innerSz, height: innerSz }}
         >
-          {!imgFailed ? (
+          {photoSrc && !imgFailed ? (
             <img
-              src={`https://unavatar.io/instagram/${handle}`}
+              src={photoSrc}
               alt={handle}
               width={avatarSz}
               height={avatarSz}

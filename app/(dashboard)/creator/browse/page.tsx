@@ -12,6 +12,7 @@ export default function BrowsePage() {
   const [loading, setLoading] = useState(true)
   const [claimed, setClaimed] = useState<ClaimedData | null>(null)
   const [instagramHandle, setInstagramHandle] = useState<string | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState<string>('')
 
   useEffect(() => {
@@ -22,6 +23,7 @@ export default function BrowsePage() {
       setOffers(Array.isArray(offersData) ? offersData : [])
       if (profile && !profile.error) {
         setInstagramHandle(profile.instagram_handle ?? null)
+        setAvatarUrl(profile.avatar_url ?? null)
         setDisplayName(profile.display_name ?? '')
       }
       setLoading(false)
@@ -55,7 +57,7 @@ export default function BrowsePage() {
             {/* Creator identity — always show */}
             <div className="flex justify-center mb-5">
               {instagramHandle ? (
-                <InstagramHandle handle={instagramHandle} displayName={displayName} size="md" />
+                <InstagramHandle handle={instagramHandle!} displayName={displayName} avatarUrl={avatarUrl} size="md" />
               ) : (
                 <div className="flex flex-col items-center gap-2">
                   <div

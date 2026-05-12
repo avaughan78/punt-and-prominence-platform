@@ -29,6 +29,7 @@ interface Props {
     category: string | null
     latitude: number | null
     longitude: number | null
+    avatar_url: string | null
   }
 }
 
@@ -43,6 +44,7 @@ export function ProfileForm({ role, initial }: Props) {
     category: initial.category ?? 'other',
     latitude: initial.latitude ?? null as number | null,
     longitude: initial.longitude ?? null as number | null,
+    avatar_url: initial.avatar_url ?? '',
   })
   const [loading, setLoading] = useState(false)
 
@@ -111,6 +113,31 @@ export function ProfileForm({ role, initial }: Props) {
           required
         />
       )}
+
+      {/* Avatar */}
+      <div>
+        <label className="block text-xs font-semibold text-[#1C2B3A] mb-1.5 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          Profile photo URL
+        </label>
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-sm font-bold" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)', color: '#fff' }}>
+            {form.avatar_url
+              ? <img src={form.avatar_url} alt="avatar" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+              : (form.display_name ? form.display_name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : '?')}
+          </div>
+          <input
+            type="url"
+            placeholder="Paste any image URL (e.g. from your Instagram)"
+            value={form.avatar_url}
+            onChange={e => set('avatar_url', e.target.value)}
+            className="flex-1 px-3 py-2.5 rounded-xl text-sm outline-none transition-all"
+            style={{ border: '1.5px solid rgba(0,0,0,0.1)', background: '#fff', fontFamily: "'Inter', sans-serif", color: '#1C2B3A' }}
+          />
+        </div>
+        <p className="text-xs text-gray-400 mt-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+          Tip: on Instagram, open your profile, long-press your photo and choose &ldquo;Copy image address&rdquo;
+        </p>
+      </div>
 
       <Input
         label="Instagram handle"
