@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import {
-  emailMatchVisited,
   emailMatchPosted,
   emailMatchVerified,
 } from '@/lib/email'
@@ -27,8 +26,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   // Status transition validation (one_off and retainer)
   const validTransitions: Record<string, Record<string, string[]>> = {
-    business: { pending: ['visited', 'active'], posted: ['verified'], active: ['completed'] },
-    creator: { visited: ['posted'], active: ['completed'] },
+    business: { pending: ['active'], posted: ['verified'], active: ['completed'] },
+    creator: { pending: ['posted'], active: ['completed'] },
   }
 
   const { data: match } = await supabase
@@ -69,15 +68,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const businessName = business?.business_name ?? business?.display_name ?? ''
   const offerTitle = offer?.title ?? 'Offer'
 
-  if (update.status === 'visited' && creator?.email) {
-    emailMatchVisited({
-      creatorEmail: creator.email,
-      creatorName: creator.display_name,
-      businessName,
-      offerTitle,
-      puntCode: match.punt_code,
-    })
-  } else if (update.status === 'verified' && creator?.email) {
+  if (update.status === 'verified' && creator?.email) {
     emailMatchVerified({
       creatorEmail: creator.email,
       creatorName: creator.display_name,

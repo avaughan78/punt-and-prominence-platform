@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/Input'
 import { formatDate, formatGBP } from '@/lib/utils'
 import type { Match, MatchDeliverable, Role } from '@/lib/types'
 
-const STEPS = ['pending', 'visited', 'posted', 'verified'] as const
+const STEPS = ['pending', 'posted', 'verified'] as const
 
 interface Props {
   match: Match
@@ -283,16 +283,13 @@ export function MatchCard({ match, role, onUpdated }: Props) {
       {/* Action button */}
       <div className="pt-1 border-t border-black/5">
         {/* One-off actions */}
-        {!isRetainer && role === 'business' && match.status === 'pending' && (
-          <Button size="sm" onClick={() => updateStatus('visited')} loading={loading}>Mark as visited</Button>
-        )}
         {!isRetainer && role === 'business' && match.status === 'posted' && (
           <Button size="sm" onClick={() => updateStatus('verified')} loading={loading}>Verify post</Button>
         )}
-        {!isRetainer && role === 'creator' && match.status === 'visited' && !showPostUrl && (
+        {!isRetainer && role === 'creator' && match.status === 'pending' && !showPostUrl && (
           <Button size="sm" onClick={() => setShowPostUrl(true)}>Submit post link</Button>
         )}
-        {!isRetainer && role === 'creator' && match.status === 'visited' && showPostUrl && (
+        {!isRetainer && role === 'creator' && match.status === 'pending' && showPostUrl && (
           <div className="flex flex-col gap-2">
             <Input label="Post URL" placeholder="https://www.instagram.com/p/..." value={postUrl} onChange={e => setPostUrl(e.target.value)} />
             <div className="flex gap-2">

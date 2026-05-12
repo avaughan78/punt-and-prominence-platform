@@ -18,7 +18,7 @@ export default async function CreatorDashboard() {
 
   // Count invites that still have slots available
   const availableInvites = (invites ?? []).filter(o => o.slots_claimed < o.slots_total).length
-  const active = matches?.filter(m => ['pending','visited','posted'].includes(m.status)).length ?? 0
+  const active = matches?.filter(m => ['pending','posted'].includes(m.status)).length ?? 0
   const verified = matches?.filter(m => m.status === 'verified').length ?? 0
 
   return (

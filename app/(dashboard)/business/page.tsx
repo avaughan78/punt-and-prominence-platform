@@ -24,7 +24,7 @@ export default async function BusinessDashboard() {
 
   const activeOffers = offers?.filter(o => o.is_active).length ?? 0
   const totalMatches = matches?.length ?? 0
-  const pendingMatches = matches?.filter(m => m.status === 'pending' || m.status === 'visited').length ?? 0
+  const pendingMatches = matches?.filter(m => m.status === 'pending').length ?? 0
   const verifiedMatches = matches?.filter(m => m.status === 'verified').length ?? 0
 
   return (

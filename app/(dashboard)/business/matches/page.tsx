@@ -6,7 +6,6 @@ import type { Match, MatchStatus } from '@/lib/types'
 const TABS: { label: string; value: MatchStatus | 'all' }[] = [
   { label: 'All', value: 'all' },
   { label: 'Pending', value: 'pending' },
-  { label: 'Visited', value: 'visited' },
   { label: 'Posted', value: 'posted' },
   { label: 'Verified', value: 'verified' },
 ]

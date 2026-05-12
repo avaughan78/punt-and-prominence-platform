@@ -5,16 +5,16 @@ import { MatchCard } from '@/components/matches/MatchCard'
 import { Button } from '@/components/ui/Button'
 import type { Match, MatchStatus } from '@/lib/types'
 
-const TABS: { label: string; value: MatchStatus | 'all' }[] = [
+const TABS: { label: string; value: MatchStatus | 'all' | 'in_progress' }[] = [
   { label: 'All', value: 'all' },
-  { label: 'In progress', value: 'visited' },
+  { label: 'In progress', value: 'in_progress' },
   { label: 'Verified', value: 'verified' },
 ]
 
 export default function CreatorMatchesPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<MatchStatus | 'all'>('all')
+  const [tab, setTab] = useState<MatchStatus | 'all' | 'in_progress'>('all')
 
   useEffect(() => {
     fetch('/api/matches')
@@ -28,7 +28,7 @@ export default function CreatorMatchesPage() {
   }
 
   const filtered = tab === 'all' ? matches : matches.filter(m => {
-    if (tab === 'visited') return ['pending','visited','posted'].includes(m.status)
+    if (tab === 'in_progress') return ['pending', 'posted'].includes(m.status)
     return m.status === tab
   })
 
