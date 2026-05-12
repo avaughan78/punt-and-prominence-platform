@@ -22,8 +22,8 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-16 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-8 text-xs font-medium"
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-6 text-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 text-xs font-medium"
           style={{ background: 'rgba(245,184,0,0.1)', color: '#F5B800', border: '1px solid rgba(245,184,0,0.2)', fontFamily: "'JetBrains Mono', monospace" }}>
           ★ Cambridge-only · Pilot programme
         </div>
@@ -33,7 +33,7 @@ export default function Home() {
           The local creator<br />marketplace for Cambridge
         </h1>
 
-        <p className="text-white/50 text-lg max-w-xl mb-10 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+        <p className="text-white/50 text-lg max-w-xl mb-8 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
           Connecting Cambridge&apos;s independent businesses with verified local micro-creators. Real people, real audiences, real results.
         </p>
 
@@ -56,14 +56,14 @@ export default function Home() {
         </div>
 
         {/* Role cards */}
-        <div className="grid sm:grid-cols-2 gap-4 mt-16 max-w-xl w-full">
-          <div className="rounded-2xl p-6 text-left" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(245,184,0,0.15)' }}>
-            <Building2 className="w-6 h-6 mb-3" style={{ color: '#F5B800' }} />
+        <div className="grid sm:grid-cols-2 gap-4 mt-10 max-w-xl w-full">
+          <div className="rounded-2xl p-5 text-left" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(245,184,0,0.15)' }}>
+            <Building2 className="w-5 h-5 mb-2.5" style={{ color: '#F5B800' }} />
             <h3 className="font-semibold text-white mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>For businesses</h3>
             <p className="text-xs text-white/40 leading-relaxed">Post an invite and get matched with verified Cambridge creators. Zero-risk guarantee on every match.</p>
           </div>
-          <div className="rounded-2xl p-6 text-left" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(107,230,176,0.15)' }}>
-            <Sparkles className="w-6 h-6 mb-3" style={{ color: '#6BE6B0' }} />
+          <div className="rounded-2xl p-5 text-left" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(107,230,176,0.15)' }}>
+            <Sparkles className="w-5 h-5 mb-2.5" style={{ color: '#6BE6B0' }} />
             <h3 className="font-semibold text-white mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>For creators</h3>
             <p className="text-xs text-white/40 leading-relaxed">Browse exclusive offers from Cambridge&apos;s best independent businesses. Claim, visit, post.</p>
           </div>
