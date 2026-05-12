@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { MapPin, Clock, Users } from 'lucide-react'
+import { MapPin, Clock, Users, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card } from '@/components/ui/Card'
 import { CategoryBadge } from '@/components/ui/Badge'
@@ -13,11 +13,13 @@ interface Props {
   mode: 'browse' | 'manage'
   onClaimed?: (matchData: { id: string; punt_code: string }) => void
   onToggle?: (id: string, active: boolean) => void
+  onDelete?: (id: string) => void
 }
 
-export function OfferCard({ offer, mode, onClaimed, onToggle }: Props) {
+export function OfferCard({ offer, mode, onClaimed, onToggle, onDelete }: Props) {
   const [claiming, setClaiming] = useState(false)
   const [toggling, setToggling] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const slotsLeft = offer.slots_total - offer.slots_claimed
 
   async function handleClaim() {
@@ -34,6 +36,18 @@ export function OfferCard({ offer, mode, onClaimed, onToggle }: Props) {
       onClaimed?.(data)
     }
     setClaiming(false)
+  }
+
+  async function handleDelete() {
+    if (!confirm(`Delete "${offer.title}"? This can't be undone.`)) return
+    setDeleting(true)
+    const res = await fetch(`/api/offers/${offer.id}`, { method: 'DELETE' })
+    if (res.ok) {
+      onDelete?.(offer.id)
+    } else {
+      toast.error('Failed to delete offer')
+      setDeleting(false)
+    }
   }
 
   async function handleToggle() {
@@ -107,14 +121,24 @@ export function OfferCard({ offer, mode, onClaimed, onToggle }: Props) {
         )}
 
         {mode === 'manage' && (
-          <Button
-            size="sm"
-            variant={offer.is_active ? 'ghost' : 'secondary'}
-            loading={toggling}
-            onClick={handleToggle}
-          >
-            {offer.is_active ? 'Pause' : 'Activate'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={offer.is_active ? 'ghost' : 'secondary'}
+              loading={toggling}
+              onClick={handleToggle}
+            >
+              {offer.is_active ? 'Pause' : 'Activate'}
+            </Button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
+              title="Delete offer"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
         )}
       </div>
     </Card>

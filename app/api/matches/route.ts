@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { generatePuntCode } from '@/lib/utils'
+import { emailMatchClaimed } from '@/lib/email'
 
 export async function GET() {
   const supabase = await createClient()
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
   // Get the offer to find business_id and check slots
   const { data: offer, error: offerErr } = await supabase
     .from('offers')
-    .select('id, business_id, slots_total, slots_claimed, is_active')
+    .select('id, title, business_id, slots_total, slots_claimed, is_active')
     .eq('id', offer_id)
     .single()
 
@@ -64,5 +65,27 @@ export async function POST(req: Request) {
     if (error.code === '23505') return NextResponse.json({ error: 'You have already claimed this offer' }, { status: 400 })
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // Notify the business (fire and forget)
+  const { data: bizProfile } = await supabase
+    .from('profiles')
+    .select('display_name, business_name, email')
+    .eq('id', offer.business_id)
+    .single()
+  const { data: creatorProfile } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('id', user.id)
+    .single()
+  if (bizProfile?.email) {
+    emailMatchClaimed({
+      businessEmail: bizProfile.email,
+      businessName: bizProfile.business_name ?? bizProfile.display_name,
+      creatorName: creatorProfile?.display_name ?? 'A creator',
+      offerTitle: (offer as { title?: string }).title ?? 'Offer',
+      puntCode: punt_code,
+    })
+  }
+
   return NextResponse.json(data, { status: 201 })
 }

@@ -56,9 +56,20 @@ export function MatchCard({ match, role, onUpdated }: Props) {
           <p className="font-semibold text-[#1C2B3A] leading-snug" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
             {offer?.title ?? 'Offer'}
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {role === 'creator' ? businessName : creatorHandle}
-          </p>
+          {role === 'creator' ? (
+            <p className="text-xs text-gray-500 mt-0.5">{businessName}</p>
+          ) : match.creator?.instagram_handle ? (
+            <a
+              href={`https://instagram.com/${match.creator.instagram_handle}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:underline mt-0.5 block"
+            >
+              @{match.creator.instagram_handle}
+            </a>
+          ) : (
+            <p className="text-xs text-gray-500 mt-0.5">{match.creator?.display_name}</p>
+          )}
         </div>
         <StatusBadge status={match.status} />
       </div>

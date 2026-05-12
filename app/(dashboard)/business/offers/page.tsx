@@ -13,11 +13,16 @@ export default function BusinessOffersPage() {
   useEffect(() => {
     fetch('/api/offers')
       .then(r => r.json())
-      .then(data => { setOffers(data); setLoading(false) })
+      .then(data => { setOffers(Array.isArray(data) ? data : []); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [])
 
   function handleToggle(id: string, active: boolean) {
     setOffers(prev => prev.map(o => o.id === id ? { ...o, is_active: active } : o))
+  }
+
+  function handleDelete(id: string) {
+    setOffers(prev => prev.filter(o => o.id !== id))
   }
 
   return (
@@ -49,7 +54,7 @@ export default function BusinessOffersPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {offers.map(offer => (
-            <OfferCard key={offer.id} offer={offer} mode="manage" onToggle={handleToggle} />
+            <OfferCard key={offer.id} offer={offer} mode="manage" onToggle={handleToggle} onDelete={handleDelete} />
           ))}
         </div>
       )}

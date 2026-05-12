@@ -1,5 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import {
+  emailMatchVisited,
+  emailMatchPosted,
+  emailMatchVerified,
+} from '@/lib/email'
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -10,10 +15,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const body = await req.json()
   const role = user.user_metadata?.role
 
-  // Enforce who can update what
   const allowedUpdates: Record<string, string[]> = {
-    business: ['status'],   // business marks visited / verified
-    creator: ['status', 'post_url'],  // creator marks posted + adds URL
+    business: ['status'],
+    creator: ['status', 'post_url'],
   }
   const allowed = allowedUpdates[role] ?? []
   const update: Record<string, unknown> = {}
@@ -26,11 +30,24 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     business: { pending: ['visited'], posted: ['verified'] },
     creator: { visited: ['posted'] },
   }
+
+  const { data: match } = await supabase
+    .from('matches')
+    .select(`
+      status, punt_code, post_url,
+      offer:offers(title, value_gbp),
+      creator:profiles!matches_creator_id_fkey(id, display_name, email),
+      business:profiles!matches_business_id_fkey(id, display_name, business_name, email)
+    `)
+    .eq('id', id)
+    .single()
+
+  if (!match) return NextResponse.json({ error: 'Match not found' }, { status: 404 })
+
   if (update.status) {
-    const { data: match } = await supabase.from('matches').select('status').eq('id', id).single()
-    const allowed_next = validTransitions[role]?.[match?.status ?? ''] ?? []
+    const allowed_next = validTransitions[role]?.[match.status ?? ''] ?? []
     if (!allowed_next.includes(update.status as string)) {
-      return NextResponse.json({ error: `Cannot transition from ${match?.status} to ${update.status}` }, { status: 400 })
+      return NextResponse.json({ error: `Cannot transition from ${match.status} to ${update.status}` }, { status: 400 })
     }
   }
 
@@ -44,5 +61,38 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Send notifications (fire and forget)
+  const creator = match.creator as { id: string; display_name: string; email: string } | null
+  const business = match.business as { id: string; display_name: string; business_name: string | null; email: string } | null
+  const offer = match.offer as { title: string; value_gbp: number } | null
+  const businessName = business?.business_name ?? business?.display_name ?? ''
+  const offerTitle = offer?.title ?? 'Offer'
+
+  if (update.status === 'visited' && creator?.email) {
+    emailMatchVisited({
+      creatorEmail: creator.email,
+      creatorName: creator.display_name,
+      businessName,
+      offerTitle,
+      puntCode: match.punt_code,
+    })
+  } else if (update.status === 'verified' && creator?.email) {
+    emailMatchVerified({
+      creatorEmail: creator.email,
+      creatorName: creator.display_name,
+      businessName,
+      offerTitle,
+    })
+  } else if (update.status === 'posted' && business?.email) {
+    emailMatchPosted({
+      businessEmail: business.email,
+      businessName,
+      creatorName: creator?.display_name ?? '',
+      offerTitle,
+      postUrl: (update.post_url as string) ?? match.post_url ?? '',
+    })
+  }
+
   return NextResponse.json(data)
 }

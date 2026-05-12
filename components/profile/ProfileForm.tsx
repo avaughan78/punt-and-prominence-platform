@@ -1,0 +1,130 @@
+'use client'
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Select } from '@/components/ui/Select'
+import { Button } from '@/components/ui/Button'
+import type { Role } from '@/lib/types'
+
+const CATEGORIES = [
+  { value: 'dining', label: 'Dining & drinks' },
+  { value: 'retail', label: 'Retail & shopping' },
+  { value: 'experience', label: 'Experience' },
+  { value: 'fitness', label: 'Fitness & wellness' },
+  { value: 'beauty', label: 'Beauty & lifestyle' },
+  { value: 'other', label: 'Other' },
+]
+
+interface Props {
+  role: Role
+  initial: {
+    display_name: string
+    business_name: string | null
+    bio: string | null
+    instagram_handle: string | null
+    website_url: string | null
+    address_line: string | null
+    category: string | null
+  }
+}
+
+export function ProfileForm({ role, initial }: Props) {
+  const [form, setForm] = useState({
+    display_name: initial.display_name ?? '',
+    business_name: initial.business_name ?? '',
+    bio: initial.bio ?? '',
+    instagram_handle: initial.instagram_handle ?? '',
+    website_url: initial.website_url ?? '',
+    address_line: initial.address_line ?? '',
+    category: initial.category ?? 'other',
+  })
+  const [loading, setLoading] = useState(false)
+
+  function set(key: string, value: string) {
+    setForm(f => ({ ...f, [key]: value }))
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    const res = await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+    if (res.ok) {
+      toast.success('Profile updated')
+    } else {
+      const d = await res.json()
+      toast.error(d.error ?? 'Failed to save')
+    }
+    setLoading(false)
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 max-w-lg">
+      {role === 'business' ? (
+        <>
+          <Input
+            label="Business name"
+            placeholder="The Mill Road Café"
+            value={form.display_name}
+            onChange={e => set('display_name', e.target.value)}
+            required
+          />
+          <Input
+            label="Address"
+            placeholder="12 Mill Road, Cambridge"
+            value={form.address_line}
+            onChange={e => set('address_line', e.target.value)}
+          />
+          <Select
+            label="Category"
+            options={CATEGORIES}
+            value={form.category}
+            onChange={e => set('category', e.target.value)}
+          />
+        </>
+      ) : (
+        <Input
+          label="Your name"
+          placeholder="Jane Smith"
+          value={form.display_name}
+          onChange={e => set('display_name', e.target.value)}
+          required
+        />
+      )}
+
+      <Input
+        label="Instagram handle"
+        placeholder="@yourhandle"
+        value={form.instagram_handle}
+        onChange={e => set('instagram_handle', e.target.value.replace(/^@/, ''))}
+        hint="Without the @"
+      />
+
+      <Input
+        label="Website"
+        type="url"
+        placeholder="https://yoursite.com"
+        value={form.website_url}
+        onChange={e => set('website_url', e.target.value)}
+      />
+
+      <Textarea
+        label="Bio"
+        placeholder={role === 'business'
+          ? "Tell creators a bit about your business..."
+          : "Tell businesses about yourself and your content style..."}
+        rows={3}
+        value={form.bio}
+        onChange={e => set('bio', e.target.value)}
+      />
+
+      <div className="pt-2">
+        <Button type="submit" loading={loading}>Save profile</Button>
+      </div>
+    </form>
+  )
+}
