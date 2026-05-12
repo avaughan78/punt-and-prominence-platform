@@ -78,7 +78,7 @@ export async function POST(req: Request) {
     .eq('id', user.id)
     .single()
   if (bizProfile?.email) {
-    emailMatchClaimed({
+    await emailMatchClaimed({
       businessEmail: bizProfile.email,
       businessName: bizProfile.business_name ?? bizProfile.display_name,
       creatorName: creatorProfile?.display_name ?? 'A creator',
