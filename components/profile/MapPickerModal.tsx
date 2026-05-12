@@ -13,28 +13,21 @@ interface Props {
   onClose: () => void
 }
 
+function stripCountry(s: string) {
+  return s.replace(/, United Kingdom$/, '').replace(/, UK$/, '')
+}
+
 export function MapPickerModal({ lat, lng, onConfirm, onClose }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)    // eslint-disable-line @typescript-eslint/no-explicit-any
   const markerRef = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
-  const geocoderRef = useRef<any>(null)
   const [address, setAddress] = useState('')
   const [placeName, setPlaceName] = useState('')
   const [pending, setPending] = useState<{ lat: number; lng: number } | null>(
     lat && lng ? { lat, lng } : null
   )
   const [geocoding, setGeocoding] = useState(false)
-
-  function reverseGeocode(latLng: { lat: number; lng: number }) {
-    if (!geocoderRef.current) return
-    setGeocoding(true)
-    geocoderRef.current.geocode({ location: latLng }, (results: any, status: string) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-      if (status === 'OK' && results?.[0]) {
-        setAddress(results[0].formatted_address.replace(/, UK$/, '').replace(/, United Kingdom$/, ''))
-      }
-      setGeocoding(false)
-    })
-  }
+  const [hint, setHint] = useState('')
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -56,31 +49,24 @@ export function MapPickerModal({ lat, lng, onConfirm, onClose }: Props) {
       const marker = new G.Marker({
         map: lat && lng ? map : undefined,
         position: center,
-        draggable: true,
         animation: G.Animation.DROP,
       })
 
-      geocoderRef.current = new G.Geocoder()
-
-      if (lat && lng) reverseGeocode({ lat, lng })
-
       const placesService = new G.places.PlacesService(map)
 
-      function stripCountry(s: string) {
-        return s.replace(/, United Kingdom$/, '').replace(/, UK$/, '')
+      // If reopening with an existing pin, show address
+      if (lat && lng) {
+        setGeocoding(true)
+        new G.Geocoder().geocode({ location: { lat, lng } }, (results: any, status: string) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+          if (status === 'OK' && results?.[0]) setAddress(stripCountry(results[0].formatted_address))
+          setGeocoding(false)
+        })
       }
-
-      marker.addListener('dragend', () => {
-        const pos = marker.getPosition()
-        const latlng = { lat: pos.lat(), lng: pos.lng() }
-        setPending(latlng)
-        setPlaceName('')
-        reverseGeocode(latlng)
-      })
 
       map.addListener('click', (e: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
         if (e.placeId) {
-          e.stop() // prevent default info window
+          e.stop()
+          setHint('')
           setGeocoding(true)
           placesService.getDetails(
             { placeId: e.placeId, fields: ['name', 'formatted_address', 'geometry'] },
@@ -97,12 +83,7 @@ export function MapPickerModal({ lat, lng, onConfirm, onClose }: Props) {
             }
           )
         } else {
-          const latlng = { lat: e.latLng.lat(), lng: e.latLng.lng() }
-          marker.setPosition(e.latLng)
-          marker.setMap(map)
-          setPending(latlng)
-          setPlaceName('')
-          reverseGeocode(latlng)
+          setHint("Tap a business marker on the map — or close this and use the search box or type manually.")
         }
       })
 
@@ -121,9 +102,12 @@ export function MapPickerModal({ lat, lng, onConfirm, onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
       <div className="bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col w-full max-w-lg">
         <div className="flex items-center justify-between px-4 py-3 border-b border-black/5">
-          <p className="font-semibold text-sm text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            Pick your location
-          </p>
+          <div>
+            <p className="font-semibold text-sm text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              Find your business on the map
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">Tap a business marker to select it</p>
+          </div>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
             <X className="w-4 h-4 text-gray-500" />
           </button>
@@ -131,17 +115,24 @@ export function MapPickerModal({ lat, lng, onConfirm, onClose }: Props) {
 
         <div ref={containerRef} style={{ height: 360 }} />
 
+        {/* Hint shown when user clicks empty space */}
+        {hint && (
+          <div className="px-4 py-2 text-xs text-amber-700 bg-amber-50 border-t border-amber-100" style={{ fontFamily: "'Inter', sans-serif" }}>
+            {hint}
+          </div>
+        )}
+
         <div className="px-4 py-3 border-t border-black/5 flex items-center gap-3">
           <MapPin className="w-4 h-4 shrink-0" style={{ color: '#6BE6B0' }} />
           <div className="flex-1 min-w-0">
             {geocoding
-              ? <span className="flex items-center gap-1.5 text-sm text-gray-400"><Loader2 className="w-3.5 h-3.5 animate-spin" />Finding address…</span>
-              : address
+              ? <span className="flex items-center gap-1.5 text-sm text-gray-400"><Loader2 className="w-3.5 h-3.5 animate-spin" />Loading…</span>
+              : pending
                 ? <>
                     {placeName && <p className="text-sm font-semibold text-[#1C2B3A] truncate" style={{ fontFamily: "'Inter', sans-serif" }}>{placeName}</p>}
                     <p className="text-xs text-gray-500 truncate" style={{ fontFamily: "'Inter', sans-serif" }}>{address}</p>
                   </>
-                : <span className="text-sm text-gray-400">Click the map or a business to set location</span>
+                : <span className="text-sm text-gray-400">No business selected</span>
             }
           </div>
           <Button size="sm" onClick={handleConfirm} disabled={!pending || geocoding}>
