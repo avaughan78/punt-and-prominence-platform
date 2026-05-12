@@ -8,7 +8,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { supabase } = guard
 
   const { id } = await params
-  const { action, reason } = await request.json() as { action: 'approve' | 'reject'; reason?: string }
+  const { action, reason } = await request.json() as { action: 'approve' | 'reject' | 'revoke'; reason?: string }
 
   const { data: profile, error: fetchError } = await supabase
     .from('profiles')
@@ -24,9 +24,16 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (action === 'approve') {
     await supabase.from('profiles').update({ is_approved: true }).eq('id', id)
     if (email) await emailCreatorApproved({ email, name: profile.display_name })
+
   } else if (action === 'reject') {
-    await supabase.from('profiles').update({ is_approved: false }).eq('id', id)
+    // Send rejection email first, then delete the user entirely (cascades to profile)
     if (email) await emailCreatorRejected({ email, name: profile.display_name, reason })
+    await supabase.auth.admin.deleteUser(id)
+
+  } else if (action === 'revoke') {
+    // Remove access but keep the account
+    await supabase.from('profiles').update({ is_approved: false }).eq('id', id)
+
   } else {
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   }

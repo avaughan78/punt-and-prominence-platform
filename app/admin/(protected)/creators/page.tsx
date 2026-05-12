@@ -31,7 +31,7 @@ export default function AdminCreators() {
 
   useEffect(() => { load() }, [])
 
-  async function handleAction(id: string, action: 'approve' | 'reject', reason?: string) {
+  async function handleAction(id: string, action: 'approve' | 'reject' | 'revoke', reason?: string) {
     setActionLoading(id)
     await fetch(`/api/admin/creators/${id}`, {
       method: 'PATCH',
@@ -138,7 +138,7 @@ export default function AdminCreators() {
                     className="text-xs px-3 py-1.5 rounded-lg font-semibold text-red-400 hover:bg-red-50 transition-colors"
                     style={{ border: '1px solid rgba(0,0,0,0.08)' }}
                   >
-                    Revoke
+                    Revoke access
                   </button>
                 )}
               </div>
@@ -148,32 +148,40 @@ export default function AdminCreators() {
       )}
 
       {/* Reject/revoke modal */}
-      {rejectId && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
-            <h3 className="font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-              {creators.find(c => c.id === rejectId)?.is_approved ? 'Revoke approval' : 'Reject creator'}
-            </h3>
-            <p className="text-xs text-gray-500 mb-4">Optionally add a reason — it will be included in the email.</p>
-            <textarea
-              value={rejectReason}
-              onChange={e => setRejectReason(e.target.value)}
-              placeholder="Reason (optional)"
-              rows={3}
-              className="w-full px-3 py-2 text-sm border border-black/10 rounded-xl outline-none focus:border-[#F5B800] resize-none mb-4"
-            />
-            <div className="flex gap-2 justify-end">
-              <button onClick={() => setRejectId(null)} className="text-sm px-4 py-2 rounded-xl text-gray-500 hover:bg-gray-50">Cancel</button>
-              <button
-                onClick={() => handleAction(rejectId, 'reject', rejectReason || undefined)}
-                className="text-sm px-4 py-2 rounded-xl font-semibold bg-red-500 text-white hover:bg-red-600"
-              >
-                Confirm
-              </button>
+      {rejectId && (() => {
+        const target = creators.find(c => c.id === rejectId)
+        const isRevoke = target?.is_approved ?? false
+        return (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+              <h3 className="font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                {isRevoke ? 'Revoke access' : 'Reject creator'}
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">
+                {isRevoke
+                  ? 'Their account will remain but they will lose access to claim invites.'
+                  : 'Their account and all profile data will be permanently deleted. A rejection email will be sent.'}
+              </p>
+              <textarea
+                value={rejectReason}
+                onChange={e => setRejectReason(e.target.value)}
+                placeholder="Reason (optional) — included in the email"
+                rows={3}
+                className="w-full px-3 py-2 text-sm border border-black/10 rounded-xl outline-none focus:border-[#F5B800] resize-none mb-4"
+              />
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setRejectId(null)} className="text-sm px-4 py-2 rounded-xl text-gray-500 hover:bg-gray-50">Cancel</button>
+                <button
+                  onClick={() => handleAction(rejectId, isRevoke ? 'revoke' : 'reject', rejectReason || undefined)}
+                  className="text-sm px-4 py-2 rounded-xl font-semibold bg-red-500 text-white hover:bg-red-600"
+                >
+                  {isRevoke ? 'Revoke access' : 'Reject & delete'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
