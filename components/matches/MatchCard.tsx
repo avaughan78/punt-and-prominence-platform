@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { Check, ExternalLink } from 'lucide-react'
+import { InstagramHandle } from '@/components/ui/InstagramHandle'
 import { toast } from 'sonner'
 import { Card } from '@/components/ui/Card'
 import { StatusBadge } from '@/components/ui/Badge'
@@ -59,14 +60,13 @@ export function MatchCard({ match, role, onUpdated }: Props) {
           {role === 'creator' ? (
             <p className="text-xs text-gray-500 mt-0.5">{businessName}</p>
           ) : match.creator?.instagram_handle ? (
-            <a
-              href={`https://instagram.com/${match.creator.instagram_handle}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:underline mt-0.5 block"
-            >
-              @{match.creator.instagram_handle}
-            </a>
+            <div className="mt-1">
+              <InstagramHandle
+                handle={match.creator.instagram_handle}
+                displayName={match.creator.display_name}
+                size="sm"
+              />
+            </div>
           ) : (
             <p className="text-xs text-gray-500 mt-0.5">{match.creator?.display_name}</p>
           )}

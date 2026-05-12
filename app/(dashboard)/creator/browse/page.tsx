@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { OfferCard } from '@/components/offers/OfferCard'
+import { InstagramHandle } from '@/components/ui/InstagramHandle'
 import { Button } from '@/components/ui/Button'
 import type { Offer } from '@/lib/types'
 
@@ -10,12 +11,21 @@ export default function BrowsePage() {
   const [offers, setOffers] = useState<Offer[]>([])
   const [loading, setLoading] = useState(true)
   const [claimed, setClaimed] = useState<ClaimedData | null>(null)
+  const [instagramHandle, setInstagramHandle] = useState<string | null>(null)
+  const [displayName, setDisplayName] = useState<string>('')
 
   useEffect(() => {
-    fetch('/api/offers')
-      .then(r => r.json())
-      .then(data => { setOffers(Array.isArray(data) ? data : []); setLoading(false) })
-      .catch(() => setLoading(false))
+    Promise.all([
+      fetch('/api/offers').then(r => r.json()),
+      fetch('/api/profile').then(r => r.json()),
+    ]).then(([offersData, profile]) => {
+      setOffers(Array.isArray(offersData) ? offersData : [])
+      if (profile && !profile.error) {
+        setInstagramHandle(profile.instagram_handle ?? null)
+        setDisplayName(profile.display_name ?? '')
+      }
+      setLoading(false)
+    }).catch(() => setLoading(false))
   }, [])
 
   function handleClaimed(data: ClaimedData, offerId: string) {
@@ -37,14 +47,24 @@ export default function BrowsePage() {
       {claimed && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-            <div className="text-center mb-4">
+            <div className="text-center mb-5">
               <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(107,230,176,0.15)' }}>
                 <span className="text-2xl">🎉</span>
               </div>
-              <h2 className="text-lg font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Offer claimed!</h2>
-              <p className="text-sm text-gray-500 mt-1">Show this code to the business when you visit.</p>
+              <h2 className="text-lg font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Offer claimed!</h2>
+              <p className="text-sm text-gray-500">Show this code to the business when you visit.</p>
             </div>
-            <div className="rounded-xl p-4 text-center mb-5" style={{ background: '#1C2B3A' }}>
+
+            {/* Creator identity */}
+            {instagramHandle ? (
+              <div className="flex justify-center mb-4">
+                <InstagramHandle handle={instagramHandle} displayName={displayName} />
+              </div>
+            ) : displayName ? (
+              <p className="text-center text-sm font-semibold text-[#1C2B3A] mb-4">{displayName}</p>
+            ) : null}
+
+            <div className="rounded-xl p-4 text-center mb-4" style={{ background: '#1C2B3A' }}>
               <p className="text-xs text-white/40 mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>YOUR PUNT CODE</p>
               <p className="text-3xl font-bold tracking-widest text-[#F5B800]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                 {claimed.punt_code}
