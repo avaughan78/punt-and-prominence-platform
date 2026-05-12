@@ -4,6 +4,12 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { emailCreatorApproved, emailCreatorRejected } from '@/lib/email'
 
+async function deleteCreator(supabase: ReturnType<typeof import('@/lib/supabase/admin').createAdminClient>, id: string) {
+  // matches.creator_id has CASCADE — deleting the profile removes their matches automatically
+  await supabase.from('profiles').delete().eq('id', id)
+  await supabase.auth.admin.deleteUser(id)
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const guard = await adminGuard()
   if ('error' in guard) return guard.error
@@ -47,7 +53,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       subject_id: id,
       metadata: { display_name: profile.display_name, email, instagram_handle: profile.instagram_handle, reason },
     })
-    await supabase.auth.admin.deleteUser(id)
+    await deleteCreator(supabase, id)
 
   } else if (action === 'revoke') {
     await supabase.from('profiles').update({ is_approved: false }).eq('id', id)
@@ -96,16 +102,9 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     actor,
     subject_type: 'creator',
     subject_id: id,
-    metadata: {
-      profile,
-      email,
-      matches: matches ?? [],
-    },
+    metadata: { profile, email, matches: matches ?? [] },
   })
 
-  // Delete matches before auth user (FK constraints)
-  await supabase.from('matches').delete().eq('creator_id', id)
-
-  await supabase.auth.admin.deleteUser(id)
+  await deleteCreator(supabase, id)
   return NextResponse.json({ ok: true })
 }

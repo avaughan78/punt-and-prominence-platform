@@ -38,9 +38,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     actor,
     subject_type: 'business',
     subject_id: id,
-    metadata: {
-      business_name: profile?.business_name ?? profile?.display_name,
-    },
+    metadata: { business_name: profile?.business_name ?? profile?.display_name },
   })
 
   return NextResponse.json({ ok: true })
@@ -79,17 +77,14 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     actor,
     subject_type: 'business',
     subject_id: id,
-    metadata: {
-      profile,
-      offers: offers ?? [],
-      matches: matches ?? [],
-    },
+    metadata: { profile, offers: offers ?? [], matches: matches ?? [] },
   })
 
-  // Delete dependents before auth user (FK constraints)
+  // matches.business_id has NO ACTION — must delete matches before profile
   await supabase.from('matches').delete().eq('business_id', id)
-  await supabase.from('offers').delete().eq('business_id', id)
-
+  // Deleting profile cascades to offers (offers.business_id CASCADE)
+  await supabase.from('profiles').delete().eq('id', id)
+  // Finally remove the auth user
   await supabase.auth.admin.deleteUser(id)
 
   return NextResponse.json({ ok: true })
