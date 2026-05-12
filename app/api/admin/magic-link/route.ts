@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   if (!adminEmail) return NextResponse.json({ error: 'Admin not configured' }, { status: 500 })
 
   const supabase = await createClient()
-  const origin = process.env.APP_URL ?? new URL(request.url).origin
+  const origin = (process.env.APP_URL ?? new URL(request.url).origin).replace(/\/$/, '')
   await supabase.auth.signInWithOtp({
     email: adminEmail,
     options: { emailRedirectTo: `${origin}/api/auth/callback?next=/admin` },
