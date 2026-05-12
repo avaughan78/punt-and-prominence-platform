@@ -1,8 +1,20 @@
 export type Role = 'business' | 'creator'
 
-export type MatchStatus = 'pending' | 'visited' | 'posted' | 'verified'
+export type MatchStatus = 'pending' | 'visited' | 'posted' | 'verified' | 'active' | 'completed'
 
 export type InviteCategory = 'dining' | 'retail' | 'experience' | 'fitness' | 'beauty' | 'other'
+
+export type InviteType = 'one_off' | 'retainer'
+
+export interface MatchDeliverable {
+  id: string
+  match_id: string
+  month_number: number
+  post_url: string
+  status: 'submitted' | 'verified'
+  verified_at: string | null
+  created_at: string
+}
 
 export type BusinessCategory = 'cafe' | 'restaurant' | 'bar' | 'retail' | 'fitness' | 'beauty' | 'hotel' | 'other'
 
@@ -34,7 +46,11 @@ export interface Invite {
   title: string
   description: string
   category: InviteCategory
+  invite_type: InviteType
   value_gbp: number
+  fee_gbp: number | null
+  posts_per_month: number | null
+  duration_months: number | null
   requirements: string | null
   slots_total: number
   slots_claimed: number
@@ -61,6 +77,7 @@ export interface Match {
   invite?: Invite
   creator?: Pick<Profile, 'id' | 'display_name' | 'instagram_handle' | 'avatar_url' | 'follower_count'>
   business?: Pick<Profile, 'id' | 'display_name' | 'business_name' | 'address_line'>
+  deliverables?: MatchDeliverable[]
 }
 
 // Supabase DB type scaffold (minimal — expand as needed)

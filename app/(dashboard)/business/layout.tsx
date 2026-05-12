@@ -16,7 +16,7 @@ export default async function BusinessLayout({ children }: { children: React.Rea
   if (!profile || profile.role !== 'business') redirect('/creator')
 
   return (
-    <DashboardShell role="business" displayName={profile.business_name ?? profile.display_name}>
+    <DashboardShell role="business" displayName={profile.display_name}>
       {children}
     </DashboardShell>
   )

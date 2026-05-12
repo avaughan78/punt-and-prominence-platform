@@ -15,9 +15,10 @@ export async function GET() {
     .from('matches')
     .select(`
       *,
-      invite:offers(*,business:profiles!offers_business_id_fkey(id,display_name,business_name,address_line)),
+      invite:offers(*,business:profiles!offers_business_id_fkey(id,display_name,business_name,address_line,latitude,longitude)),
       creator:profiles!matches_creator_id_fkey(id,display_name,instagram_handle,avatar_url,follower_count),
-      business:profiles!matches_business_id_fkey(id,display_name,business_name,address_line)
+      business:profiles!matches_business_id_fkey(id,display_name,business_name,address_line),
+      deliverables:match_deliverables(*)
     `)
     .eq(field, user.id)
     .order('created_at', { ascending: false })

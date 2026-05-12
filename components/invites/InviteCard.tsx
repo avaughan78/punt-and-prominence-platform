@@ -94,17 +94,45 @@ export function InviteCard({ invite, mode, onClaimed, onToggle, onDelete }: Prop
               )}
             </div>
           )}
-          <CategoryBadge category={invite.category} />
+          <div className="flex items-center gap-2 flex-wrap">
+            <CategoryBadge category={invite.category} />
+            {invite.invite_type === 'retainer' && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: 'rgba(107,230,176,0.15)', color: '#059669' }}>
+                Retainer
+              </span>
+            )}
+          </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="font-bold text-lg" style={{ color: '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {formatGBP(invite.value_gbp)}
-          </p>
-          <p className="text-xs text-gray-400">value</p>
+          {invite.invite_type === 'retainer' ? (
+            <>
+              <p className="font-bold text-lg" style={{ color: '#6BE6B0', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                {formatGBP(invite.fee_gbp ?? 0)}
+              </p>
+              <p className="text-xs text-gray-400">per month</p>
+            </>
+          ) : (
+            <>
+              <p className="font-bold text-lg" style={{ color: '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                {formatGBP(invite.value_gbp)}
+              </p>
+              <p className="text-xs text-gray-400">value</p>
+            </>
+          )}
         </div>
       </div>
 
       <p className="text-sm text-gray-600 leading-relaxed">{invite.description}</p>
+
+      {invite.invite_type === 'retainer' && (
+        <div className="flex items-center gap-4 text-xs rounded-xl px-3 py-2" style={{ background: 'rgba(107,230,176,0.08)', border: '1px solid rgba(107,230,176,0.2)' }}>
+          <span className="text-gray-600"><span className="font-semibold text-[#1C2B3A]">{invite.posts_per_month}</span> post{invite.posts_per_month !== 1 ? 's' : ''}/month</span>
+          {invite.duration_months
+            ? <span className="text-gray-600"><span className="font-semibold text-[#1C2B3A]">{invite.duration_months}</span> month{invite.duration_months !== 1 ? 's' : ''}</span>
+            : <span className="text-gray-600">Open-ended</span>
+          }
+        </div>
+      )}
 
       {invite.requirements && (
         <div className="rounded-xl p-3" style={{ background: 'rgba(28,43,58,0.04)' }}>
