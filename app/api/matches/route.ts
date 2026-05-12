@@ -1,0 +1,68 @@
+import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
+import { generatePuntCode } from '@/lib/utils'
+
+export async function GET() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const role = user.user_metadata?.role
+  const field = role === 'business' ? 'business_id' : 'creator_id'
+
+  const { data, error } = await supabase
+    .from('matches')
+    .select(`
+      *,
+      offer:offers(*,business:profiles!offers_business_id_fkey(id,display_name,business_name,address_line)),
+      creator:profiles!matches_creator_id_fkey(id,display_name,instagram_handle),
+      business:profiles!matches_business_id_fkey(id,display_name,business_name,address_line)
+    `)
+    .eq(field, user.id)
+    .order('created_at', { ascending: false })
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
+export async function POST(req: Request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (user.user_metadata?.role !== 'creator') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { offer_id } = await req.json()
+
+  // Get the offer to find business_id and check slots
+  const { data: offer, error: offerErr } = await supabase
+    .from('offers')
+    .select('id, business_id, slots_total, slots_claimed, is_active')
+    .eq('id', offer_id)
+    .single()
+
+  if (offerErr || !offer) return NextResponse.json({ error: 'Offer not found' }, { status: 404 })
+  if (!offer.is_active) return NextResponse.json({ error: 'Offer is no longer active' }, { status: 400 })
+  if (offer.slots_claimed >= offer.slots_total) return NextResponse.json({ error: 'No slots remaining' }, { status: 400 })
+
+  // Generate a unique punt code
+  let punt_code = generatePuntCode()
+  let attempts = 0
+  while (attempts < 10) {
+    const { data: existing } = await supabase.from('matches').select('id').eq('punt_code', punt_code).single()
+    if (!existing) break
+    punt_code = generatePuntCode()
+    attempts++
+  }
+
+  const { data, error } = await supabase
+    .from('matches')
+    .insert({ offer_id, creator_id: user.id, business_id: offer.business_id, punt_code })
+    .select()
+    .single()
+
+  if (error) {
+    if (error.code === '23505') return NextResponse.json({ error: 'You have already claimed this offer' }, { status: 400 })
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+  return NextResponse.json(data, { status: 201 })
+}

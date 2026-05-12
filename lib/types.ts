@@ -1,0 +1,89 @@
+export type Role = 'business' | 'creator'
+
+export type MatchStatus = 'pending' | 'visited' | 'posted' | 'verified'
+
+export type OfferCategory = 'dining' | 'retail' | 'experience' | 'fitness' | 'beauty' | 'other'
+
+export type BusinessCategory = 'cafe' | 'restaurant' | 'bar' | 'retail' | 'fitness' | 'beauty' | 'hotel' | 'other'
+
+export interface Profile {
+  id: string
+  role: Role
+  display_name: string
+  bio: string | null
+  instagram_handle: string | null
+  website_url: string | null
+  avatar_url: string | null
+  // Business fields
+  business_name: string | null
+  address_line: string | null
+  category: string | null
+  // Billing mock
+  has_card_on_file: boolean
+  card_last_four: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Offer {
+  id: string
+  business_id: string
+  title: string
+  description: string
+  category: OfferCategory
+  value_gbp: number
+  requirements: string | null
+  slots_total: number
+  slots_claimed: number
+  is_active: boolean
+  expires_at: string | null
+  created_at: string
+  updated_at: string
+  // Joined
+  business?: Pick<Profile, 'id' | 'display_name' | 'business_name' | 'address_line' | 'category'>
+}
+
+export interface Match {
+  id: string
+  offer_id: string
+  creator_id: string
+  business_id: string
+  status: MatchStatus
+  punt_code: string
+  post_url: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+  // Joined
+  offer?: Offer
+  creator?: Pick<Profile, 'id' | 'display_name' | 'instagram_handle'>
+  business?: Pick<Profile, 'id' | 'display_name' | 'business_name' | 'address_line'>
+}
+
+// Supabase DB type scaffold (minimal — expand as needed)
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: Profile
+        Insert: Partial<Profile> & { id: string; role: Role; display_name: string }
+        Update: Partial<Profile>
+      }
+      offers: {
+        Row: Offer
+        Insert: Omit<Offer, 'id' | 'slots_claimed' | 'created_at' | 'updated_at' | 'business'>
+        Update: Partial<Omit<Offer, 'id' | 'business_id' | 'created_at' | 'business'>>
+      }
+      matches: {
+        Row: Match
+        Insert: Omit<Match, 'id' | 'created_at' | 'updated_at' | 'offer' | 'creator' | 'business'>
+        Update: Partial<Pick<Match, 'status' | 'post_url' | 'notes'>>
+      }
+      invite_codes: {
+        Row: { id: string; code: string; used: boolean; used_by: string | null; created_at: string }
+        Insert: { code: string }
+        Update: { used: boolean; used_by: string }
+      }
+    }
+  }
+}
