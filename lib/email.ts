@@ -87,6 +87,44 @@ export async function emailMatchPosted(opts: {
   )
 }
 
+export async function emailWelcomeBusiness(opts: { email: string; name: string }) {
+  await send(
+    opts.email,
+    `Welcome to Punt & Prominence`,
+    wrap(`
+      <h2 style="font-size:20px;font-weight:700;margin:0 0 8px;">Welcome, ${opts.name} 👋</h2>
+      <p style="color:#6b7280;margin:0 0 16px;">You're in. Punt & Prominence connects your business with Cambridge's best local creators.</p>
+      <p style="color:#6b7280;margin:0 0 8px;font-weight:600;">Here's how it works:</p>
+      <ol style="color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
+        <li>Complete your business profile</li>
+        <li>Create an invite — set the value, slots, and what you'd like creators to post</li>
+        <li>Creators claim your invite and visit your business</li>
+        <li>Review their post and verify it when it goes live</li>
+      </ol>
+      <a href="https://puntandprominence.co.uk/business" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Go to your dashboard →</a>
+    `)
+  )
+}
+
+export async function emailWelcomeCreator(opts: { email: string; name: string }) {
+  await send(
+    opts.email,
+    `Welcome to Punt & Prominence`,
+    wrap(`
+      <h2 style="font-size:20px;font-weight:700;margin:0 0 8px;">Welcome, ${opts.name} 👋</h2>
+      <p style="color:#6b7280;margin:0 0 16px;">You're in. Punt & Prominence connects Cambridge creators with local businesses who want great content.</p>
+      <p style="color:#6b7280;margin:0 0 8px;font-weight:600;">Here's how it works:</p>
+      <ol style="color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
+        <li>Complete your profile and add your Instagram handle</li>
+        <li>Browse available invites from local businesses</li>
+        <li>Claim one, visit the business, and create your content</li>
+        <li>Submit your post link — the business verifies it and the match is complete</li>
+      </ol>
+      <a href="https://puntandprominence.co.uk/creator/browse" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Browse invites →</a>
+    `)
+  )
+}
+
 export async function emailMatchVerified(opts: {
   creatorEmail: string
   creatorName: string

@@ -70,6 +70,9 @@ export default function SignupPage() {
           .eq('id', codeRow.id)
       }
 
+      // Fire welcome email (non-blocking)
+      fetch('/api/auth/welcome', { method: 'POST' })
+
       router.push(role === 'business' ? '/business' : '/creator')
     }
   }
