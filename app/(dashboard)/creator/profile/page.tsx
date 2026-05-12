@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ProfileForm } from '@/components/profile/ProfileForm'
-import { DeleteAccountButton } from '@/components/account/DeleteAccountButton'
+import { CloseAccountSection } from '@/components/account/CloseAccountSection'
 
 export default async function CreatorProfilePage() {
   const supabase = await createClient()
@@ -25,7 +25,7 @@ export default async function CreatorProfilePage() {
         instagram_handle: null, website_url: null, address_line: null, category: null,
         latitude: null, longitude: null, avatar_url: null, follower_count: null,
       }} />
-      <DeleteAccountButton />
+      <CloseAccountSection />
     </div>
   )
 }
