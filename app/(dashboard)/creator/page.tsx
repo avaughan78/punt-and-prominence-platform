@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { StatCard } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Search, AlertCircle } from 'lucide-react'
+import { Search, AlertCircle, Clock } from 'lucide-react'
 
 export default async function CreatorDashboard() {
   const supabase = await createClient()
@@ -11,7 +11,7 @@ export default async function CreatorDashboard() {
   if (!user) redirect('/login')
 
   const [{ data: profile }, { data: invites }, { data: matches }] = await Promise.all([
-    supabase.from('profiles').select('instagram_handle').eq('id', user!.id).single(),
+    supabase.from('profiles').select('instagram_handle, is_approved').eq('id', user!.id).single(),
     supabase.from('offers').select('slots_total, slots_claimed').eq('is_active', true),
     supabase.from('matches').select('id, status').eq('creator_id', user!.id),
   ])
@@ -27,6 +27,20 @@ export default async function CreatorDashboard() {
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Dashboard</h1>
         <p className="text-sm text-gray-500 mt-0.5">Browse Cambridge invites and manage your matches.</p>
       </div>
+
+      {profile?.is_approved === false && (
+        <div className="flex items-start gap-3 rounded-2xl px-4 py-4 mb-6" style={{ background: 'rgba(245,184,0,0.08)', border: '1.5px solid rgba(245,184,0,0.25)' }}>
+          <Clock className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#F5B800' }} />
+          <div>
+            <p className="text-sm font-semibold text-[#1C2B3A] mb-0.5" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              Your profile is under review
+            </p>
+            <p className="text-xs text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
+              We&apos;re reviewing your profile and will be in touch shortly. You can browse invites in the meantime — claiming will be unlocked once you&apos;re approved.
+            </p>
+          </div>
+        </div>
+      )}
 
       {!profile?.instagram_handle && (
         <Link href="/creator/onboarding">

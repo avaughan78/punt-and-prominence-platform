@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Building2, Sparkles } from 'lucide-react'
+import { Building2, Sparkles, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -16,6 +16,9 @@ export default function SignupPage() {
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [inviteCode, setInviteCode] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -27,6 +30,10 @@ export default function SignupPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!role) return
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match.')
+      return
+    }
     setLoading(true)
 
     // Validate invite code first
@@ -142,15 +149,46 @@ export default function SignupPage() {
             onChange={e => setEmail(e.target.value)}
             required
           />
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Min. 8 characters"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            minLength={8}
-            required
-          />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              Password
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Min. 8 characters"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                minLength={8}
+                required
+                className="w-full px-4 py-3 pr-10 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              />
+              <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              Confirm password
+            </label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="Re-enter your password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                minLength={8}
+                required
+                className="w-full px-4 py-3 pr-10 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              />
+              <button type="button" onClick={() => setShowConfirmPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
           <Input
             label="Invite code"
             placeholder="e.g. CAMBRIDGE2025"
