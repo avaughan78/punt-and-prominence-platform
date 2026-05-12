@@ -13,7 +13,8 @@ export default async function CreatorLayout({ children }: { children: React.Reac
     .eq('id', user.id)
     .single()
 
-  if (!profile || profile.role !== 'creator') redirect('/business')
+  if (!profile) redirect('/creator/onboarding')
+  if (profile.role !== 'creator') redirect('/business')
 
   return (
     <DashboardShell role="creator" displayName={profile.display_name}>

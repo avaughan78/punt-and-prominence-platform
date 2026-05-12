@@ -13,7 +13,8 @@ export default async function BusinessLayout({ children }: { children: React.Rea
     .eq('id', user.id)
     .single()
 
-  if (!profile || profile.role !== 'business') redirect('/creator')
+  if (!profile) redirect('/business/onboarding')
+  if (profile.role !== 'business') redirect('/creator')
 
   return (
     <DashboardShell role="business" displayName={profile.display_name}>
