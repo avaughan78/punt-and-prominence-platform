@@ -130,7 +130,13 @@ export function ProfileForm({ role, initial, userId }: Props) {
       <MapPickerModal
         lat={form.latitude}
         lng={form.longitude}
-        onConfirm={(address, lat, lng) => setForm(f => ({ ...f, address_line: address, latitude: lat, longitude: lng }))}
+        onConfirm={(address, lat, lng, name) => setForm(f => ({
+          ...f,
+          address_line: address,
+          latitude: lat,
+          longitude: lng,
+          ...(name ? { display_name: name } : {}),
+        }))}
         onClose={() => setShowMap(false)}
       />
     )}

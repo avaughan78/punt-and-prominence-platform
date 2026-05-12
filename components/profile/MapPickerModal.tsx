@@ -9,7 +9,7 @@ const CAMBRIDGE = { lat: 52.2053, lng: 0.1218 }
 interface Props {
   lat: number | null
   lng: number | null
-  onConfirm: (address: string, lat: number, lng: number) => void
+  onConfirm: (address: string, lat: number, lng: number, name?: string) => void
   onClose: () => void
 }
 
@@ -19,6 +19,7 @@ export function MapPickerModal({ lat, lng, onConfirm, onClose }: Props) {
   const markerRef = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
   const geocoderRef = useRef<any>(null)
   const [address, setAddress] = useState('')
+  const [placeName, setPlaceName] = useState('')
   const [pending, setPending] = useState<{ lat: number; lng: number } | null>(
     lat && lng ? { lat, lng } : null
   )
@@ -63,19 +64,46 @@ export function MapPickerModal({ lat, lng, onConfirm, onClose }: Props) {
 
       if (lat && lng) reverseGeocode({ lat, lng })
 
+      const placesService = new G.places.PlacesService(map)
+
+      function stripCountry(s: string) {
+        return s.replace(/, United Kingdom$/, '').replace(/, UK$/, '')
+      }
+
       marker.addListener('dragend', () => {
         const pos = marker.getPosition()
         const latlng = { lat: pos.lat(), lng: pos.lng() }
         setPending(latlng)
+        setPlaceName('')
         reverseGeocode(latlng)
       })
 
       map.addListener('click', (e: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-        const latlng = { lat: e.latLng.lat(), lng: e.latLng.lng() }
-        marker.setPosition(e.latLng)
-        marker.setMap(map)
-        setPending(latlng)
-        reverseGeocode(latlng)
+        if (e.placeId) {
+          e.stop() // prevent default info window
+          setGeocoding(true)
+          placesService.getDetails(
+            { placeId: e.placeId, fields: ['name', 'formatted_address', 'geometry'] },
+            (place: any, status: string) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+              if (status === 'OK' && place?.geometry?.location) {
+                const latlng = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() }
+                marker.setPosition(place.geometry.location)
+                marker.setMap(map)
+                setPending(latlng)
+                setPlaceName(place.name ?? '')
+                setAddress(stripCountry(place.formatted_address ?? ''))
+              }
+              setGeocoding(false)
+            }
+          )
+        } else {
+          const latlng = { lat: e.latLng.lat(), lng: e.latLng.lng() }
+          marker.setPosition(e.latLng)
+          marker.setMap(map)
+          setPending(latlng)
+          setPlaceName('')
+          reverseGeocode(latlng)
+        }
       })
 
       mapRef.current = map
@@ -85,7 +113,7 @@ export function MapPickerModal({ lat, lng, onConfirm, onClose }: Props) {
 
   function handleConfirm() {
     if (!pending) return
-    onConfirm(address, pending.lat, pending.lng)
+    onConfirm(address, pending.lat, pending.lng, placeName || undefined)
     onClose()
   }
 
@@ -105,12 +133,17 @@ export function MapPickerModal({ lat, lng, onConfirm, onClose }: Props) {
 
         <div className="px-4 py-3 border-t border-black/5 flex items-center gap-3">
           <MapPin className="w-4 h-4 shrink-0" style={{ color: '#6BE6B0' }} />
-          <p className="text-sm text-gray-600 flex-1 truncate" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <div className="flex-1 min-w-0">
             {geocoding
-              ? <span className="flex items-center gap-1.5 text-gray-400"><Loader2 className="w-3.5 h-3.5 animate-spin" />Finding address…</span>
-              : address || <span className="text-gray-400">Click the map to drop a pin</span>
+              ? <span className="flex items-center gap-1.5 text-sm text-gray-400"><Loader2 className="w-3.5 h-3.5 animate-spin" />Finding address…</span>
+              : address
+                ? <>
+                    {placeName && <p className="text-sm font-semibold text-[#1C2B3A] truncate" style={{ fontFamily: "'Inter', sans-serif" }}>{placeName}</p>}
+                    <p className="text-xs text-gray-500 truncate" style={{ fontFamily: "'Inter', sans-serif" }}>{address}</p>
+                  </>
+                : <span className="text-sm text-gray-400">Click the map or a business to set location</span>
             }
-          </p>
+          </div>
           <Button size="sm" onClick={handleConfirm} disabled={!pending || geocoding}>
             Confirm
           </Button>
