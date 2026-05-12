@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { StatCard } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -7,6 +8,7 @@ import { Search } from 'lucide-react'
 export default async function CreatorDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
   const [{ count: totalOffers }, { data: matches }] = await Promise.all([
     supabase.from('offers').select('id', { count: 'exact', head: true }).eq('is_active', true),

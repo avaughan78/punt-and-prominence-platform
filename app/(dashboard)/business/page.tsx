@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { StatCard } from '@/components/ui/Card'
 import { StatusBadge } from '@/components/ui/Badge'
@@ -9,6 +10,7 @@ import { Plus } from 'lucide-react'
 export default async function BusinessDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
   const [{ data: offers }, { data: matches }] = await Promise.all([
     supabase.from('offers').select('id, is_active').eq('business_id', user!.id),
