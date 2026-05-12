@@ -179,16 +179,30 @@ export function ProfileForm({ role, initial, userId }: Props) {
           />
           <AddressPicker value={form.address_line} onChange={setAddress} />
           {form.latitude && form.longitude && (
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${form.latitude},${form.longitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs flex items-center gap-1.5 -mt-2"
-              style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
-            >
-              <span style={{ color: '#6BE6B0' }}>✓</span>
-              Location pinned — click to verify on Google Maps
-            </a>
+            <div className="rounded-xl overflow-hidden -mt-1" style={{ border: '1.5px solid rgba(0,0,0,0.08)' }}>
+              <iframe
+                title="Location preview"
+                width="100%"
+                height="180"
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${form.longitude - 0.008},${form.latitude - 0.005},${form.longitude + 0.008},${form.latitude + 0.005}&layer=mapnik&marker=${form.latitude},${form.longitude}`}
+                style={{ display: 'block', border: 'none' }}
+              />
+              <div className="flex items-center justify-between px-3 py-2" style={{ background: 'rgba(28,43,58,0.03)' }}>
+                <span className="text-xs text-gray-500 flex items-center gap-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  <span style={{ color: '#6BE6B0' }}>✓</span>
+                  Location pinned
+                </span>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${form.latitude},${form.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs hover:underline"
+                  style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+                >
+                  Verify on Google Maps →
+                </a>
+              </div>
+            </div>
           )}
           <Select
             label="Category"
