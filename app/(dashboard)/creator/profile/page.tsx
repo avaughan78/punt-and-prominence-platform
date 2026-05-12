@@ -22,6 +22,7 @@ export default async function CreatorProfilePage() {
       <ProfileForm role="creator" initial={profile ?? {
         display_name: '', business_name: null, bio: null,
         instagram_handle: null, website_url: null, address_line: null, category: null,
+        latitude: null, longitude: null,
       }} />
     </div>
   )

@@ -75,10 +75,23 @@ export function OfferCard({ offer, mode, onClaimed, onToggle, onDelete }: Props)
           {offer.business && (
             <div className="flex items-center gap-1 mb-2">
               <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
-              <span className="text-xs text-gray-500 truncate">
-                {offer.business.business_name ?? offer.business.display_name}
-                {offer.business.address_line && ` · ${offer.business.address_line}`}
-              </span>
+              {offer.business.latitude && offer.business.longitude ? (
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${offer.business.latitude},${offer.business.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-500 hover:underline truncate"
+                  onClick={e => e.stopPropagation()}
+                >
+                  {offer.business.business_name ?? offer.business.display_name}
+                  {offer.business.address_line && ` · ${offer.business.address_line}`}
+                </a>
+              ) : (
+                <span className="text-xs text-gray-500 truncate">
+                  {offer.business.business_name ?? offer.business.display_name}
+                  {offer.business.address_line && ` · ${offer.business.address_line}`}
+                </span>
+              )}
             </div>
           )}
           <CategoryBadge category={offer.category} />

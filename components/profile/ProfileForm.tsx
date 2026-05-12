@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
+import { AddressPicker } from './AddressPicker'
 import type { Role } from '@/lib/types'
 
 const CATEGORIES = [
@@ -26,6 +27,8 @@ interface Props {
     website_url: string | null
     address_line: string | null
     category: string | null
+    latitude: number | null
+    longitude: number | null
   }
 }
 
@@ -38,11 +41,17 @@ export function ProfileForm({ role, initial }: Props) {
     website_url: initial.website_url ?? '',
     address_line: initial.address_line ?? '',
     category: initial.category ?? 'other',
+    latitude: initial.latitude ?? null as number | null,
+    longitude: initial.longitude ?? null as number | null,
   })
   const [loading, setLoading] = useState(false)
 
   function set(key: string, value: string) {
     setForm(f => ({ ...f, [key]: value }))
+  }
+
+  function setAddress(address: string, lat: number, lng: number) {
+    setForm(f => ({ ...f, address_line: address, latitude: lat, longitude: lng }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -73,12 +82,19 @@ export function ProfileForm({ role, initial }: Props) {
             onChange={e => set('display_name', e.target.value)}
             required
           />
-          <Input
-            label="Address"
-            placeholder="12 Mill Road, Cambridge"
-            value={form.address_line}
-            onChange={e => set('address_line', e.target.value)}
-          />
+          <AddressPicker value={form.address_line} onChange={setAddress} />
+          {form.latitude && form.longitude && (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${form.latitude},${form.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs flex items-center gap-1.5 -mt-2"
+              style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+            >
+              <span style={{ color: '#6BE6B0' }}>✓</span>
+              Location pinned — click to verify on Google Maps
+            </a>
+          )}
           <Select
             label="Category"
             options={CATEGORIES}

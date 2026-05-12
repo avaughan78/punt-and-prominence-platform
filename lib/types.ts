@@ -18,6 +18,8 @@ export interface Profile {
   business_name: string | null
   address_line: string | null
   category: string | null
+  latitude: number | null
+  longitude: number | null
   // Billing mock
   has_card_on_file: boolean
   card_last_four: string | null
@@ -40,7 +42,7 @@ export interface Offer {
   created_at: string
   updated_at: string
   // Joined
-  business?: Pick<Profile, 'id' | 'display_name' | 'business_name' | 'address_line' | 'category'>
+  business?: Pick<Profile, 'id' | 'display_name' | 'business_name' | 'address_line' | 'category' | 'latitude' | 'longitude'>
 }
 
 export interface Match {
