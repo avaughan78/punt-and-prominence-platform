@@ -25,6 +25,7 @@ export default function AdminBusinesses() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'active' | 'suspended'>('all')
   const [search, setSearch] = useState('')
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -34,6 +35,19 @@ export default function AdminBusinesses() {
   }
 
   useEffect(() => { load() }, [])
+
+  async function handleDelete(id: string) {
+    setActionLoading(id)
+    const res = await fetch(`/api/admin/businesses/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      toast.success('Business deleted')
+      setDeleteId(null)
+      await load()
+    } else {
+      toast.error('Delete failed')
+    }
+    setActionLoading(null)
+  }
 
   async function handleAction(id: string, action: 'suspend' | 'unsuspend') {
     setActionLoading(id)
@@ -198,11 +212,44 @@ export default function AdminBusinesses() {
                     {actionLoading === biz.id ? '…' : 'Suspend'}
                   </button>
                 )}
+                <button
+                  onClick={() => setDeleteId(biz.id)}
+                  className="text-xs px-3 py-1.5 rounded-lg font-semibold text-red-400 hover:bg-red-50 transition-colors"
+                  style={{ border: '1px solid rgba(239,68,68,0.15)' }}
+                >
+                  Delete
+                </button>
               </div>
             </div>
           ))}
         </div>
       )}
+      {deleteId && (() => {
+        const target = businesses.find(b => b.id === deleteId)
+        return (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+              <h3 className="font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                Delete business
+              </h3>
+              <p className="text-sm text-gray-500 mb-1">
+                Are you sure you want to delete <strong>{target?.business_name ?? target?.display_name}</strong>?
+              </p>
+              <p className="text-xs text-red-500 mb-5">This permanently removes their account, profile, invites, and matches. This cannot be undone.</p>
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setDeleteId(null)} className="text-sm px-4 py-2 rounded-xl text-gray-500 hover:bg-gray-50">Cancel</button>
+                <button
+                  onClick={() => handleDelete(deleteId)}
+                  disabled={actionLoading === deleteId}
+                  className="text-sm px-4 py-2 rounded-xl font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-50"
+                >
+                  {actionLoading === deleteId ? 'Deleting…' : 'Delete permanently'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
