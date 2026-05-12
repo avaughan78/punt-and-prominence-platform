@@ -41,9 +41,9 @@ export default async function CreatorDashboard() {
       )}
 
       <div className="grid grid-cols-3 gap-3 mb-8">
-        <StatCard label="Available invites" value={availableInvites} />
-        <StatCard label="Active matches" value={active} accent="#C084FC" />
-        <StatCard label="Verified" value={verified} accent="#22c55e" />
+        <StatCard label="Available invites" value={availableInvites} href="/creator/browse" />
+        <StatCard label="Active matches" value={active} accent="#C084FC" href="/creator/matches" />
+        <StatCard label="Verified" value={verified} accent="#22c55e" href="/creator/matches" />
       </div>
 
       <div className="rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"

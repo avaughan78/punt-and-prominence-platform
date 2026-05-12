@@ -57,10 +57,10 @@ export default async function BusinessDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-        <StatCard label="Active offers" value={activeOffers} />
-        <StatCard label="Total matches" value={totalMatches} accent="#6BE6B0" />
-        <StatCard label="In progress" value={pendingMatches} accent="#C084FC" />
-        <StatCard label="Verified" value={verifiedMatches} accent="#22c55e" />
+        <StatCard label="Active invites" value={activeOffers} href="/business/invites" />
+        <StatCard label="Total matches" value={totalMatches} accent="#6BE6B0" href="/business/matches" />
+        <StatCard label="In progress" value={pendingMatches} accent="#C084FC" href="/business/matches" />
+        <StatCard label="Verified" value={verifiedMatches} accent="#22c55e" href="/business/matches" />
       </div>
 
       {/* Recent matches */}

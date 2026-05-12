@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 interface CardProps {
@@ -26,11 +27,13 @@ interface StatCardProps {
   value: string | number
   sub?: string
   accent?: string
+  href?: string
 }
 
-export function StatCard({ label, value, sub, accent = '#F5B800' }: StatCardProps) {
-  return (
-    <Card>
+export function StatCard({ label, value, sub, accent = '#F5B800', href }: StatCardProps) {
+  const isClickable = href && Number(value) > 0
+  const inner = (
+    <>
       <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'rgba(28,43,58,0.4)', fontFamily: "'JetBrains Mono', monospace" }}>
         {label}
       </p>
@@ -38,6 +41,15 @@ export function StatCard({ label, value, sub, accent = '#F5B800' }: StatCardProp
         {value}
       </p>
       {sub && <p className="text-xs text-gray-400">{sub}</p>}
-    </Card>
+    </>
   )
+  if (isClickable) {
+    return (
+      <Link href={href} className="block rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-md"
+        style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 8px rgba(0,0,0,0.04)', background: 'white', padding: '20px 24px' }}>
+        {inner}
+      </Link>
+    )
+  }
+  return <Card>{inner}</Card>
 }
