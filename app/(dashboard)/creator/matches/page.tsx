@@ -36,7 +36,7 @@ export default function CreatorMatchesPage() {
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>My Matches</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Track your claimed offers and post submissions.</p>
+        <p className="text-sm text-gray-500 mt-0.5">Track your claimed invites and post submissions.</p>
       </div>
 
       <div className="flex gap-1 mb-6">
