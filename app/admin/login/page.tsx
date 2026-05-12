@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 
 export default function AdminLoginPage() {
@@ -8,18 +7,11 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSend() {
     setLoading(true)
     setError('')
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithOtp({
-      email: (e.target as HTMLFormElement).email.value,
-      options: {
-        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/admin`,
-      },
-    })
-    if (error) { setError(error.message); setLoading(false); return }
+    const res = await fetch('/api/admin/magic-link', { method: 'POST' })
+    if (!res.ok) { setError('Something went wrong'); setLoading(false); return }
     setSent(true)
     setLoading(false)
   }
@@ -38,23 +30,11 @@ export default function AdminLoginPage() {
             <p className="text-xs text-gray-500">A magic link has been sent. Click it to sign in.</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                Admin email
-              </label>
-              <input
-                name="email"
-                type="email"
-                required
-                placeholder="you@example.com"
-                className="w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              />
-            </div>
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-gray-500">Click below to receive a magic link at the configured admin address.</p>
             {error && <p className="text-xs text-red-500">{error}</p>}
-            <Button type="submit" loading={loading}>Send magic link</Button>
-          </form>
+            <Button loading={loading} onClick={handleSend}>Send magic link</Button>
+          </div>
         )}
       </div>
     </div>
