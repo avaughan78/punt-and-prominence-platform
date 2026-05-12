@@ -65,7 +65,7 @@ export function ProfileForm({ role, initial, userId }: Props) {
   }
 
   function setFromGoogle(name: string, address: string, lat: number, lng: number) {
-    setForm(f => ({ ...f, display_name: name, address_line: address, latitude: lat, longitude: lng }))
+    setForm(f => ({ ...f, business_name: name, address_line: address, latitude: lat, longitude: lng }))
   }
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -135,7 +135,7 @@ export function ProfileForm({ role, initial, userId }: Props) {
           address_line: address,
           latitude: lat,
           longitude: lng,
-          ...(name ? { display_name: name } : {}),
+          ...(name ? { business_name: name } : {}),
         }))}
         onClose={() => setShowMap(false)}
       />
@@ -194,10 +194,17 @@ export function ProfileForm({ role, initial, userId }: Props) {
         <>
           <BusinessSearchPicker onSelect={setFromGoogle} />
           <Input
-            label="Business name"
-            placeholder="The Mill Road Café"
+            label="Your name"
+            placeholder="Jane Smith"
             value={form.display_name}
             onChange={e => set('display_name', e.target.value)}
+            required
+          />
+          <Input
+            label="Business name"
+            placeholder="The Mill Road Café"
+            value={form.business_name}
+            onChange={e => set('business_name', e.target.value)}
             required
           />
           <div className="flex flex-col gap-1.5">
