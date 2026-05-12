@@ -28,7 +28,7 @@ export default function Home() {
           ★ Cambridge-only · Pilot programme
         </div>
 
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-6 leading-tight max-w-xl"
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-6 leading-tight max-w-2xl"
           style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
           The local creator marketplace for Cambridge
         </h1>
