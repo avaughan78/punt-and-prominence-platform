@@ -48,21 +48,28 @@ export default function BrowsePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
             <div className="text-center mb-5">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(107,230,176,0.15)' }}>
-                <span className="text-2xl">🎉</span>
-              </div>
               <h2 className="text-lg font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Invite claimed!</h2>
-              <p className="text-sm text-gray-500">Show this code to the business when you visit.</p>
+              <p className="text-sm text-gray-500">Show this to the business when you visit.</p>
             </div>
 
-            {/* Creator identity */}
-            {instagramHandle ? (
-              <div className="flex justify-center mb-4">
-                <InstagramHandle handle={instagramHandle} displayName={displayName} />
-              </div>
-            ) : displayName ? (
-              <p className="text-center text-sm font-semibold text-[#1C2B3A] mb-4">{displayName}</p>
-            ) : null}
+            {/* Creator identity — always show */}
+            <div className="flex justify-center mb-5">
+              {instagramHandle ? (
+                <InstagramHandle handle={instagramHandle} displayName={displayName} size="md" />
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <div
+                    className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold"
+                    style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)', color: '#fff', fontFamily: "'Bricolage Grotesque', sans-serif" }}
+                  >
+                    {displayName ? displayName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2) : '?'}
+                  </div>
+                  {displayName && (
+                    <p className="text-sm font-semibold text-[#1C2B3A]" style={{ fontFamily: "'Inter', sans-serif" }}>{displayName}</p>
+                  )}
+                </div>
+              )}
+            </div>
 
             <div className="rounded-xl p-4 text-center mb-4" style={{ background: '#1C2B3A' }}>
               <p className="text-xs text-white/40 mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>YOUR PUNT CODE</p>
