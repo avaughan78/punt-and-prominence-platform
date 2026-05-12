@@ -21,10 +21,11 @@ export function formatDate(iso: string): string {
 
 export function statusLabel(status: string): string {
   const labels: Record<string, string> = {
-    pending: 'Pending visit',
-    visited: 'Visited',
+    pending: 'Pending',
     posted: 'Post submitted',
     verified: 'Verified',
+    active: 'Active',
+    completed: 'Completed',
   }
   return labels[status] ?? status
 }
