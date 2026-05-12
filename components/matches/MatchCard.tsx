@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Check, ExternalLink } from 'lucide-react'
+import { Check, ExternalLink, MapPin } from 'lucide-react'
 import { InstagramHandle } from '@/components/ui/InstagramHandle'
 import { toast } from 'sonner'
 import { Card } from '@/components/ui/Card'
@@ -44,7 +44,8 @@ export function MatchCard({ match, role, onUpdated }: Props) {
   }
 
   const invite = match.invite
-  const businessName = match.business?.business_name ?? match.business?.display_name ?? 'Unknown business'
+  const businessName = invite?.business?.business_name ?? match.business?.business_name ?? match.business?.display_name ?? 'Unknown business'
+  const businessAddress = invite?.business?.address_line ?? match.business?.address_line ?? null
   const creatorHandle = match.creator?.instagram_handle
     ? `@${match.creator.instagram_handle}`
     : match.creator?.display_name ?? 'Unknown creator'
@@ -58,7 +59,7 @@ export function MatchCard({ match, role, onUpdated }: Props) {
             {invite?.title ?? 'Invite'}
           </p>
           {role === 'creator' ? (
-            <p className="text-xs text-gray-500 mt-0.5">{businessName}</p>
+            <p className="text-xs font-medium mt-0.5" style={{ color: '#6b7280', fontFamily: "'Inter', sans-serif" }}>{businessName}</p>
           ) : match.creator?.instagram_handle ? (
             <div className="mt-1">
               <InstagramHandle
@@ -74,6 +75,35 @@ export function MatchCard({ match, role, onUpdated }: Props) {
         </div>
         <StatusBadge status={match.status} />
       </div>
+
+      {/* Invite details (creator only) */}
+      {role === 'creator' && (invite?.description || invite?.requirements || businessAddress) && (
+        <div className="flex flex-col gap-2 text-sm rounded-xl px-4 py-3" style={{ background: 'rgba(28,43,58,0.04)' }}>
+          {businessAddress && (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(businessAddress)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs hover:underline"
+              style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+            >
+              <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: '#6BE6B0' }} />
+              {businessAddress}
+            </a>
+          )}
+          {invite?.description && (
+            <p className="text-xs text-gray-600" style={{ fontFamily: "'Inter', sans-serif" }}>
+              {invite.description}
+            </p>
+          )}
+          {invite?.requirements && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Requirements</p>
+              <p className="text-xs text-gray-600" style={{ fontFamily: "'Inter', sans-serif" }}>{invite.requirements}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Punt code */}
       <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ background: 'rgba(28,43,58,0.04)' }}>
