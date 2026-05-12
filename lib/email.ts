@@ -107,6 +107,34 @@ export async function emailWelcomeBusiness(opts: { email: string; name: string }
   )
 }
 
+export async function emailCreatorApproved(opts: { email: string; name: string }) {
+  await send(
+    opts.email,
+    `You're approved — start claiming invites`,
+    wrap(`
+      <h2 style="font-size:20px;font-weight:700;margin:0 0 8px;">You're approved! 🎉</h2>
+      <p style="color:#6b7280;margin:0 0 24px;">Hi ${opts.name}, your Punt & Prominence profile has been reviewed and approved. You can now claim invites from Cambridge businesses.</p>
+      <a href="${APP_URL}/creator/browse" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Browse invites →</a>
+    `)
+  )
+}
+
+export async function emailCreatorRejected(opts: { email: string; name: string; reason?: string }) {
+  await send(
+    opts.email,
+    `Update on your Punt & Prominence application`,
+    wrap(`
+      <h2 style="font-size:20px;font-weight:700;margin:0 0 8px;">Thanks for applying</h2>
+      <p style="color:#6b7280;margin:0 0 16px;">Hi ${opts.name}, thank you for signing up to Punt & Prominence.</p>
+      ${opts.reason
+        ? `<p style="color:#6b7280;margin:0 0 16px;">${opts.reason}</p>`
+        : `<p style="color:#6b7280;margin:0 0 16px;">Unfortunately we're not able to approve your profile at this time. We focus on creators with an engaged Cambridge audience — if your following grows, we'd love to have you back.</p>`
+      }
+      <p style="color:#6b7280;font-size:14px;">Questions? Reply to this email or contact <a href="mailto:hello@puntandprominence.co.uk" style="color:#1C2B3A;">hello@puntandprominence.co.uk</a>.</p>
+    `)
+  )
+}
+
 export async function emailWelcomeCreator(opts: { email: string; name: string }) {
   await send(
     opts.email,

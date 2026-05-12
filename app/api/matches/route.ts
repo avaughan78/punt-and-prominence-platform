@@ -33,12 +33,12 @@ export async function POST(req: Request) {
   if (user.user_metadata?.role !== 'creator') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   // Check creator is approved
-  const { data: creatorProfile } = await supabase
+  const { data: approvalCheck } = await supabase
     .from('profiles')
     .select('is_approved')
     .eq('id', user.id)
     .single()
-  if (!creatorProfile?.is_approved) {
+  if (!approvalCheck?.is_approved) {
     return NextResponse.json({ error: 'Your profile is under review. You\'ll be able to claim invites once approved.' }, { status: 403 })
   }
 

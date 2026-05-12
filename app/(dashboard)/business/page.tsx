@@ -73,9 +73,11 @@ export default async function BusinessDashboard() {
         {!matches?.length ? (
           <div className="rounded-2xl p-8 text-center" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
             <p className="text-sm text-gray-400 mb-3">No matches yet.</p>
-            <Link href="/business/invites/new">
-              <Button size="sm" variant="secondary">Post your first invite</Button>
-            </Link>
+            {!activeOffers && (
+              <Link href="/business/invites/new">
+                <Button size="sm" variant="secondary">Post your first invite</Button>
+              </Link>
+            )}
           </div>
         ) : (
           <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
