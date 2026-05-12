@@ -14,6 +14,7 @@ export interface Profile {
   instagram_handle: string | null
   website_url: string | null
   avatar_url: string | null
+  follower_count: number | null
   // Business fields
   business_name: string | null
   address_line: string | null

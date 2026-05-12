@@ -3,14 +3,15 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { StatCard } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Search } from 'lucide-react'
+import { Search, AlertCircle } from 'lucide-react'
 
 export default async function CreatorDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: invites }, { data: matches }] = await Promise.all([
+  const [{ data: profile }, { data: invites }, { data: matches }] = await Promise.all([
+    supabase.from('profiles').select('instagram_handle').eq('id', user!.id).single(),
     supabase.from('offers').select('slots_total, slots_claimed').eq('is_active', true),
     supabase.from('matches').select('id, status').eq('creator_id', user!.id),
   ])
@@ -26,6 +27,18 @@ export default async function CreatorDashboard() {
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Dashboard</h1>
         <p className="text-sm text-gray-500 mt-0.5">Browse Cambridge invites and manage your matches.</p>
       </div>
+
+      {!profile?.instagram_handle && (
+        <Link href="/creator/onboarding">
+          <div className="flex items-center gap-3 rounded-2xl px-4 py-3 mb-6 cursor-pointer hover:opacity-90 transition-opacity" style={{ background: 'rgba(245,184,0,0.1)', border: '1.5px solid rgba(245,184,0,0.3)' }}>
+            <AlertCircle className="w-4 h-4 shrink-0" style={{ color: '#F5B800' }} />
+            <p className="text-sm text-[#1C2B3A] flex-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <span className="font-semibold">Complete your creator profile</span> — businesses want to see your Instagram before matching with you.
+            </p>
+            <span className="text-xs font-semibold text-[#F5B800] shrink-0">Set up →</span>
+          </div>
+        </Link>
+      )}
 
       <div className="grid grid-cols-3 gap-3 mb-8">
         <StatCard label="Available invites" value={availableInvites} />

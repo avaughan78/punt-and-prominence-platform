@@ -73,7 +73,7 @@ export default function SignupPage() {
       // Fire welcome email (non-blocking)
       fetch('/api/auth/welcome', { method: 'POST' })
 
-      router.push(role === 'business' ? '/business/onboarding' : '/creator')
+      router.push(role === 'business' ? '/business/onboarding' : '/creator/onboarding')
     }
   }
 
