@@ -1,13 +1,7 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import { Search } from 'lucide-react'
-
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    google?: any
-  }
-}
+import { loadGoogleMaps } from '@/lib/googleMaps'
 
 interface Props {
   onSelect: (name: string, address: string, lat: number, lng: number) => void
@@ -28,11 +22,10 @@ export function BusinessSearchPicker({ onSelect }: Props) {
   const loadedRef = useRef(false)
 
   useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY
-    if (!apiKey || loadedRef.current) return
+    if (loadedRef.current) return
 
-    function init() {
-      if (!inputRef.current || !window.google?.maps?.places) return
+    loadGoogleMaps().then(() => {
+      if (!inputRef.current || loadedRef.current) return
       loadedRef.current = true
 
       const bounds = new window.google.maps.LatLngBounds(
@@ -57,30 +50,9 @@ export function BusinessSearchPicker({ onSelect }: Props) {
           place.geometry.location.lat(),
           place.geometry.location.lng(),
         )
-        // Clear the input — the fields below now show the values
         if (inputRef.current) inputRef.current.value = ''
       })
-    }
-
-    if (window.google?.maps?.places) {
-      init()
-      return
-    }
-
-    if (!document.getElementById('gplaces-script')) {
-      const script = document.createElement('script')
-      script.id = 'gplaces-script'
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`
-      script.async = true
-      script.defer = true
-      script.onload = init
-      document.head.appendChild(script)
-    } else {
-      const t = setInterval(() => {
-        if (window.google?.maps?.places) { clearInterval(t); init() }
-      }, 100)
-      return () => clearInterval(t)
-    }
+    })
   }, [onSelect])
 
   return (
