@@ -34,7 +34,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-sm">
+    <div className="w-full max-w-sm bg-white rounded-2xl p-8 shadow-2xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", color: '#1C2B3A' }}>
           Welcome back
@@ -76,7 +76,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="w-full max-w-sm h-64 animate-pulse bg-gray-100 rounded-2xl" />}>
+    <Suspense fallback={<div className="w-full max-w-sm h-64 animate-pulse bg-white/10 rounded-2xl" />}>
       <LoginForm />
     </Suspense>
   )

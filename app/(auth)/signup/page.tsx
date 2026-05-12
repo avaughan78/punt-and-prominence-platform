@@ -78,7 +78,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="w-full max-w-sm">
+    <div className="w-full max-w-sm bg-white rounded-2xl p-8 shadow-2xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", color: '#1C2B3A' }}>
           {step === 1 ? 'Join Punt & Prominence' : 'Create your account'}
@@ -122,7 +122,7 @@ export default function SignupPage() {
 
           <p className="text-xs text-center text-gray-400 mt-2">
             Already have an account?{' '}
-            <Link href="/login" className="font-semibold text-[#1C2B3A]">Sign in</Link>
+            <Link href="/login" className="font-semibold text-[#1C2B3A] hover:underline">Sign in</Link>
           </p>
         </div>
       ) : (
