@@ -69,7 +69,7 @@ export default async function AdminOverview() {
         {[
           { label: 'Creators', value: stats.totalCreators, sub: stats.pendingCreators > 0 ? `${stats.pendingCreators} pending` : 'all approved', href: '/admin/creators' },
           { label: 'Businesses', value: stats.totalBusinesses, href: '/admin/businesses' },
-          { label: 'Total matches', value: stats.totalMatches, href: '/admin/businesses' },
+          { label: 'Total matches', value: stats.totalMatches, href: '/admin/matches' },
           { label: 'Active invites', value: stats.activeInvites, href: '/admin/invites' },
           { label: 'Unused invite codes', value: stats.unusedCodes, href: '/admin/invite-codes' },
         ].map(({ label, value, sub, href }) => (
