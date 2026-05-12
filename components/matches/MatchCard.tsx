@@ -160,8 +160,12 @@ export function MatchCard({ match, role, onUpdated }: Props) {
         </div>
         {invite && (
           <div className="ml-auto text-right">
-            <p className="text-[10px] text-gray-400 mb-0.5">Invite value</p>
-            <p className="font-semibold text-sm" style={{ color: '#F5B800' }}>{formatGBP(invite.value_gbp)}</p>
+            <p className="text-[10px] text-gray-400 mb-0.5">{isRetainer ? 'Monthly fee' : 'Invite value'}</p>
+            <p className="font-semibold text-sm" style={{ color: '#F5B800' }}>
+              {isRetainer
+                ? `${formatGBP(invite.fee_gbp ?? 0)}/mo`
+                : formatGBP(invite.value_gbp)}
+            </p>
           </div>
         )}
       </div>

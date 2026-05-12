@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS public.matches (
   creator_id    uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   business_id   uuid NOT NULL REFERENCES public.profiles(id),
   status        text NOT NULL DEFAULT 'pending'
-                  CHECK (status IN ('pending', 'visited', 'posted', 'verified')),
+                  CHECK (status IN ('pending', 'active', 'visited', 'posted', 'completed', 'verified')),
   punt_code     text NOT NULL UNIQUE,
   post_url      text,
   notes         text,
