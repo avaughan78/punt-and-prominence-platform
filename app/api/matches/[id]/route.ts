@@ -63,9 +63,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   // Send notifications (fire and forget)
-  const creator = match.creator as { id: string; display_name: string; email: string } | null
-  const business = match.business as { id: string; display_name: string; business_name: string | null; email: string } | null
-  const offer = match.offer as { title: string; value_gbp: number } | null
+  const creator = match.creator as unknown as { id: string; display_name: string; email: string } | null
+  const business = match.business as unknown as { id: string; display_name: string; business_name: string | null; email: string } | null
+  const offer = match.offer as unknown as { title: string; value_gbp: number } | null
   const businessName = business?.business_name ?? business?.display_name ?? ''
   const offerTitle = offer?.title ?? 'Offer'
 
