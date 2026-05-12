@@ -33,9 +33,9 @@ export default function SignupPage() {
     const supabase = createClient()
     const { data: codeRow, error: codeErr } = await supabase
       .from('invite_codes')
-      .select('id, used')
+      .select('id, used, reusable')
       .eq('code', inviteCode.toUpperCase().trim())
-      .single() as { data: { id: string; used: boolean } | null; error: unknown }
+      .single() as { data: { id: string; used: boolean; reusable: boolean } | null; error: unknown }
 
     if (codeErr || !codeRow) {
       toast.error('Invalid invite code. Contact hello@puntandprominence.co.uk to join.')
@@ -63,11 +63,12 @@ export default function SignupPage() {
     }
 
     if (data.user) {
-      // Mark invite code as used
-      await (supabase
-        .from('invite_codes') as ReturnType<typeof supabase.from>)
-        .update({ used: true, used_by: data.user.id } as Record<string, unknown>)
-        .eq('id', codeRow.id)
+      if (!codeRow.reusable) {
+        await (supabase
+          .from('invite_codes') as ReturnType<typeof supabase.from>)
+          .update({ used: true, used_by: data.user.id } as Record<string, unknown>)
+          .eq('id', codeRow.id)
+      }
 
       router.push(role === 'business' ? '/business' : '/creator')
     }
