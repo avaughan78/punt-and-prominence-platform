@@ -43,7 +43,7 @@ export function MatchCard({ match, role, onUpdated }: Props) {
     setLoading(false)
   }
 
-  const offer = match.offer
+  const invite = match.invite
   const businessName = match.business?.business_name ?? match.business?.display_name ?? 'Unknown business'
   const creatorHandle = match.creator?.instagram_handle
     ? `@${match.creator.instagram_handle}`
@@ -55,7 +55,7 @@ export function MatchCard({ match, role, onUpdated }: Props) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-semibold text-[#1C2B3A] leading-snug" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {offer?.title ?? 'Offer'}
+            {invite?.title ?? 'Invite'}
           </p>
           {role === 'creator' ? (
             <p className="text-xs text-gray-500 mt-0.5">{businessName}</p>
@@ -80,10 +80,10 @@ export function MatchCard({ match, role, onUpdated }: Props) {
           <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>PUNT CODE</p>
           <p className="font-bold text-[#1C2B3A] text-lg tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{match.punt_code}</p>
         </div>
-        {offer && (
+        {invite && (
           <div className="ml-auto text-right">
-            <p className="text-[10px] text-gray-400 mb-0.5">Offer value</p>
-            <p className="font-semibold text-sm" style={{ color: '#F5B800' }}>{formatGBP(offer.value_gbp)}</p>
+            <p className="text-[10px] text-gray-400 mb-0.5">Invite value</p>
+            <p className="font-semibold text-sm" style={{ color: '#F5B800' }}>{formatGBP(invite.value_gbp)}</p>
           </div>
         )}
       </div>

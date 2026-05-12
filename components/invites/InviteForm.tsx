@@ -16,7 +16,7 @@ const CATEGORIES = [
   { value: 'other', label: 'Other' },
 ]
 
-export function OfferForm() {
+export function InviteForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
@@ -37,7 +37,7 @@ export function OfferForm() {
     e.preventDefault()
     setLoading(true)
 
-    const res = await fetch('/api/offers', {
+    const res = await fetch('/api/invites', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -52,8 +52,8 @@ export function OfferForm() {
     if (!res.ok) {
       toast.error(data.error ?? 'Failed to create offer')
     } else {
-      toast.success('Offer posted!')
-      router.push('/business/offers')
+      toast.success('Invite posted!')
+      router.push('/business/invites')
       router.refresh()
     }
     setLoading(false)
@@ -62,7 +62,7 @@ export function OfferForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 max-w-lg">
       <Input
-        label="Offer title"
+        label="Invite title"
         placeholder="e.g. Complimentary brunch for two"
         value={form.title}
         onChange={e => set('title', e.target.value)}
@@ -125,7 +125,7 @@ export function OfferForm() {
 
       <div className="flex gap-3 pt-2">
         <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
-        <Button type="submit" loading={loading}>Post offer</Button>
+        <Button type="submit" loading={loading}>Post invite</Button>
       </div>
     </form>
   )

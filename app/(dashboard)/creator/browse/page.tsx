@@ -1,14 +1,14 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { OfferCard } from '@/components/offers/OfferCard'
+import { InviteCard } from '@/components/invites/InviteCard'
 import { InstagramHandle } from '@/components/ui/InstagramHandle'
 import { Button } from '@/components/ui/Button'
-import type { Offer } from '@/lib/types'
+import type { Invite } from '@/lib/types'
 
 interface ClaimedData { id: string; punt_code: string }
 
 export default function BrowsePage() {
-  const [offers, setOffers] = useState<Offer[]>([])
+  const [offers, setOffers] = useState<Invite[]>([])
   const [loading, setLoading] = useState(true)
   const [claimed, setClaimed] = useState<ClaimedData | null>(null)
   const [instagramHandle, setInstagramHandle] = useState<string | null>(null)
@@ -16,7 +16,7 @@ export default function BrowsePage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/offers').then(r => r.json()),
+      fetch('/api/invites').then(r => r.json()),
       fetch('/api/profile').then(r => r.json()),
     ]).then(([offersData, profile]) => {
       setOffers(Array.isArray(offersData) ? offersData : [])
@@ -28,10 +28,10 @@ export default function BrowsePage() {
     }).catch(() => setLoading(false))
   }, [])
 
-  function handleClaimed(data: ClaimedData, offerId: string) {
+  function handleClaimed(data: ClaimedData, inviteId: string) {
     setClaimed(data)
     setOffers(prev => prev
-      .map(o => o.id === offerId ? { ...o, slots_claimed: o.slots_claimed + 1 } : o)
+      .map(o => o.id === inviteId ? { ...o, slots_claimed: o.slots_claimed + 1 } : o)
       .filter(o => o.slots_claimed < o.slots_total)
     )
   }
@@ -39,8 +39,8 @@ export default function BrowsePage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Browse Offers</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Claim an offer, visit the business, create content.</p>
+        <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Browse Invites</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Claim an invite, visit the business, create content.</p>
       </div>
 
       {/* Claim success modal */}
@@ -51,7 +51,7 @@ export default function BrowsePage() {
               <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(107,230,176,0.15)' }}>
                 <span className="text-2xl">🎉</span>
               </div>
-              <h2 className="text-lg font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Offer claimed!</h2>
+              <h2 className="text-lg font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Invite claimed!</h2>
               <p className="text-sm text-gray-500">Show this code to the business when you visit.</p>
             </div>
 
@@ -84,16 +84,16 @@ export default function BrowsePage() {
         </div>
       ) : offers.length === 0 ? (
         <div className="rounded-2xl p-12 text-center" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
-          <p className="text-sm text-gray-400">No offers available right now. Check back soon.</p>
+          <p className="text-sm text-gray-400">No invites available right now. Check back soon.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {offers.map(offer => (
-            <OfferCard
-              key={offer.id}
-              offer={offer}
+          {offers.map(invite => (
+            <InviteCard
+              key={invite.id}
+              invite={invite}
               mode="browse"
-              onClaimed={data => handleClaimed(data, offer.id)}
+              onClaimed={data => handleClaimed(data, invite.id)}
             />
           ))}
         </div>

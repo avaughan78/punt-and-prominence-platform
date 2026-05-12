@@ -2,16 +2,16 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
-import { OfferCard } from '@/components/offers/OfferCard'
+import { InviteCard } from '@/components/invites/InviteCard'
 import { Button } from '@/components/ui/Button'
-import type { Offer } from '@/lib/types'
+import type { Invite } from '@/lib/types'
 
 export default function BusinessOffersPage() {
-  const [offers, setOffers] = useState<Offer[]>([])
+  const [offers, setOffers] = useState<Invite[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/offers')
+    fetch('/api/invites')
       .then(r => r.json())
       .then(data => { setOffers(Array.isArray(data) ? data : []); setLoading(false) })
       .catch(() => setLoading(false))
@@ -29,13 +29,13 @@ export default function BusinessOffersPage() {
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>My Offers</h1>
+          <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>My Invites</h1>
           <p className="text-sm text-gray-500 mt-0.5">{offers.length} offer{offers.length !== 1 ? 's' : ''} posted</p>
         </div>
-        <Link href="/business/offers/new">
+        <Link href="/business/invites/new">
           <Button size="sm">
             <Plus className="w-4 h-4" />
-            New offer
+            New invite
           </Button>
         </Link>
       </div>
@@ -46,15 +46,15 @@ export default function BusinessOffersPage() {
         </div>
       ) : offers.length === 0 ? (
         <div className="rounded-2xl p-12 text-center" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
-          <p className="text-sm text-gray-400 mb-4">No offers yet. Post your first one to start getting matched.</p>
-          <Link href="/business/offers/new">
-            <Button variant="secondary">Post your first offer</Button>
+          <p className="text-sm text-gray-400 mb-4">No invites yet. Post your first one to start getting matched.</p>
+          <Link href="/business/invites/new">
+            <Button variant="secondary">Post your first invite</Button>
           </Link>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {offers.map(offer => (
-            <OfferCard key={offer.id} offer={offer} mode="manage" onToggle={handleToggle} onDelete={handleDelete} />
+          {offers.map(invite => (
+            <InviteCard key={invite.id} invite={invite} mode="manage" onToggle={handleToggle} onDelete={handleDelete} />
           ))}
         </div>
       )}

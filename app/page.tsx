@@ -60,7 +60,7 @@ export default function Home() {
           <div className="rounded-2xl p-6 text-left" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(245,184,0,0.15)' }}>
             <Building2 className="w-6 h-6 mb-3" style={{ color: '#F5B800' }} />
             <h3 className="font-semibold text-white mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>For businesses</h3>
-            <p className="text-xs text-white/40 leading-relaxed">Post an offer and get matched with verified Cambridge creators. Zero-risk guarantee on every match.</p>
+            <p className="text-xs text-white/40 leading-relaxed">Post an invite and get matched with verified Cambridge creators. Zero-risk guarantee on every match.</p>
           </div>
           <div className="rounded-2xl p-6 text-left" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(107,230,176,0.15)' }}>
             <Sparkles className="w-6 h-6 mb-3" style={{ color: '#6BE6B0' }} />

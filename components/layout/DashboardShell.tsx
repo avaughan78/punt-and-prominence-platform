@@ -15,7 +15,7 @@ interface NavItem {
 function businessNav(): NavItem[] {
   return [
     { href: '/business', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { href: '/business/offers', label: 'My Offers', icon: <ShoppingBag className="w-4 h-4" /> },
+    { href: '/business/invites', label: 'My Invites', icon: <ShoppingBag className="w-4 h-4" /> },
     { href: '/business/matches', label: 'Matches', icon: <GitMerge className="w-4 h-4" /> },
     { href: '/business/billing', label: 'Billing', icon: <CreditCard className="w-4 h-4" /> },
     { href: '/business/profile', label: 'Profile', icon: <UserCircle className="w-4 h-4" /> },
@@ -25,7 +25,7 @@ function businessNav(): NavItem[] {
 function creatorNav(): NavItem[] {
   return [
     { href: '/creator', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { href: '/creator/browse', label: 'Browse Offers', icon: <Search className="w-4 h-4" /> },
+    { href: '/creator/browse', label: 'Browse Invites', icon: <Search className="w-4 h-4" /> },
     { href: '/creator/matches', label: 'My Matches', icon: <GitMerge className="w-4 h-4" /> },
     { href: '/creator/profile', label: 'Profile', icon: <UserCircle className="w-4 h-4" /> },
   ]

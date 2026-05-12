@@ -33,7 +33,7 @@ export default function BusinessMatchesPage() {
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Matches</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Track creators who have claimed your offers.</p>
+        <p className="text-sm text-gray-500 mt-0.5">Track creators who have claimed your invites.</p>
       </div>
 
       {/* Tabs */}

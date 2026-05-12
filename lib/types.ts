@@ -2,7 +2,7 @@ export type Role = 'business' | 'creator'
 
 export type MatchStatus = 'pending' | 'visited' | 'posted' | 'verified'
 
-export type OfferCategory = 'dining' | 'retail' | 'experience' | 'fitness' | 'beauty' | 'other'
+export type InviteCategory = 'dining' | 'retail' | 'experience' | 'fitness' | 'beauty' | 'other'
 
 export type BusinessCategory = 'cafe' | 'restaurant' | 'bar' | 'retail' | 'fitness' | 'beauty' | 'hotel' | 'other'
 
@@ -27,12 +27,12 @@ export interface Profile {
   updated_at: string
 }
 
-export interface Offer {
+export interface Invite {
   id: string
   business_id: string
   title: string
   description: string
-  category: OfferCategory
+  category: InviteCategory
   value_gbp: number
   requirements: string | null
   slots_total: number
@@ -57,7 +57,7 @@ export interface Match {
   created_at: string
   updated_at: string
   // Joined
-  offer?: Offer
+  invite?: Invite
   creator?: Pick<Profile, 'id' | 'display_name' | 'instagram_handle'>
   business?: Pick<Profile, 'id' | 'display_name' | 'business_name' | 'address_line'>
 }
@@ -72,9 +72,9 @@ export interface Database {
         Update: Partial<Profile>
       }
       offers: {
-        Row: Offer
-        Insert: Omit<Offer, 'id' | 'slots_claimed' | 'created_at' | 'updated_at' | 'business'>
-        Update: Partial<Omit<Offer, 'id' | 'business_id' | 'created_at' | 'business'>>
+        Row: Invite
+        Insert: Omit<Invite, 'id' | 'slots_claimed' | 'created_at' | 'updated_at' | 'business'>
+        Update: Partial<Omit<Invite, 'id' | 'business_id' | 'created_at' | 'business'>>
       }
       matches: {
         Row: Match

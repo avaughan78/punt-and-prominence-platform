@@ -64,7 +64,7 @@ export default function CreatorMatchesPage() {
         <div className="rounded-2xl p-12 text-center" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
           <p className="text-sm text-gray-400 mb-4">No matches yet.</p>
           <Link href="/creator/browse">
-            <Button variant="secondary">Browse available offers</Button>
+            <Button variant="secondary">Browse available invites</Button>
           </Link>
         </div>
       ) : (

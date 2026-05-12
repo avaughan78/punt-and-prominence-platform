@@ -9,7 +9,7 @@ export default async function CreatorProfilePage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name, business_name, bio, instagram_handle, website_url, address_line, category')
+    .select('display_name, business_name, bio, instagram_handle, website_url, address_line, category, latitude, longitude')
     .eq('id', user.id)
     .single()
 

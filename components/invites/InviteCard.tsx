@@ -6,32 +6,32 @@ import { Card } from '@/components/ui/Card'
 import { CategoryBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { formatGBP, formatDate } from '@/lib/utils'
-import type { Offer } from '@/lib/types'
+import type { Invite } from '@/lib/types'
 
 interface Props {
-  offer: Offer
+  invite: Invite
   mode: 'browse' | 'manage'
   onClaimed?: (matchData: { id: string; punt_code: string }) => void
   onToggle?: (id: string, active: boolean) => void
   onDelete?: (id: string) => void
 }
 
-export function OfferCard({ offer, mode, onClaimed, onToggle, onDelete }: Props) {
+export function InviteCard({ invite, mode, onClaimed, onToggle, onDelete }: Props) {
   const [claiming, setClaiming] = useState(false)
   const [toggling, setToggling] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const slotsLeft = offer.slots_total - offer.slots_claimed
+  const slotsLeft = invite.slots_total - invite.slots_claimed
 
   async function handleClaim() {
     setClaiming(true)
     const res = await fetch('/api/matches', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ offer_id: offer.id }),
+      body: JSON.stringify({ offer_id: invite.id }),
     })
     const data = await res.json()
     if (!res.ok) {
-      toast.error(data.error ?? 'Could not claim offer')
+      toast.error(data.error ?? 'Could not claim invite')
     } else {
       onClaimed?.(data)
     }
@@ -39,28 +39,28 @@ export function OfferCard({ offer, mode, onClaimed, onToggle, onDelete }: Props)
   }
 
   async function handleDelete() {
-    if (!confirm(`Delete "${offer.title}"? This can't be undone.`)) return
+    if (!confirm(`Delete "${invite.title}"? This can't be undone.`)) return
     setDeleting(true)
-    const res = await fetch(`/api/offers/${offer.id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/invites/${invite.id}`, { method: 'DELETE' })
     if (res.ok) {
-      onDelete?.(offer.id)
+      onDelete?.(invite.id)
     } else {
-      toast.error('Failed to delete offer')
+      toast.error('Failed to delete invite')
       setDeleting(false)
     }
   }
 
   async function handleToggle() {
     setToggling(true)
-    const res = await fetch(`/api/offers/${offer.id}`, {
+    const res = await fetch(`/api/invites/${invite.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ is_active: !offer.is_active }),
+      body: JSON.stringify({ is_active: !invite.is_active }),
     })
     if (res.ok) {
-      onToggle?.(offer.id, !offer.is_active)
+      onToggle?.(invite.id, !invite.is_active)
     } else {
-      toast.error('Failed to update offer')
+      toast.error('Failed to update invite')
     }
     setToggling(false)
   }
@@ -70,46 +70,46 @@ export function OfferCard({ offer, mode, onClaimed, onToggle, onDelete }: Props)
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-[#1C2B3A] mb-1 leading-snug" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {offer.title}
+            {invite.title}
           </h3>
-          {offer.business && (
+          {invite.business && (
             <div className="flex items-center gap-1 mb-2">
               <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
-              {offer.business.latitude && offer.business.longitude ? (
+              {invite.business.latitude && invite.business.longitude ? (
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${offer.business.latitude},${offer.business.longitude}`}
+                  href={`https://www.google.com/maps/search/?api=1&query=${invite.business.latitude},${invite.business.longitude}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-blue-500 hover:underline truncate"
                   onClick={e => e.stopPropagation()}
                 >
-                  {offer.business.business_name ?? offer.business.display_name}
-                  {offer.business.address_line && ` · ${offer.business.address_line}`}
+                  {invite.business.business_name ?? invite.business.display_name}
+                  {invite.business.address_line && ` · ${invite.business.address_line}`}
                 </a>
               ) : (
                 <span className="text-xs text-gray-500 truncate">
-                  {offer.business.business_name ?? offer.business.display_name}
-                  {offer.business.address_line && ` · ${offer.business.address_line}`}
+                  {invite.business.business_name ?? invite.business.display_name}
+                  {invite.business.address_line && ` · ${invite.business.address_line}`}
                 </span>
               )}
             </div>
           )}
-          <CategoryBadge category={offer.category} />
+          <CategoryBadge category={invite.category} />
         </div>
         <div className="text-right shrink-0">
           <p className="font-bold text-lg" style={{ color: '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {formatGBP(offer.value_gbp)}
+            {formatGBP(invite.value_gbp)}
           </p>
           <p className="text-xs text-gray-400">value</p>
         </div>
       </div>
 
-      <p className="text-sm text-gray-600 leading-relaxed">{offer.description}</p>
+      <p className="text-sm text-gray-600 leading-relaxed">{invite.description}</p>
 
-      {offer.requirements && (
+      {invite.requirements && (
         <div className="rounded-xl p-3" style={{ background: 'rgba(28,43,58,0.04)' }}>
           <p className="text-xs font-semibold text-[#1C2B3A] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>REQUIREMENTS</p>
-          <p className="text-xs text-gray-600">{offer.requirements}</p>
+          <p className="text-xs text-gray-600">{invite.requirements}</p>
         </div>
       )}
 
@@ -119,17 +119,17 @@ export function OfferCard({ offer, mode, onClaimed, onToggle, onDelete }: Props)
             <Users className="w-3.5 h-3.5" />
             {slotsLeft} slot{slotsLeft !== 1 ? 's' : ''} left
           </span>
-          {offer.expires_at && (
+          {invite.expires_at && (
             <span className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" />
-              Expires {formatDate(offer.expires_at)}
+              Expires {formatDate(invite.expires_at)}
             </span>
           )}
         </div>
 
         {mode === 'browse' && (
           <Button size="sm" onClick={handleClaim} loading={claiming} disabled={slotsLeft === 0}>
-            {slotsLeft === 0 ? 'Full' : 'Claim offer'}
+            {slotsLeft === 0 ? 'Full' : 'Claim invite'}
           </Button>
         )}
 
@@ -137,11 +137,11 @@ export function OfferCard({ offer, mode, onClaimed, onToggle, onDelete }: Props)
           <div className="flex items-center gap-2">
             <Button
               size="sm"
-              variant={offer.is_active ? 'ghost' : 'secondary'}
+              variant={invite.is_active ? 'ghost' : 'secondary'}
               loading={toggling}
               onClick={handleToggle}
             >
-              {offer.is_active ? 'Pause' : 'Activate'}
+              {invite.is_active ? 'Pause' : 'Activate'}
             </Button>
             <button
               onClick={handleDelete}

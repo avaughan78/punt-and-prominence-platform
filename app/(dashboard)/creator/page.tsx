@@ -35,7 +35,7 @@ export default async function CreatorDashboard() {
         style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #253d54 100%)' }}>
         <div className="flex-1">
           <p className="font-semibold text-white mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {(totalOffers ?? 0) > 0 ? `${totalOffers} offers available` : 'New offers coming soon'}
+            {(totalOffers ?? 0) > 0 ? `${totalOffers} offers available` : 'New invites coming soon'}
           </p>
           <p className="text-xs text-white/50">Cambridge businesses are waiting for creators like you.</p>
         </div>

@@ -98,7 +98,7 @@ export default function SignupPage() {
             </div>
             <div>
               <p className="font-semibold text-white mb-0.5" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>I&apos;m a Business</p>
-              <p className="text-xs text-white/50">Post offers and get matched with Cambridge creators</p>
+              <p className="text-xs text-white/50">Post invites and get matched with Cambridge creators</p>
             </div>
           </button>
 
