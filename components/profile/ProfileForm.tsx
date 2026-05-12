@@ -6,8 +6,6 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
-import { AddressPicker } from './AddressPicker'
-import { MapPicker } from './MapPicker'
 import { BusinessSearchPicker } from './BusinessSearchPicker'
 import { createClient } from '@/lib/supabase/client'
 import type { Role } from '@/lib/types'
@@ -184,8 +182,23 @@ export function ProfileForm({ role, initial, userId }: Props) {
             onChange={e => set('display_name', e.target.value)}
             required
           />
-          <AddressPicker value={form.address_line} onChange={setAddress} />
-          <MapPicker lat={form.latitude} lng={form.longitude} onMove={setAddress} />
+          <Input
+            label="Address"
+            placeholder="123 Mill Road, Cambridge, CB1 2AZ"
+            value={form.address_line}
+            onChange={e => set('address_line', e.target.value)}
+          />
+          {form.latitude && form.longitude && (
+            <div className="rounded-xl overflow-hidden -mt-1" style={{ border: '1.5px solid rgba(0,0,0,0.08)' }}>
+              <iframe
+                title="Location"
+                width="100%"
+                height="200"
+                style={{ display: 'block', border: 'none' }}
+                src={`https://maps.google.com/maps?q=${form.latitude},${form.longitude}&z=17&output=embed`}
+              />
+            </div>
+          )}
           <Select
             label="Category"
             options={CATEGORIES}
