@@ -2,6 +2,7 @@ import { Resend } from 'resend'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 const FROM = 'Punt & Prominence <hello@puntandprominence.co.uk>'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://puntandprominence.co.uk'
 
 async function send(to: string, subject: string, html: string) {
   if (!resend) return
@@ -101,7 +102,7 @@ export async function emailWelcomeBusiness(opts: { email: string; name: string }
         <li>Creators claim your invite and visit your business</li>
         <li>Review their post and verify it when it goes live</li>
       </ol>
-      <a href="https://puntandprominence.co.uk/business" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Go to your dashboard →</a>
+      <a href="${APP_URL}/business" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Go to your dashboard →</a>
     `)
   )
 }
@@ -120,7 +121,7 @@ export async function emailWelcomeCreator(opts: { email: string; name: string })
         <li>Claim one, visit the business, and create your content</li>
         <li>Submit your post link — the business verifies it and the match is complete</li>
       </ol>
-      <a href="https://puntandprominence.co.uk/creator/browse" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Browse invites →</a>
+      <a href="${APP_URL}/creator/browse" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Browse invites →</a>
     `)
   )
 }
