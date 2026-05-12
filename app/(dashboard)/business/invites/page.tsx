@@ -6,7 +6,7 @@ import { InviteCard } from '@/components/invites/InviteCard'
 import { Button } from '@/components/ui/Button'
 import type { Invite } from '@/lib/types'
 
-type Tab = 'open' | 'closed'
+type Tab = 'open' | 'claimed'
 
 function isOpen(invite: Invite): boolean {
   if (!invite.is_active) return false
@@ -39,8 +39,8 @@ export default function BusinessOffersPage() {
   }
 
   const openOffers = offers.filter(isOpen)
-  const closedOffers = offers.filter(o => !isOpen(o))
-  const filtered = tab === 'open' ? openOffers : closedOffers
+  const claimedOffers = offers.filter(o => !isOpen(o))
+  const filtered = tab === 'open' ? openOffers : claimedOffers
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -48,7 +48,7 @@ export default function BusinessOffersPage() {
         <div>
           <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>My Invites</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {openOffers.length} open · {closedOffers.length} closed
+            {openOffers.length} open · {claimedOffers.length} claimed
           </p>
         </div>
         {tab === 'open' && (
@@ -65,7 +65,7 @@ export default function BusinessOffersPage() {
       <div className="flex gap-1 mb-6">
         {([
           { value: 'open', label: 'Open', count: openOffers.length },
-          { value: 'closed', label: 'Closed', count: closedOffers.length },
+          { value: 'claimed', label: 'Claimed', count: claimedOffers.length },
         ] as const).map(t => (
           <button
             key={t.value}
@@ -97,7 +97,7 @@ export default function BusinessOffersPage() {
               </Link>
             </>
           ) : (
-            <p className="text-sm text-gray-400">No closed invites yet.</p>
+            <p className="text-sm text-gray-400">No claimed invites yet.</p>
           )}
         </div>
       ) : (
