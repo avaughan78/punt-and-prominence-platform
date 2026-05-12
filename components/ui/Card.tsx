@@ -45,8 +45,8 @@ export function StatCard({ label, value, sub, accent = '#F5B800', href }: StatCa
   )
   if (isClickable) {
     return (
-      <Link href={href} className="block rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-md"
-        style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 8px rgba(0,0,0,0.04)', background: 'white', padding: '20px 24px' }}>
+      <Link href={href} className="block rounded-2xl p-5 sm:p-6 transition-all hover:-translate-y-0.5 hover:shadow-md"
+        style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 8px rgba(0,0,0,0.04)', background: 'white' }}>
         {inner}
       </Link>
     )
