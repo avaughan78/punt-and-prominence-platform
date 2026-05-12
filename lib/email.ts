@@ -2,7 +2,7 @@ import { Resend } from 'resend'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 const FROM = 'Punt & Prominence <hello@puntandprominence.co.uk>'
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://puntandprominence.co.uk'
+const APP_URL = process.env.APP_URL ?? 'https://puntandprominence.co.uk'
 
 async function send(to: string, subject: string, html: string) {
   if (!resend) return
