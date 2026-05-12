@@ -37,15 +37,15 @@ export function BusinessSearchPicker({ onSelect }: Props) {
         bounds,
         strictBounds: false,
         componentRestrictions: { country: 'gb' },
-        types: ['establishment'],
-        fields: ['name', 'formatted_address', 'geometry'],
+        fields: ['name', 'formatted_address', 'geometry', 'types'],
       })
 
       ac.addListener('place_changed', () => {
         const place = ac.getPlace()
         if (!place.geometry?.location) return
+        const isEstablishment = (place.types ?? []).includes('establishment')
         onSelect(
-          place.name ?? '',
+          isEstablishment ? (place.name ?? '') : '',
           stripCountry(place.formatted_address ?? ''),
           place.geometry.location.lat(),
           place.geometry.location.lng(),

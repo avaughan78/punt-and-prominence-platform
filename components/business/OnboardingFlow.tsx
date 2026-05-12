@@ -63,15 +63,15 @@ export function OnboardingFlow({ contactName }: { contactName: string }) {
         bounds,
         strictBounds: false,
         componentRestrictions: { country: 'gb' },
-        types: ['establishment'],
-        fields: ['name', 'formatted_address', 'geometry'],
+        fields: ['name', 'formatted_address', 'geometry', 'types'],
       })
       ac.addListener('place_changed', () => {
         const place = ac.getPlace()
         if (!place.geometry?.location) return
+        const isEstablishment = (place.types ?? []).includes('establishment')
         setForm(f => ({
           ...f,
-          business_name: place.name ?? f.business_name,
+          ...(isEstablishment ? { business_name: place.name ?? f.business_name } : {}),
           address_line: stripCountry(place.formatted_address ?? ''),
           latitude: place.geometry!.location!.lat(),
           longitude: place.geometry!.location!.lng(),
