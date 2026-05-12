@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
 import { BusinessSearchPicker } from './BusinessSearchPicker'
+import { MapPickerModal } from './MapPickerModal'
+import { MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Role } from '@/lib/types'
 
@@ -51,6 +53,7 @@ export function ProfileForm({ role, initial, userId }: Props) {
   })
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [showMap, setShowMap] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   function set(key: string, value: string) {
@@ -122,6 +125,15 @@ export function ProfileForm({ role, initial, userId }: Props) {
     : '?'
 
   return (
+    <>
+    {showMap && (
+      <MapPickerModal
+        lat={form.latitude}
+        lng={form.longitude}
+        onConfirm={(address, lat, lng) => setForm(f => ({ ...f, address_line: address, latitude: lat, longitude: lng }))}
+        onClose={() => setShowMap(false)}
+      />
+    )}
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 max-w-lg">
       {/* Avatar upload */}
       <div>
@@ -182,12 +194,30 @@ export function ProfileForm({ role, initial, userId }: Props) {
             onChange={e => set('display_name', e.target.value)}
             required
           />
-          <Input
-            label="Address"
-            placeholder="123 Mill Road, Cambridge, CB1 2AZ"
-            value={form.address_line}
-            onChange={e => set('address_line', e.target.value)}
-          />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              Address
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="123 Mill Road, Cambridge, CB1 2AZ"
+                value={form.address_line}
+                onChange={e => set('address_line', e.target.value)}
+                className="flex-1 px-4 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowMap(true)}
+                title="Pick on map"
+                className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-colors hover:bg-[#1C2B3A] group"
+                style={{ border: '1.5px solid rgba(0,0,0,0.1)', background: 'white' }}
+              >
+                <MapPin className="w-4 h-4 text-gray-400 group-hover:text-[#6BE6B0] transition-colors" />
+              </button>
+            </div>
+          </div>
           {form.latitude && form.longitude && (
             <div className="rounded-xl overflow-hidden -mt-1" style={{ border: '1.5px solid rgba(0,0,0,0.08)' }}>
               <iframe
@@ -246,5 +276,6 @@ export function ProfileForm({ role, initial, userId }: Props) {
         <Button type="submit" loading={loading}>Save profile</Button>
       </div>
     </form>
+    </>
   )
 }
