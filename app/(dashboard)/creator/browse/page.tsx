@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { InviteCard } from '@/components/invites/InviteCard'
 import { InstagramHandle } from '@/components/ui/InstagramHandle'
 import { Button } from '@/components/ui/Button'
+import { Clock } from 'lucide-react'
 import type { Invite } from '@/lib/types'
 
 interface ClaimedData { id: string; punt_code: string }
@@ -14,6 +15,7 @@ export default function BrowsePage() {
   const [instagramHandle, setInstagramHandle] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState<string>('')
+  const [isApproved, setIsApproved] = useState<boolean>(true)
 
   useEffect(() => {
     Promise.all([
@@ -25,6 +27,7 @@ export default function BrowsePage() {
         setInstagramHandle(profile.instagram_handle ?? null)
         setAvatarUrl(profile.avatar_url ?? null)
         setDisplayName(profile.display_name ?? '')
+        setIsApproved(profile.is_approved ?? true)
       }
       setLoading(false)
     }).catch(() => setLoading(false))
@@ -83,6 +86,20 @@ export default function BrowsePage() {
               You&apos;ll also find this in your matches. You have 72 hours after visiting to post.
             </p>
             <Button className="w-full" onClick={() => setClaimed(null)}>Got it</Button>
+          </div>
+        </div>
+      )}
+
+      {!isApproved && (
+        <div className="flex items-start gap-3 rounded-2xl px-4 py-4 mb-6" style={{ background: 'rgba(245,184,0,0.08)', border: '1.5px solid rgba(245,184,0,0.25)' }}>
+          <Clock className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#F5B800' }} />
+          <div>
+            <p className="text-sm font-semibold text-[#1C2B3A] mb-0.5" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              Your profile is under review
+            </p>
+            <p className="text-xs text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
+              We&apos;re reviewing your profile and will be in touch shortly. You can browse invites in the meantime — claiming will be unlocked once you&apos;re approved.
+            </p>
           </div>
         </div>
       )}

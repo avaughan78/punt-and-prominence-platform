@@ -60,6 +60,7 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
       body: JSON.stringify({
         instagram_handle: instagram.replace(/^@/, ''),
         follower_count: isNaN(followers) ? null : followers,
+        is_approved: !belowThreshold,
       }),
     })
     setSaving(false)
