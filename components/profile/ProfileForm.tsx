@@ -1,11 +1,13 @@
 'use client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { Camera, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
 import { AddressPicker } from './AddressPicker'
+import { createClient } from '@/lib/supabase/client'
 import type { Role } from '@/lib/types'
 
 const CATEGORIES = [
@@ -31,9 +33,10 @@ interface Props {
     longitude: number | null
     avatar_url: string | null
   }
+  userId: string
 }
 
-export function ProfileForm({ role, initial }: Props) {
+export function ProfileForm({ role, initial, userId }: Props) {
   const [form, setForm] = useState({
     display_name: initial.display_name ?? '',
     business_name: initial.business_name ?? '',
@@ -47,6 +50,8 @@ export function ProfileForm({ role, initial }: Props) {
     avatar_url: initial.avatar_url ?? '',
   })
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   function set(key: string, value: string) {
     setForm(f => ({ ...f, [key]: value }))
@@ -54,6 +59,41 @@ export function ProfileForm({ role, initial }: Props) {
 
   function setAddress(address: string, lat: number, lng: number) {
     setForm(f => ({ ...f, address_line: address, latitude: lat, longitude: lng }))
+  }
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) { toast.error('Photo must be under 5MB'); return }
+
+    setUploading(true)
+    const supabase = createClient()
+    const ext = file.name.split('.').pop()
+    const path = `${userId}/avatar.${ext}`
+
+    const { error } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, contentType: file.type })
+
+    if (error) {
+      toast.error('Upload failed: ' + error.message)
+      setUploading(false)
+      return
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+    // Bust cache with timestamp
+    const url = `${publicUrl}?t=${Date.now()}`
+    setForm(f => ({ ...f, avatar_url: url }))
+
+    // Save immediately
+    await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ avatar_url: url }),
+    })
+    toast.success('Photo updated')
+    setUploading(false)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -73,8 +113,61 @@ export function ProfileForm({ role, initial }: Props) {
     setLoading(false)
   }
 
+  const initials = form.display_name
+    ? form.display_name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    : '?'
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 max-w-lg">
+      {/* Avatar upload */}
+      <div>
+        <label className="block text-xs font-semibold text-[#1C2B3A] mb-2 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          Profile photo
+        </label>
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="relative w-16 h-16 rounded-full overflow-hidden shrink-0 group"
+            style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}
+          >
+            {form.avatar_url ? (
+              <img src={form.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-white font-bold text-lg" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                {initials}
+              </span>
+            )}
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              {uploading
+                ? <Loader2 className="w-5 h-5 text-white animate-spin" />
+                : <Camera className="w-5 h-5 text-white" />
+              }
+            </div>
+          </button>
+          <div>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className="text-sm font-medium text-[#1C2B3A] hover:underline disabled:opacity-50"
+              style={{ fontFamily: "'Inter', sans-serif" }}
+            >
+              {uploading ? 'Uploading…' : 'Upload photo'}
+            </button>
+            <p className="text-xs text-gray-400 mt-0.5">JPG or PNG, max 5MB</p>
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
+        </div>
+      </div>
+
       {role === 'business' ? (
         <>
           <Input
@@ -114,34 +207,9 @@ export function ProfileForm({ role, initial }: Props) {
         />
       )}
 
-      {/* Avatar */}
-      <div>
-        <label className="block text-xs font-semibold text-[#1C2B3A] mb-1.5 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-          Profile photo URL
-        </label>
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-sm font-bold" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)', color: '#fff' }}>
-            {form.avatar_url
-              ? <img src={form.avatar_url} alt="avatar" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-              : (form.display_name ? form.display_name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : '?')}
-          </div>
-          <input
-            type="url"
-            placeholder="Paste any image URL (e.g. from your Instagram)"
-            value={form.avatar_url}
-            onChange={e => set('avatar_url', e.target.value)}
-            className="flex-1 px-3 py-2.5 rounded-xl text-sm outline-none transition-all"
-            style={{ border: '1.5px solid rgba(0,0,0,0.1)', background: '#fff', fontFamily: "'Inter', sans-serif", color: '#1C2B3A' }}
-          />
-        </div>
-        <p className="text-xs text-gray-400 mt-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
-          Tip: on Instagram, open your profile, long-press your photo and choose &ldquo;Copy image address&rdquo;
-        </p>
-      </div>
-
       <Input
         label="Instagram handle"
-        placeholder="@yourhandle"
+        placeholder="yourhandle"
         value={form.instagram_handle}
         onChange={e => set('instagram_handle', e.target.value.replace(/^@/, ''))}
         hint="Without the @"

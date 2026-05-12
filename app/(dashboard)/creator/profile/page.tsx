@@ -19,7 +19,7 @@ export default async function CreatorProfilePage() {
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Profile</h1>
         <p className="text-sm text-gray-500 mt-1">Businesses see this when you claim their offers.</p>
       </div>
-      <ProfileForm role="creator" initial={profile ?? {
+      <ProfileForm role="creator" userId={user.id} initial={profile ?? {
         display_name: '', business_name: null, bio: null,
         instagram_handle: null, website_url: null, address_line: null, category: null,
         latitude: null, longitude: null, avatar_url: null,
