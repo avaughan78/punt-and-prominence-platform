@@ -30,7 +30,7 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
   const [bio, setBio] = useState('')
   const [website, setWebsite] = useState('')
   const [looking, setLooking] = useState(false)
-  const [lookupResult, setLookupResult] = useState<{ collecting?: boolean; verified?: boolean } | null>(null)
+  const [lookupResult, setLookupResult] = useState<{ verified?: boolean; isPrivate?: boolean } | null>(null)
 
   const followers = parseInt(followerCount.replace(/,/g, ''), 10)
   const belowThreshold = followerCount !== '' && !isNaN(followers) && followers < FOLLOWER_MIN
@@ -93,20 +93,17 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
     try {
       const res = await fetch(`/api/instagram/lookup?handle=${encodeURIComponent(instagram)}`)
       const data = await res.json()
-      if (!res.ok) { toast.error(data.error ?? 'Lookup failed'); return }
-      if (data.collecting) {
-        toast.info('Profile found — stats still loading. Enter your follower count manually.')
-        setLookupResult({ collecting: true })
-      } else {
-        if (data.followers != null) setFollowerCount(String(data.followers))
-        if (data.bio && !bio) setBio(data.bio)
-        if (data.image && !avatarUrl) {
-          setAvatarUrl(data.image)
-          await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatar_url: data.image }) })
-        }
-        setLookupResult({ verified: data.verified, collecting: false })
-        toast.success('Profile found — stats filled in!')
+      if (!res.ok) { toast.error(data.error ?? 'Profile not found — check the handle and try again'); return }
+      if (data.isPrivate) { toast.error('This account is private — it must be public to be verified'); return }
+      if (data.followers != null) setFollowerCount(String(data.followers))
+      if (data.bio && !bio) setBio(data.bio)
+      if (data.website && !website) setWebsite(data.website)
+      if (data.image && !avatarUrl) {
+        setAvatarUrl(data.image)
+        await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatar_url: data.image }) })
       }
+      setLookupResult({ verified: data.verified, isPrivate: false })
+      toast.success('Profile found — stats filled in!')
     } finally {
       setLooking(false)
     }
@@ -206,14 +203,11 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
                 {looking ? 'Looking up…' : 'Look up'}
               </button>
             </div>
-            {lookupResult && !lookupResult.collecting && (
+            {lookupResult && (
               <div className="flex items-center gap-1.5 text-xs" style={{ color: '#059669' }}>
                 <Check className="w-3.5 h-3.5" />
                 Profile found{lookupResult.verified ? ' · Verified account' : ''} — stats filled in
               </div>
-            )}
-            {lookupResult?.collecting && (
-              <p className="text-xs text-gray-400">Stats still being collected — enter your follower count manually below</p>
             )}
             {!lookupResult && <p className="text-xs text-gray-400">Must be a public account · Click Look up to auto-fill your stats</p>}
           </div>
