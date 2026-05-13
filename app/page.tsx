@@ -123,8 +123,8 @@ export default function ComingSoon() {
       <div
         className="absolute pointer-events-none overflow-hidden"
         style={{
-          width: 'min(910px, 92vmin)',
-          height: 'min(910px, 92vmin)',
+          width: 'min(1140px, 94vw)',
+          height: 'min(660px, 78vh)',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
@@ -177,14 +177,14 @@ export default function ComingSoon() {
 
         <div className="flex items-center gap-2 mb-10">
           <Star className="w-4 h-4" style={{ color: '#F5B800' }} />
-          <span className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.7)', fontFamily: "'JetBrains Mono', monospace" }}>
+          <span className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.9)', fontFamily: "'JetBrains Mono', monospace" }}>
             Punt &amp; Prominence
           </span>
         </div>
 
         <div
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mb-6 text-xs font-medium"
-          style={{ background: 'rgba(245,184,0,0.08)', color: '#F5B800', border: '1px solid rgba(245,184,0,0.18)', fontFamily: "'JetBrains Mono', monospace" }}
+          style={{ background: 'rgba(245,184,0,0.12)', color: '#F5B800', border: '1px solid rgba(245,184,0,0.35)', fontFamily: "'JetBrains Mono', monospace" }}
         >
           <MapPin className="w-3 h-3" />
           Cambridge, UK
@@ -199,14 +199,14 @@ export default function ComingSoon() {
           is coming.
         </h1>
 
-        <p className="text-white/40 text-base leading-relaxed max-w-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
+        <p className="text-white/65 text-base leading-relaxed max-w-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
           The local creator marketplace connecting Cambridge businesses with verified micro-creators.
         </p>
 
         <div className="flex items-center gap-3 mt-10 w-full max-w-xs">
-          <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
-          <span className="text-xs" style={{ color: 'rgba(107,230,176,0.5)', fontFamily: "'JetBrains Mono', monospace" }}>PILOT 2026</span>
-          <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+          <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.12)' }} />
+          <span className="text-xs" style={{ color: 'rgba(107,230,176,0.8)', fontFamily: "'JetBrains Mono', monospace" }}>PILOT 2026</span>
+          <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.12)' }} />
         </div>
       </div>
 
