@@ -13,6 +13,18 @@ function needsPreviewAccess(path: string): boolean {
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
 
+  // If Supabase redirects a magic-link code to / (happens when the callback URL
+  // isn't yet whitelisted in Supabase Auth → Redirect URLs), forward it to the
+  // real callback so the session exchange still works.
+  if (path === '/' && request.nextUrl.searchParams.has('code')) {
+    const url = request.nextUrl.clone()
+    const code = url.searchParams.get('code')!
+    url.pathname = '/api/auth/callback'
+    url.search = ''
+    url.searchParams.set('code', code)
+    return NextResponse.redirect(url)
+  }
+
   // Gate all non-root page routes behind the preview cookie
   if (needsPreviewAccess(path)) {
     const hasAccess = request.cookies.get(PREVIEW_COOKIE)?.value === '1'
