@@ -201,7 +201,7 @@ export default function ComingSoon() {
         </h1>
 
         <p className="text-white/65 text-base leading-relaxed max-w-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
-          The local creator marketplace connecting Cambridge businesses with verified micro-creators.
+          Connecting Cambridge businesses with a community of verified micro-creators.
         </p>
 
         <div className="flex items-center gap-3 mt-10 w-full max-w-xs">
