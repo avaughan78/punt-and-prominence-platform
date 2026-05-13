@@ -17,6 +17,11 @@
 
 html, body { height: 100%; margin: 0; }
 
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
 body {
   font-family: var(--font-family-body);
   background: #ffffff;
