@@ -10,12 +10,12 @@ export async function GET(request: NextRequest) {
   if (!key) return NextResponse.json({ error: 'API not configured' }, { status: 500 })
 
   const clean = handle.replace(/^@/, '').trim()
-  const url = `https://instagram-scraper-api14.p.rapidapi.com/instagram/profile?username=${encodeURIComponent(clean)}`
+  const url = `https://instagram-scraper-20253.p.rapidapi.com/user-info/?username_or_id_or_url=${encodeURIComponent(clean)}&include_about=false&url_embed_safe=false`
 
   const res = await fetch(url, {
     headers: {
       'X-RapidAPI-Key': key,
-      'X-RapidAPI-Host': 'instagram-scraper-api14.p.rapidapi.com',
+      'X-RapidAPI-Host': 'instagram-scraper-20253.p.rapidapi.com',
     },
     cache: 'no-store',
   })
@@ -25,12 +25,12 @@ export async function GET(request: NextRequest) {
   }
 
   const json = await res.json()
-  if (!json.success || !json.data) {
-    return NextResponse.json({ error: json.error ?? 'Profile not found' }, { status: 404 })
+  if (!json.data) {
+    return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
   }
 
   const d = json.data
-  const instagramImageUrl = d.profile_pic_url_hd ?? d.profile_pic_url ?? null
+  const instagramImageUrl = d.hd_profile_pic_url_info?.url ?? d.profile_pic_url ?? null
 
   // If userId provided, download and re-upload to Supabase so the URL doesn't expire
   let cachedImageUrl: string | null = instagramImageUrl
@@ -69,6 +69,6 @@ export async function GET(request: NextRequest) {
     posts: d.media_count ?? null,
     verified: d.is_verified ?? false,
     isPrivate: d.is_private ?? false,
-    website: d.external_url ?? null,
+    website: d.external_url || null,
   })
 }
