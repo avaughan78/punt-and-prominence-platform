@@ -38,10 +38,15 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
   const [followerCount, setFollowerCount] = useState('')
   const [bio, setBio] = useState('')
   const [website, setWebsite] = useState('')
+  const [tiktok, setTiktok] = useState('')
 
   const [looking, setLooking] = useState(false)
   const [lookupData, setLookupData] = useState<LookupData | null>(null)
   const [lookupError, setLookupError] = useState<string | null>(null)
+
+  const [tiktokLooking, setTiktokLooking] = useState(false)
+  const [tiktokLookupData, setTiktokLookupData] = useState<LookupData | null>(null)
+  const [tiktokLookupError, setTiktokLookupError] = useState<string | null>(null)
 
   const followers = parseInt(followerCount.replace(/,/g, ''), 10)
   const belowThreshold = followerCount !== '' && !isNaN(followers) && followers < FOLLOWER_MIN
@@ -90,6 +95,8 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
       body: JSON.stringify({
         bio: bio || null,
         website_url: website || null,
+        tiktok_handle: tiktok.replace(/^@/, '') || null,
+        tiktok_follower_count: tiktokLookupData?.followers ?? null,
       }),
     })
     setSaving(false)
@@ -124,6 +131,37 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
       setLookupData({ handle: data.handle, name: data.name, image: data.image, followers: data.followers, verified: data.verified, isPrivate: false })
     } finally {
       setLooking(false)
+    }
+  }
+
+  async function lookupTiktok(handle: string) {
+    const clean = handle.replace(/^@/, '').trim()
+    if (!clean) return
+    setTiktokLooking(true)
+    setTiktokLookupData(null)
+    setTiktokLookupError(null)
+    try {
+      // Only cache photo if Instagram didn't already set one
+      const cachePhoto = !avatarUrl
+      const res = await fetch(`/api/tiktok/lookup?handle=${encodeURIComponent(clean)}&userId=${encodeURIComponent(userId)}&cachePhoto=${cachePhoto}`)
+      const data = await res.json()
+      if (!res.ok) {
+        setTiktokLookupError(data.error ?? 'Profile not found — check the handle and try again')
+        return
+      }
+      if (data.isPrivate) {
+        setTiktokLookupError('This account is private — it must be public to verify')
+        return
+      }
+      if (!bio && data.bio) setBio(data.bio)
+      if (!website && data.website) setWebsite(data.website)
+      if (!avatarUrl && data.image) {
+        setAvatarUrl(data.image)
+        await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatar_url: data.image }) })
+      }
+      setTiktokLookupData({ handle: data.handle, name: data.name, image: data.image, followers: data.followers, verified: data.verified, isPrivate: false })
+    } finally {
+      setTiktokLooking(false)
     }
   }
 
@@ -317,8 +355,75 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
             <h2 className="text-xl font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
               Tell businesses about yourself
             </h2>
-            <p className="text-sm text-gray-500">Help businesses understand your content style. Both fields are optional.</p>
+            <p className="text-sm text-gray-500">All fields are optional — add what you have.</p>
           </div>
+
+          {/* TikTok handle with auto-lookup */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              TikTok handle <span className="text-gray-400 normal-case font-normal">· optional</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">@</span>
+              <input
+                placeholder="yourtiktok"
+                value={tiktok}
+                onChange={e => { setTiktok(e.target.value.replace(/^@/, '')); setTiktokLookupData(null); setTiktokLookupError(null) }}
+                onBlur={e => { if (e.target.value.trim()) lookupTiktok(e.target.value) }}
+                className="w-full pl-8 pr-10 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              />
+              {tiktokLooking && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />}
+              {tiktokLookupData && !tiktokLooking && <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#059669' }} />}
+            </div>
+          </div>
+
+          {/* TikTok preview card */}
+          {tiktokLookupData && (
+            <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ background: 'rgba(107,230,176,0.08)', border: '1px solid rgba(107,230,176,0.3)' }}>
+              <div className="relative shrink-0">
+                <div className="w-12 h-12 rounded-full overflow-hidden" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}>
+                  {tiktokLookupData.image
+                    ? <img src={tiktokLookupData.image} alt="" className="w-full h-full object-cover" />
+                    : <span className="w-full h-full flex items-center justify-center text-white font-bold text-sm">{initials}</span>
+                  }
+                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: '#059669' }}>
+                  <Check className="w-2.5 h-2.5 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-semibold text-[#1C2B3A] truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                    {tiktokLookupData.name ?? `@${tiktokLookupData.handle}`}
+                  </p>
+                  {tiktokLookupData.verified && (
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(245,184,0,0.15)', color: '#b45309', fontFamily: "'JetBrains Mono', monospace" }}>
+                      VERIFIED
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500">@{tiktokLookupData.handle} on TikTok</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-sm font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                  {tiktokLookupData.followers != null ? tiktokLookupData.followers.toLocaleString() : '—'}
+                </p>
+                <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>followers</p>
+              </div>
+            </div>
+          )}
+
+          {tiktokLookupError && (
+            <div className="flex items-start gap-3 rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)' }}>
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
+              <p className="text-xs text-red-600 flex-1">{tiktokLookupError}</p>
+              <button type="button" onClick={() => lookupTiktok(tiktok)} className="flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700 shrink-0">
+                <RefreshCw className="w-3 h-3" />
+                Retry
+              </button>
+            </div>
+          )}
 
           <Textarea
             label="Bio"

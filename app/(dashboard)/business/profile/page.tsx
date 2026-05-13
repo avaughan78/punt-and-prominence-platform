@@ -10,7 +10,7 @@ export default async function BusinessProfilePage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name, business_name, bio, instagram_handle, website_url, address_line, category, latitude, longitude, avatar_url, follower_count')
+    .select('display_name, business_name, bio, instagram_handle, website_url, address_line, category, latitude, longitude, avatar_url, follower_count, tiktok_handle, tiktok_follower_count')
     .eq('id', user.id)
     .single()
 
@@ -24,6 +24,7 @@ export default async function BusinessProfilePage() {
         display_name: '', business_name: null, bio: null,
         instagram_handle: null, website_url: null, address_line: null, category: null,
         latitude: null, longitude: null, avatar_url: null, follower_count: null,
+        tiktok_handle: null, tiktok_follower_count: null,
       }} />
       <CloseAccountSection />
     </div>
