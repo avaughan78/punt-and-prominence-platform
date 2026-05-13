@@ -85,7 +85,7 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
         userId: body.phyllo_user_id,
         token: body.sdk_token,
         singleAccount: true,
-        onAccountConnected: async (accountId: string) => {
+        accountConnected: async (accountId: string) => {
           try {
             const dataRes = await fetch('/api/phyllo/fetch-data', {
               method: 'POST',
@@ -99,8 +99,8 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
             toast.error(err instanceof Error ? err.message : 'Could not fetch Instagram data')
           }
         },
-        onExit: () => setPhylloLoading(false),
-        onConnectionFailure: () => {
+        exit: () => setPhylloLoading(false),
+        connectionFailure: () => {
           toast.error('Instagram connection failed — please try again')
           setPhylloLoading(false)
         },
