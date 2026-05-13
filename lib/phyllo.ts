@@ -46,7 +46,7 @@ export async function createSdkToken(phylloUserId: string): Promise<string> {
     method: 'POST',
     body: JSON.stringify({
       user_id: phylloUserId,
-      products: ['IDENTITY', 'ENGAGEMENT', 'AUDIENCE'],
+      products: ['IDENTITY', 'ENGAGEMENT', 'ENGAGEMENT.AUDIENCE'],
     }),
   })
   return result.sdk_token
