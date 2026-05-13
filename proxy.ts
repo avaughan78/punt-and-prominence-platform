@@ -7,6 +7,7 @@ function needsPreviewAccess(path: string): boolean {
   if (path === '/') return false
   if (path.startsWith('/api/')) return false
   if (path.startsWith('/admin')) return false  // has its own Supabase + email auth guard
+  if (path.startsWith('/creators')) return false  // public page
   return true
 }
 

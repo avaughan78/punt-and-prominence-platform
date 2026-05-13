@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { BadgeCheck } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 
 interface Creator {
   id: string
@@ -21,14 +22,32 @@ function formatFollowers(n: number): string {
 }
 
 async function getCreators(): Promise<Creator[]> {
-  const base = process.env.APP_URL ?? 'http://localhost:3000'
-  try {
-    const res = await fetch(`${base}/api/public/creators`, { next: { revalidate: 300 } })
-    if (!res.ok) return []
-    return res.json()
-  } catch {
-    return []
-  }
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('profiles')
+    .select(`
+      id, display_name, instagram_handle, tiktok_handle,
+      avatar_url, follower_count, tiktok_follower_count, bio,
+      matches:matches!matches_creator_id_fkey(status)
+    `)
+    .eq('role', 'creator')
+    .eq('is_approved', true)
+    .not('instagram_handle', 'is', null)
+    .order('follower_count', { ascending: false, nullsFirst: false })
+    .limit(12)
+
+  return (data ?? []).map(c => ({
+    id: c.id,
+    display_name: c.display_name,
+    instagram_handle: c.instagram_handle,
+    tiktok_handle: c.tiktok_handle,
+    avatar_url: c.avatar_url,
+    follower_count: c.follower_count,
+    tiktok_follower_count: c.tiktok_follower_count,
+    bio: c.bio,
+    verified_matches: (c.matches as { status: string }[]).filter(m => m.status === 'verified').length,
+    total_matches: (c.matches as { status: string }[]).length,
+  }))
 }
 
 function CreatorCard({ creator }: { creator: Creator }) {
@@ -170,10 +189,7 @@ export default async function PublicCreatorsPage() {
         )}
 
         {/* CTA */}
-        <div
-          className="rounded-2xl p-10 text-center"
-          style={{ background: '#1C2B3A' }}
-        >
+        <div className="rounded-2xl p-10 text-center" style={{ background: '#1C2B3A' }}>
           <p className="text-xs font-semibold tracking-widest mb-3" style={{ color: '#F5B800', fontFamily: "'JetBrains Mono', monospace" }}>FOR CAMBRIDGE BUSINESSES</p>
           <h2 className="text-2xl font-bold text-white mb-3" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
             Work with these creators
