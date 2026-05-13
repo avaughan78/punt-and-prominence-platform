@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { Heart, MessageSquare, Star, Check, Building2, Sparkles } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Heart, MessageSquare, Star, Check, Building2, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
 import { CreatorCard, formatFollowers, type CreatorCardData } from '@/components/creators/CreatorCard'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -132,23 +132,119 @@ function PostCard({ p }: { p: Post }) {
   )
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Creator carousel ─────────────────────────────────────────────────────────
 
-const CARDS_PER_PAGE = 4
+const CARD_W = 220
+const CARD_GAP = 16
+const CARD_SLOT = CARD_W + CARD_GAP
+
+function CreatorCarousel({ creators }: { creators: CreatorCardData[] }) {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const posRef = useRef(0)
+  const pausedRef = useRef(false)
+  const nudgingRef = useRef(false)
+  const singleW = creators.length * CARD_SLOT
+
+  // Initialise position to middle copy so going left always has room
+  useEffect(() => {
+    posRef.current = singleW
+    if (trackRef.current) trackRef.current.style.transform = `translateX(-${singleW}px)`
+  }, [singleW])
+
+  // Auto-scroll loop — 40 px/s
+  useEffect(() => {
+    if (!creators.length) return
+    let last = performance.now()
+    let raf: number
+    function tick(now: number) {
+      const delta = now - last
+      last = now
+      if (!pausedRef.current && !nudgingRef.current && trackRef.current) {
+        posRef.current += 40 * delta / 1000
+        if (posRef.current >= 2 * singleW) posRef.current -= singleW
+        trackRef.current.style.transform = `translateX(-${posRef.current}px)`
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [creators.length, singleW])
+
+  function nudge(dir: 1 | -1) {
+    nudgingRef.current = true
+    const start = posRef.current
+    const target = start + dir * CARD_SLOT
+    const t0 = performance.now()
+    const DURATION = 500
+    function step(now: number) {
+      const t = Math.min((now - t0) / DURATION, 1)
+      const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+      posRef.current = start + (target - start) * eased
+      if (trackRef.current) trackRef.current.style.transform = `translateX(-${posRef.current}px)`
+      if (t < 1) {
+        requestAnimationFrame(step)
+      } else {
+        // Normalise back to [singleW, 2*singleW)
+        while (posRef.current < singleW) posRef.current += singleW
+        while (posRef.current >= 2 * singleW) posRef.current -= singleW
+        if (trackRef.current) trackRef.current.style.transform = `translateX(-${posRef.current}px)`
+        nudgingRef.current = false
+      }
+    }
+    requestAnimationFrame(step)
+  }
+
+  const tripled = [...creators, ...creators, ...creators]
+
+  return (
+    <div className="relative overflow-hidden" style={{ paddingBottom: '2px' }}>
+      {/* Edge fades */}
+      <div className="absolute inset-y-0 left-0 w-20 z-10 pointer-events-none"
+        style={{ background: 'linear-gradient(to right, #f9fafb 20%, transparent)' }} />
+      <div className="absolute inset-y-0 right-0 w-20 z-10 pointer-events-none"
+        style={{ background: 'linear-gradient(to left, #f9fafb 20%, transparent)' }} />
+
+      {/* Arrows */}
+      <button type="button" onClick={() => nudge(-1)} aria-label="Previous"
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
+        style={{ background: '#1C2B3A' }}>
+        <ChevronLeft className="w-4 h-4 text-white" />
+      </button>
+      <button type="button" onClick={() => nudge(1)} aria-label="Next"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
+        style={{ background: '#1C2B3A' }}>
+        <ChevronRight className="w-4 h-4 text-white" />
+      </button>
+
+      {/* Track */}
+      <div
+        ref={trackRef}
+        className="flex"
+        style={{ gap: `${CARD_GAP}px`, willChange: 'transform' }}
+        onMouseEnter={() => { pausedRef.current = true }}
+        onMouseLeave={() => { pausedRef.current = false }}
+      >
+        {tripled.map((creator, i) => (
+          <div key={i} style={{ width: `${CARD_W}px`, flexShrink: 0 }}>
+            <CreatorCard creator={creator} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
   const [creators, setCreators] = useState<CreatorCardData[]>([])
-  const [creatorPage, setCreatorPage] = useState(0)
 
   useEffect(() => {
     fetch('/api/public/creators')
       .then(r => r.json())
-      .then(d => setCreators(Array.isArray(d) ? d.slice(0, 8) : []))
+      .then(d => setCreators(Array.isArray(d) ? d : []))
       .catch(() => {})
   }, [])
-
-  const totalPages = Math.ceil(creators.length / CARDS_PER_PAGE)
-  const displayCreators = creators.slice(creatorPage * CARDS_PER_PAGE, (creatorPage + 1) * CARDS_PER_PAGE)
   const totalFollowers = creators.reduce((s, c) => s + (c.follower_count ?? 0) + (c.tiktok_follower_count ?? 0), 0)
   const totalVerifiedCollabs = creators.reduce((s, c) => s + c.verified_matches, 0)
   const liveStats = [
@@ -314,7 +410,7 @@ export default function HomePage() {
             <div className="relative rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
               <img src="/cambridge-map.png" alt="Cambridge city map" className="w-full h-auto object-cover" style={{ opacity: 0.75, filter: 'grayscale(20%) brightness(1.3) contrast(0.9)' }} />
               {/* Profile circles overlaid on the map */}
-              {displayCreators.slice(0, 4).map((c, i) => ({
+              {creators.slice(0, 4).map((c, i) => ({
                 avatar: c.avatar_url,
                 handle: c.instagram_handle ? `@${c.instagram_handle}` : c.display_name,
                 top: ['12%', '22%', '58%', '68%'][i],
@@ -385,77 +481,31 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Grid */}
+          {/* Carousel */}
           {creators.length === 0 ? (
             <div className="py-20">
               <p className="text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>Creators coming soon.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              {displayCreators.map(c => <CreatorCard key={c.id} creator={c} />)}
-            </div>
+            <CreatorCarousel creators={creators} />
           )}
 
-          {/* Carousel controls + links */}
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            {/* Prev / dot / next */}
-            {totalPages > 1 ? (
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setCreatorPage(p => Math.max(0, p - 1))}
-                  disabled={creatorPage === 0}
-                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-30 hover:opacity-70"
-                  style={{ border: '1px solid rgba(28,43,58,0.2)', color: '#1C2B3A' }}
-                  aria-label="Previous"
-                >
-                  ←
-                </button>
-                <div className="flex items-center gap-1.5">
-                  {Array.from({ length: totalPages }).map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setCreatorPage(i)}
-                      className="rounded-full transition-all"
-                      style={{
-                        width: creatorPage === i ? '20px' : '6px',
-                        height: '6px',
-                        background: creatorPage === i ? '#1C2B3A' : 'rgba(28,43,58,0.2)',
-                      }}
-                      aria-label={`Page ${i + 1}`}
-                    />
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCreatorPage(p => Math.min(totalPages - 1, p + 1))}
-                  disabled={creatorPage === totalPages - 1}
-                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-30 hover:opacity-70"
-                  style={{ border: '1px solid rgba(28,43,58,0.2)', color: '#1C2B3A' }}
-                  aria-label="Next"
-                >
-                  →
-                </button>
-              </div>
-            ) : <div />}
-
-            <div className="flex items-center gap-3">
-              <Link
-                href="/creators"
-                className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
-                style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif", border: '1px solid rgba(28,43,58,0.2)' }}
-              >
-                View all creators →
-              </Link>
-              <Link
-                href="/signup?role=creator"
-                className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-90"
-                style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
-              >
-                Join as a creator →
-              </Link>
-            </div>
+          {/* Links */}
+          <div className="flex items-center gap-3 mt-8">
+            <Link
+              href="/creators"
+              className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
+              style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif", border: '1px solid rgba(28,43,58,0.2)' }}
+            >
+              View all creators →
+            </Link>
+            <Link
+              href="/signup?role=creator"
+              className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-90"
+              style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+            >
+              Join as a creator →
+            </Link>
           </div>
         </div>
       </section>
@@ -491,27 +541,27 @@ export default function HomePage() {
               <Link
                 href="/signup?role=business"
                 className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-xl"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(245,184,0,0.3)' }}
+                style={{ background: '#ffffff' }}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(245,184,0,0.15)' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(245,184,0,0.12)' }}>
                   <Building2 className="w-5 h-5" style={{ color: '#F5B800' }} />
                 </div>
                 <div>
-                  <p className="font-semibold text-white mb-0.5" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Join as a business</p>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>Post invites and get matched with Cambridge creators</p>
+                  <p className="font-semibold mb-0.5" style={{ color: '#1C2B3A', fontFamily: "'Bricolage Grotesque', sans-serif" }}>Join as a business</p>
+                  <p className="text-xs" style={{ color: 'rgba(28,43,58,0.5)', fontFamily: "'Inter', sans-serif" }}>Post invites and get matched with Cambridge creators</p>
                 </div>
               </Link>
               <Link
                 href="/signup?role=creator"
                 className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-xl"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(107,230,176,0.3)' }}
+                style={{ background: '#ffffff' }}
               >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(107,230,176,0.15)' }}>
                   <Sparkles className="w-5 h-5" style={{ color: '#6BE6B0' }} />
                 </div>
                 <div>
-                  <p className="font-semibold text-white mb-0.5" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Join as a creator</p>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>Browse and claim exclusive Cambridge business offers</p>
+                  <p className="font-semibold mb-0.5" style={{ color: '#1C2B3A', fontFamily: "'Bricolage Grotesque', sans-serif" }}>Join as a creator</p>
+                  <p className="text-xs" style={{ color: 'rgba(28,43,58,0.5)', fontFamily: "'Inter', sans-serif" }}>Browse and claim exclusive Cambridge business offers</p>
                 </div>
               </Link>
               <p className="text-xs text-center mt-1" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: "'Inter', sans-serif" }}>
