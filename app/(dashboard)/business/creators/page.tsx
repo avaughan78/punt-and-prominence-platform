@@ -32,9 +32,9 @@ function CreatorCard({ creator }: { creator: Creator }) {
     const body = await res.json().catch(() => ({}))
     if (res.ok) {
       setNudged(true)
-      toast.success(`Invite sent to ${creator.display_name}`)
+      toast.success(`Nudge sent to ${creator.display_name}`)
     } else {
-      toast.error(body.error ?? 'Failed to send invite')
+      toast.error(body.error ?? 'Failed to send nudge')
     }
     setNudging(false)
   }
@@ -161,7 +161,7 @@ function CreatorCard({ creator }: { creator: Creator }) {
           style={{ background: nudged ? 'rgba(107,230,176,0.15)' : '#F5B800', color: nudged ? '#059669' : '#1C2B3A' }}
         >
           <Bell className="w-3 h-3" />
-          {nudged ? 'Invite sent' : nudging ? 'Sending…' : 'Nudge creator'}
+          {nudged ? 'Nudge sent' : nudging ? 'Sending…' : 'Nudge creator'}
         </button>
         {igUrl && (
           <a

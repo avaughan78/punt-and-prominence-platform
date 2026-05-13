@@ -36,7 +36,7 @@ export function CreatorMatchesClient({ currentUserId }: { currentUserId: string 
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>My Matches</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Track your claimed invites and post submissions.</p>
+        <p className="text-sm text-gray-500 mt-0.5">Track your claimed collabs and post submissions.</p>
       </div>
 
       <div className="flex gap-1 mb-6">
@@ -64,7 +64,7 @@ export function CreatorMatchesClient({ currentUserId }: { currentUserId: string 
         <div className="rounded-2xl p-12 text-center" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
           <p className="text-sm text-gray-400 mb-4">No matches yet.</p>
           <Link href="/creator/browse">
-            <Button variant="secondary">Browse available invites</Button>
+            <Button variant="secondary">Browse available collabs</Button>
           </Link>
         </div>
       ) : (

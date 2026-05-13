@@ -44,8 +44,8 @@ export default function BrowsePage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Browse Invites</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Claim an invite, visit the business, create content.</p>
+        <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Browse Collabs</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Claim a collab, visit the business, create content.</p>
       </div>
 
       {/* Claim success modal */}
@@ -53,7 +53,7 @@ export default function BrowsePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
             <div className="text-center mb-5">
-              <h2 className="text-lg font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Invite claimed!</h2>
+              <h2 className="text-lg font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Collab claimed!</h2>
               <p className="text-sm text-gray-500">Show this to the business when you visit.</p>
             </div>
 
@@ -98,7 +98,7 @@ export default function BrowsePage() {
               Your profile is under review
             </p>
             <p className="text-xs text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
-              We&apos;re reviewing your profile and will be in touch shortly. You can browse invites in the meantime — claiming will be unlocked once you&apos;re approved.
+              We&apos;re reviewing your profile and will be in touch shortly. You can browse collabs in the meantime — claiming will be unlocked once you&apos;re approved.
             </p>
           </div>
         </div>
@@ -110,7 +110,7 @@ export default function BrowsePage() {
         </div>
       ) : offers.length === 0 ? (
         <div className="rounded-2xl p-12 text-center" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
-          <p className="text-sm text-gray-400">No invites available right now. Check back soon.</p>
+          <p className="text-sm text-gray-400">No collabs available right now. Check back soon.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">

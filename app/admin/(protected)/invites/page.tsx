@@ -38,7 +38,7 @@ export default function AdminInvites() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Invites</h1>
+          <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Collabs</h1>
           <p className="text-sm text-gray-500 mt-0.5">{activeCount} active across all businesses</p>
         </div>
         <div className="flex gap-2">
@@ -62,7 +62,7 @@ export default function AdminInvites() {
       {loading ? (
         <p className="text-sm text-gray-400">Loading…</p>
       ) : !filtered.length ? (
-        <p className="text-sm text-gray-400">No invites found.</p>
+        <p className="text-sm text-gray-400">No collabs found.</p>
       ) : (
         <div className="rounded-2xl overflow-hidden bg-white" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
           {filtered.map((inv, i) => {

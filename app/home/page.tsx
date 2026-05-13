@@ -581,7 +581,7 @@ export default function HomePage() {
                 </div>
                 <div>
                   <p className="font-semibold mb-0.5" style={{ color: '#1C2B3A', fontFamily: "'Bricolage Grotesque', sans-serif" }}>Join as a business</p>
-                  <p className="text-xs" style={{ color: 'rgba(28,43,58,0.5)', fontFamily: "'Inter', sans-serif" }}>Post invites and get matched with Cambridge creators</p>
+                  <p className="text-xs" style={{ color: 'rgba(28,43,58,0.5)', fontFamily: "'Inter', sans-serif" }}>Post collabs and get matched with Cambridge creators</p>
                 </div>
               </Link>
               <Link

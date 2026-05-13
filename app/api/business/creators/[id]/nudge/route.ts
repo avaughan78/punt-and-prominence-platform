@@ -39,7 +39,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     .limit(3)
 
   if (!invites?.length) {
-    return NextResponse.json({ error: 'You need an active invite before you can nudge creators.' }, { status: 400 })
+    return NextResponse.json({ error: 'You need an active collab before you can nudge creators.' }, { status: 400 })
   }
 
   // One nudge per business-creator pair
@@ -72,8 +72,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
             <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#F5B800;">★ PUNT & PROMINENCE</span>
           </div>
           <h2 style="font-size:20px;font-weight:700;margin:0 0 8px;">Hi ${creatorFirstName} 👋</h2>
-          <p style="color:#6b7280;margin:0 0 16px;"><strong>${bizName}</strong> has spotted your profile on Punt & Prominence and thinks you'd be a great fit for their current invites.</p>
-          <p style="color:#6b7280;margin:0 0 8px;font-weight:600;">Their open invites:</p>
+          <p style="color:#6b7280;margin:0 0 16px;"><strong>${bizName}</strong> has spotted your profile on Punt & Prominence and thinks you'd be a great fit for their current collabs.</p>
+          <p style="color:#6b7280;margin:0 0 8px;font-weight:600;">Their open collabs:</p>
           <ul style="color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">${inviteList}</ul>
           <a href="${APP_URL}/creator/browse" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Browse & claim →</a>
           <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;">

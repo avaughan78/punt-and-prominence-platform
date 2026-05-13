@@ -297,12 +297,12 @@ export function OnboardingFlow({ contactName }: { contactName: string }) {
                 {form.business_name} is live!
               </h2>
               <p className="text-sm text-gray-500 max-w-sm">
-                Your profile is set up. Now post your first invite — tell creators what you&apos;re offering and watch the matches roll in.
+                Your profile is set up. Now post your first collab — tell creators what you&apos;re offering and watch the matches roll in.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
               <Button className="flex-1" onClick={() => router.push('/business/invites/new')}>
-                Post your first invite
+                Post your first collab
               </Button>
               <Button variant="ghost" onClick={() => router.push('/business')}>
                 Go to dashboard

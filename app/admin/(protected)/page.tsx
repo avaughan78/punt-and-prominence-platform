@@ -70,7 +70,7 @@ export default async function AdminOverview() {
           { label: 'Creators', value: stats.totalCreators, sub: stats.pendingCreators > 0 ? `${stats.pendingCreators} pending` : 'all approved', href: '/admin/creators' },
           { label: 'Businesses', value: stats.totalBusinesses, href: '/admin/businesses' },
           { label: 'Total matches', value: stats.totalMatches, href: '/admin/matches' },
-          { label: 'Active invites', value: stats.activeInvites, href: '/admin/invites' },
+          { label: 'Active collabs', value: stats.activeInvites, href: '/admin/invites' },
           { label: 'Unused invite codes', value: stats.unusedCodes, href: '/admin/invite-codes' },
         ].map(({ label, value, sub, href }) => (
           <Link key={label} href={href} className="block rounded-2xl bg-white p-5 hover:-translate-y-0.5 hover:shadow-md transition-all" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>

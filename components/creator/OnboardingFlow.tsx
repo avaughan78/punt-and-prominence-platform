@@ -354,10 +354,10 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl: _
               You&apos;re in, {contactName.split(' ')[0]}!
             </h2>
             <p className="text-sm text-gray-500 max-w-sm">
-              Browse invites from Cambridge businesses and claim one that fits your style. Visit, create, post — it&apos;s that simple.
+              Browse collabs from Cambridge businesses and claim one that fits your style. Visit, create, post — it&apos;s that simple.
             </p>
           </div>
-          <Button onClick={() => router.push('/creator/browse')}>Browse invites</Button>
+          <Button onClick={() => router.push('/creator/browse')}>Browse collabs</Button>
         </div>
       )}
     </div>

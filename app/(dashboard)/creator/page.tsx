@@ -26,7 +26,7 @@ export default async function CreatorDashboard() {
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Browse Cambridge invites and manage your matches.</p>
+        <p className="text-sm text-gray-500 mt-0.5">Browse Cambridge collabs and manage your matches.</p>
       </div>
 
       {/* Unread messages banner */}
@@ -52,7 +52,7 @@ export default async function CreatorDashboard() {
               Your profile is under review
             </p>
             <p className="text-xs text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
-              We&apos;re reviewing your profile and will be in touch shortly. You can browse invites in the meantime — claiming will be unlocked once you&apos;re approved.
+              We&apos;re reviewing your profile and will be in touch shortly. You can browse collabs in the meantime — claiming will be unlocked once you&apos;re approved.
             </p>
           </div>
         </div>
@@ -71,7 +71,7 @@ export default async function CreatorDashboard() {
       )}
 
       <div className="grid grid-cols-3 gap-3 mb-8">
-        <StatCard label="Available invites" value={availableInvites} href="/creator/browse" />
+        <StatCard label="Available collabs" value={availableInvites} href="/creator/browse" />
         <StatCard label="Active matches" value={active} accent="#C084FC" href="/creator/matches" />
         <StatCard label="Verified" value={verified} accent="#22c55e" href="/creator/matches" />
       </div>
@@ -80,14 +80,14 @@ export default async function CreatorDashboard() {
         style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #253d54 100%)' }}>
         <div className="flex-1">
           <p className="font-semibold text-white mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {availableInvites > 0 ? `${availableInvites} invite${availableInvites !== 1 ? 's' : ''} available` : 'New invites coming soon'}
+            {availableInvites > 0 ? `${availableInvites} collab${availableInvites !== 1 ? 's' : ''} available` : 'New collabs coming soon'}
           </p>
           <p className="text-xs text-white/50">Cambridge businesses are waiting for creators like you.</p>
         </div>
         <Link href="/creator/browse">
           <Button>
             <Search className="w-4 h-4" />
-            Browse invites
+            Browse collabs
           </Button>
         </Link>
       </div>

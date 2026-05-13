@@ -98,8 +98,8 @@ export async function emailWelcomeBusiness(opts: { email: string; name: string }
       <p style="color:#6b7280;margin:0 0 8px;font-weight:600;">Here's how it works:</p>
       <ol style="color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
         <li>Complete your business profile</li>
-        <li>Create an invite — set the value, slots, and what you'd like creators to post</li>
-        <li>Creators claim your invite and visit your business</li>
+        <li>Create a collab — set the value, slots, and what you'd like creators to post</li>
+        <li>Creators claim your collab and visit your business</li>
         <li>Review their post and verify it when it goes live</li>
       </ol>
       <a href="${APP_URL}/business" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Go to your dashboard →</a>
@@ -110,11 +110,11 @@ export async function emailWelcomeBusiness(opts: { email: string; name: string }
 export async function emailCreatorApproved(opts: { email: string; name: string }) {
   await send(
     opts.email,
-    `You're approved — start claiming invites`,
+    `You're approved — start claiming collabs`,
     wrap(`
       <h2 style="font-size:20px;font-weight:700;margin:0 0 8px;">You're approved! 🎉</h2>
-      <p style="color:#6b7280;margin:0 0 24px;">Hi ${opts.name}, your Punt & Prominence profile has been reviewed and approved. You can now claim invites from Cambridge businesses.</p>
-      <a href="${APP_URL}/creator/browse" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Browse invites →</a>
+      <p style="color:#6b7280;margin:0 0 24px;">Hi ${opts.name}, your Punt & Prominence profile has been reviewed and approved. You can now claim collabs from Cambridge businesses.</p>
+      <a href="${APP_URL}/creator/browse" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Browse collabs →</a>
     `)
   )
 }
@@ -145,11 +145,11 @@ export async function emailWelcomeCreator(opts: { email: string; name: string })
       <p style="color:#6b7280;margin:0 0 8px;font-weight:600;">Here's how it works:</p>
       <ol style="color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
         <li>Complete your profile and add your Instagram handle</li>
-        <li>Browse available invites from local businesses</li>
+        <li>Browse available collabs from local businesses</li>
         <li>Claim one, visit the business, and create your content</li>
         <li>Submit your post link — the business verifies it and the match is complete</li>
       </ol>
-      <a href="${APP_URL}/creator/browse" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Browse invites →</a>
+      <a href="${APP_URL}/creator/browse" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:'JetBrains Mono',monospace;">Browse collabs →</a>
     `)
   )
 }

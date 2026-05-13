@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     .eq('id', user.id)
     .single()
   if (!approvalCheck?.is_approved) {
-    return NextResponse.json({ error: 'Your profile is under review. You\'ll be able to claim invites once approved.' }, { status: 403 })
+    return NextResponse.json({ error: 'Your profile is under review. You\'ll be able to claim collabs once approved.' }, { status: 403 })
   }
 
   const { offer_id } = await req.json()

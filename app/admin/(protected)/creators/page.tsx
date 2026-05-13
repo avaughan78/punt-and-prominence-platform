@@ -177,7 +177,7 @@ export default function AdminCreators() {
               </h3>
               <p className="text-xs text-gray-500 mb-4">
                 {isRevoke
-                  ? 'Their account will remain but they will lose access to claim invites.'
+                  ? 'Their account will remain but they will lose access to claim collabs.'
                   : 'Their account and all profile data will be permanently deleted. A rejection email will be sent.'}
               </p>
               <textarea

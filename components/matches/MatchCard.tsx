@@ -100,7 +100,7 @@ export function MatchCard({ match, role, currentUserId, onUpdated }: Props) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-semibold text-[#1C2B3A] leading-snug" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {invite?.title ?? 'Invite'}
+            {invite?.title ?? 'Collab'}
           </p>
           {role === 'creator' ? (
             <p className="text-xs font-medium mt-0.5" style={{ color: '#6b7280', fontFamily: "'Inter', sans-serif" }}>{businessName}</p>
@@ -162,7 +162,7 @@ export function MatchCard({ match, role, currentUserId, onUpdated }: Props) {
         </div>
         {invite && (
           <div className="ml-auto text-right">
-            <p className="text-[10px] text-gray-400 mb-0.5">{isRetainer ? 'Monthly fee' : 'Invite value'}</p>
+            <p className="text-[10px] text-gray-400 mb-0.5">{isRetainer ? 'Monthly fee' : 'Collab value'}</p>
             <p className="font-semibold text-sm" style={{ color: '#F5B800' }}>
               {isRetainer
                 ? `${formatGBP(invite.fee_gbp ?? 0)}/mo`

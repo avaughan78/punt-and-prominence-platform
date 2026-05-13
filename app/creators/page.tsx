@@ -100,7 +100,7 @@ export default async function PublicCreatorsPage() {
             Work with these creators
           </h2>
           <p className="text-gray-400 mb-6 max-w-md mx-auto text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
-            Post an invite, set your budget, and let Cambridge's best creators come to you.
+            Post a collab, set your budget, and let Cambridge's best creators come to you.
           </p>
           <Link
             href="/signup"

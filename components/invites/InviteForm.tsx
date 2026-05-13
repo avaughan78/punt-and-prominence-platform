@@ -76,9 +76,9 @@ export function InviteForm() {
 
     const data = await res.json()
     if (!res.ok) {
-      toast.error(data.error ?? 'Failed to create invite')
+      toast.error(data.error ?? 'Failed to create collab')
     } else {
-      toast.success(inviteType === 'retainer' ? 'Retainer posted!' : 'Invite posted!')
+      toast.success(inviteType === 'retainer' ? 'Retainer posted!' : 'Collab posted!')
       router.push('/business/invites')
       router.refresh()
     }
@@ -94,7 +94,7 @@ export function InviteForm() {
         </label>
         <div className="grid grid-cols-2 gap-2">
           {([
-            { value: 'one_off', label: 'One-off invite', sub: 'Creator visits once and posts' },
+            { value: 'one_off', label: 'One-off collab', sub: 'Creator visits once and posts' },
             { value: 'retainer', label: 'Retainer', sub: 'Ongoing monthly arrangement' },
           ] as const).map(opt => (
             <button
@@ -220,7 +220,7 @@ export function InviteForm() {
       <div className="flex gap-3 pt-2">
         <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
         <Button type="submit" loading={loading}>
-          {inviteType === 'retainer' ? 'Post retainer' : 'Post invite'}
+          {inviteType === 'retainer' ? 'Post retainer' : 'Post collab'}
         </Button>
       </div>
     </form>

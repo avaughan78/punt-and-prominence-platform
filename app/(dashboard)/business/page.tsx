@@ -38,7 +38,7 @@ export default async function BusinessDashboard() {
         <Link href="/business/invites/new">
           <Button size="sm">
             <Plus className="w-4 h-4" />
-            New invite
+            New collab
           </Button>
         </Link>
       </div>
@@ -73,7 +73,7 @@ export default async function BusinessDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-        <StatCard label="Active invites" value={activeOffers} href="/business/invites" />
+        <StatCard label="Active collabs" value={activeOffers} href="/business/invites" />
         <StatCard label="Total matches" value={totalMatches} accent="#6BE6B0" href="/business/matches" />
         <StatCard label="In progress" value={pendingMatches} accent="#C084FC" href="/business/matches" />
         <StatCard label="Verified" value={verifiedMatches} accent="#22c55e" href="/business/matches" />
@@ -91,7 +91,7 @@ export default async function BusinessDashboard() {
             <p className="text-sm text-gray-400 mb-3">No matches yet.</p>
             {!activeOffers && (
               <Link href="/business/invites/new">
-                <Button size="sm" variant="secondary">Post your first invite</Button>
+                <Button size="sm" variant="secondary">Post your first collab</Button>
               </Link>
             )}
           </div>

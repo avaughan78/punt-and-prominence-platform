@@ -46,7 +46,7 @@ export default function BusinessOffersPage() {
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>My Invites</h1>
+          <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>My Collabs</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {openOffers.length} open · {claimedOffers.length} claimed
           </p>
@@ -55,7 +55,7 @@ export default function BusinessOffersPage() {
           <Link href="/business/invites/new">
             <Button size="sm">
               <Plus className="w-4 h-4" />
-              New invite
+              New collab
             </Button>
           </Link>
         )}
@@ -91,13 +91,13 @@ export default function BusinessOffersPage() {
         <div className="rounded-2xl p-12 text-center" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
           {tab === 'open' ? (
             <>
-              <p className="text-sm text-gray-400 mb-4">No open invites. Post one to start getting matched with creators.</p>
+              <p className="text-sm text-gray-400 mb-4">No open collabs. Post one to start getting matched with creators.</p>
               <Link href="/business/invites/new">
-                <Button variant="secondary">Post your first invite</Button>
+                <Button variant="secondary">Post your first collab</Button>
               </Link>
             </>
           ) : (
-            <p className="text-sm text-gray-400">No claimed invites yet.</p>
+            <p className="text-sm text-gray-400">No claimed collabs yet.</p>
           )}
         </div>
       ) : (

@@ -32,7 +32,7 @@ export function InviteCard({ invite, mode, isApproved = true, onClaimed, onToggl
     })
     const data = await res.json()
     if (!res.ok) {
-      toast.error(data.error ?? 'Could not claim invite')
+      toast.error(data.error ?? 'Could not claim collab')
     } else {
       onClaimed?.(data)
     }
@@ -46,7 +46,7 @@ export function InviteCard({ invite, mode, isApproved = true, onClaimed, onToggl
     if (res.ok) {
       onDelete?.(invite.id)
     } else {
-      toast.error('Failed to delete invite')
+      toast.error('Failed to delete collab')
       setDeleting(false)
     }
   }
@@ -61,7 +61,7 @@ export function InviteCard({ invite, mode, isApproved = true, onClaimed, onToggl
     if (res.ok) {
       onToggle?.(invite.id, !invite.is_active)
     } else {
-      toast.error('Failed to update invite')
+      toast.error('Failed to update collab')
     }
     setToggling(false)
   }
@@ -158,7 +158,7 @@ export function InviteCard({ invite, mode, isApproved = true, onClaimed, onToggl
 
         {mode === 'browse' && (
           <Button size="sm" onClick={handleClaim} loading={claiming} disabled={slotsLeft === 0 || !isApproved}>
-            {slotsLeft === 0 ? 'Full' : 'Claim invite'}
+            {slotsLeft === 0 ? 'Full' : 'Claim collab'}
           </Button>
         )}
 

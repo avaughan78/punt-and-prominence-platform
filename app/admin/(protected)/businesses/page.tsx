@@ -156,7 +156,7 @@ export default function AdminBusinesses() {
                 {/* Stats row */}
                 <div className="flex gap-3 mt-1.5">
                   <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#6BE6B0', fontFamily: "'JetBrains Mono', monospace" }}>
-                    {biz.active_invites} invite{biz.active_invites !== 1 ? 's' : ''}
+                    {biz.active_invites} collab{biz.active_invites !== 1 ? 's' : ''}
                   </span>
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     {biz.total_matches} match{biz.total_matches !== 1 ? 'es' : ''}
@@ -235,7 +235,7 @@ export default function AdminBusinesses() {
               <p className="text-sm text-gray-500 mb-1">
                 Are you sure you want to delete <strong>{target?.business_name ?? target?.display_name}</strong>?
               </p>
-              <p className="text-xs text-red-500 mb-5">This permanently removes their account, profile, invites, and matches. This cannot be undone.</p>
+              <p className="text-xs text-red-500 mb-5">This permanently removes their account, profile, collabs, and matches. This cannot be undone.</p>
               <div className="flex gap-2 justify-end">
                 <button onClick={() => setDeleteId(null)} className="text-sm px-4 py-2 rounded-xl text-gray-500 hover:bg-gray-50">Cancel</button>
                 <button
