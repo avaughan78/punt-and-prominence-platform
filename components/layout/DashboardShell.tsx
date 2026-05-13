@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, ShoppingBag, GitMerge, CreditCard, Search, LogOut, Star, UserCircle } from 'lucide-react'
+import { LayoutDashboard, ShoppingBag, GitMerge, CreditCard, Search, LogOut, Star, UserCircle, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import type { Role } from '@/lib/types'
@@ -15,6 +15,7 @@ interface NavItem {
 function businessNav(): NavItem[] {
   return [
     { href: '/business', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { href: '/business/creators', label: 'Creators', icon: <Users className="w-4 h-4" /> },
     { href: '/business/invites', label: 'My Invites', icon: <ShoppingBag className="w-4 h-4" /> },
     { href: '/business/matches', label: 'Matches', icon: <GitMerge className="w-4 h-4" /> },
     { href: '/business/billing', label: 'Billing', icon: <CreditCard className="w-4 h-4" /> },
