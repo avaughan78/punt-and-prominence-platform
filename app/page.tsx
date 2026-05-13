@@ -2,9 +2,9 @@
 import { useState } from 'react'
 import { Star, MapPin, Lock, Loader2, BadgeCheck } from 'lucide-react'
 
-// ─── Mock profiles for background cards ──────────────────────────────────────
+// ─── Mock data ────────────────────────────────────────────────────────────────
 
-const mockProfiles = [
+const mockCards = [
   {
     handle: 'priya.eats.cam',
     name: 'Priya Sharma',
@@ -39,14 +39,44 @@ const mockProfiles = [
   },
 ]
 
-const cardPositions = [
-  { top: '10%', left: '4%',  rotate: '-4deg' },
-  { top: '14%', left: '50%', rotate:  '3deg' },
-  { top: '56%', left: '4%',  rotate:  '2.5deg' },
-  { top: '53%', left: '50%', rotate: '-3deg'  },
+const mockCircles = [
+  {
+    handle: 'cambridgemarket',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+  },
+  {
+    handle: 'cambridgenights',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+  },
+  {
+    handle: 'millroadfood',
+    avatar: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+  },
+  {
+    handle: 'camcreates',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+  },
 ]
 
-function MockProfileCard({ profile, style }: { profile: typeof mockProfiles[0]; style?: React.CSSProperties }) {
+// Cards scattered across the full rectangle
+const cardPositions = [
+  { top: '7%',  left: '2%',  rotate: '-3.5deg' },
+  { top: '5%',  left: '73%', rotate:  '2.5deg' },
+  { top: '56%', left: '3%',  rotate:  '2deg'   },
+  { top: '53%', left: '71%', rotate: '-3deg'   },
+]
+
+// Circles filling the middle gaps
+const circlePositions = [
+  { top: '38%', left: '27%', rotate: '-2deg' },
+  { top: '10%', left: '46%', rotate:  '3deg' },
+  { top: '62%', left: '43%', rotate: '-1.5deg' },
+  { top: '36%', left: '61%', rotate:  '2deg' },
+]
+
+// ─── Components ───────────────────────────────────────────────────────────────
+
+function MockProfileCard({ profile, style }: { profile: typeof mockCards[0]; style?: React.CSSProperties }) {
   return (
     <div
       className="absolute bg-white rounded-2xl overflow-hidden shadow-2xl"
@@ -91,6 +121,24 @@ function MockProfileCard({ profile, style }: { profile: typeof mockProfiles[0]; 
   )
 }
 
+function MockProfileCircle({ profile, style }: { profile: typeof mockCircles[0]; style?: React.CSSProperties }) {
+  return (
+    <div className="absolute flex flex-col items-center gap-1.5" style={style}>
+      <div className="p-[3px] rounded-full shadow-xl" style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}>
+        <div className="p-[2.5px] bg-white rounded-full">
+          <img src={profile.avatar} alt={profile.handle} className="w-12 h-12 rounded-full object-cover block" />
+        </div>
+      </div>
+      <span
+        className="text-white text-[9px] font-medium px-1.5 py-0.5 rounded-md"
+        style={{ background: 'rgba(0,0,0,0.45)', fontFamily: "'JetBrains Mono', monospace", backdropFilter: 'blur(4px)' }}
+      >
+        @{profile.handle}
+      </span>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ComingSoon() {
@@ -119,7 +167,7 @@ export default function ComingSoon() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: '#1C2B3A' }}>
 
-      {/* ── Square frame behind content ── */}
+      {/* ── Rectangular frame ── */}
       <div
         className="absolute pointer-events-none overflow-hidden"
         style={{
@@ -132,42 +180,47 @@ export default function ComingSoon() {
           border: '1px solid rgba(255,255,255,0.07)',
         }}
       >
-        {/* Left half: Cambridge map */}
-        <div className="absolute top-0 left-0 w-1/2 h-full">
-          <img
-            src="/cambridge-map.png"
-            alt=""
-            className="w-full h-full object-cover"
-            style={{ opacity: 0.45, filter: 'grayscale(30%) brightness(1.5) contrast(0.9)' }}
-          />
-        </div>
-
-        {/* Centre divider */}
-        <div
-          className="absolute top-0 left-1/2 -translate-x-px w-px h-full"
-          style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.1) 20%, rgba(255,255,255,0.1) 80%, transparent 100%)' }}
+        {/* Full map background */}
+        <img
+          src="/cambridge-map.png"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ opacity: 0.4, filter: 'grayscale(25%) brightness(1.5) contrast(0.9)' }}
         />
 
-        {/* Right half: profile cards */}
-        <div className="absolute top-0 right-0 w-1/2 h-full" style={{ opacity: 0.55 }}>
-          {mockProfiles.map((p, i) => (
-            <MockProfileCard
-              key={p.handle}
-              profile={p}
-              style={{
-                top: cardPositions[i].top,
-                left: cardPositions[i].left,
-                transform: `rotate(${cardPositions[i].rotate})`,
-              }}
-            />
-          ))}
-        </div>
+        {/* Profile cards — corners */}
+        {mockCards.map((p, i) => (
+          <MockProfileCard
+            key={p.handle}
+            profile={p}
+            style={{
+              top: cardPositions[i].top,
+              left: cardPositions[i].left,
+              transform: `rotate(${cardPositions[i].rotate})`,
+              opacity: 0.55,
+            }}
+          />
+        ))}
 
-        {/* Inner vignette — keeps text readable */}
+        {/* Story circles — middle gaps */}
+        {mockCircles.map((p, i) => (
+          <MockProfileCircle
+            key={p.handle}
+            profile={p}
+            style={{
+              top: circlePositions[i].top,
+              left: circlePositions[i].left,
+              transform: `rotate(${circlePositions[i].rotate})`,
+              opacity: 0.6,
+            }}
+          />
+        ))}
+
+        {/* Centre vignette — keeps text readable */}
         <div
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse 62% 60% at 50% 50%, rgba(28,43,58,0.88) 0%, rgba(28,43,58,0.55) 52%, rgba(28,43,58,0.05) 100%)',
+            background: 'radial-gradient(ellipse 42% 68% at 50% 50%, rgba(28,43,58,0.92) 0%, rgba(28,43,58,0.62) 48%, rgba(28,43,58,0.08) 100%)',
           }}
         />
       </div>
