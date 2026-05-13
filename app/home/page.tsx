@@ -163,6 +163,19 @@ function ValuePostCard({ p, card }: { p: Post; card: { title: string; body: stri
           <img src={p.profilePic} alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" style={{ border: '2px solid rgba(255,255,255,0.95)', boxShadow: '0 2px 6px rgba(0,0,0,0.5)' }} />
         </div>
 
+        {/* Likes/comments bar — fades on hover/open */}
+        <div
+          className={`absolute bottom-0 left-0 right-0 flex items-center gap-3 px-2.5 py-2 transition-opacity duration-200 ${open ? 'opacity-0' : 'group-hover:opacity-0'}`}
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%)' }}
+        >
+          <span className="flex items-center gap-1 text-white font-semibold" style={{ fontSize: '13px', fontFamily: "'Inter', sans-serif", textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+            <Heart className="w-3.5 h-3.5 fill-white" /> {p.likes}
+          </span>
+          <span className="flex items-center gap-1 text-white font-semibold" style={{ fontSize: '13px', fontFamily: "'Inter', sans-serif", textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+            <MessageSquare className="w-3.5 h-3.5 text-white" /> {p.comments}
+          </span>
+        </div>
+
         {/* Mobile tap hint */}
         <div className={`md:hidden absolute bottom-2 right-2 transition-opacity duration-200 ${open ? 'opacity-0' : 'opacity-100'}`}>
           <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(245,184,0,0.9)' }}>
