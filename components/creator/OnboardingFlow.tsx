@@ -91,7 +91,7 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
     setLooking(true)
     setLookupResult(null)
     try {
-      const res = await fetch(`/api/instagram/lookup?handle=${encodeURIComponent(instagram)}`)
+      const res = await fetch(`/api/instagram/lookup?handle=${encodeURIComponent(instagram)}&userId=${encodeURIComponent(userId)}`)
       const data = await res.json()
       if (!res.ok) { toast.error(data.error ?? 'Profile not found — check the handle and try again'); return }
       if (data.isPrivate) { toast.error('This account is private — it must be public to be verified'); return }

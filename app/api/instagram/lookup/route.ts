@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 export async function GET(request: NextRequest) {
   const handle = request.nextUrl.searchParams.get('handle')
+  const userId = request.nextUrl.searchParams.get('userId')
   if (!handle) return NextResponse.json({ error: 'handle required' }, { status: 400 })
 
   const key = process.env.RAPIDAPI_KEY
@@ -28,11 +30,39 @@ export async function GET(request: NextRequest) {
   }
 
   const d = json.data
+  const instagramImageUrl = d.profile_pic_url_hd ?? d.profile_pic_url ?? null
+
+  // If userId provided, download and re-upload to Supabase so the URL doesn't expire
+  let cachedImageUrl: string | null = instagramImageUrl
+  if (userId && instagramImageUrl) {
+    try {
+      const imgRes = await fetch(instagramImageUrl)
+      if (imgRes.ok) {
+        const blob = await imgRes.blob()
+        const contentType = imgRes.headers.get('content-type') ?? 'image/jpeg'
+        const ext = contentType.includes('png') ? 'png' : 'jpg'
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+        const path = `${userId}/avatar.${ext}`
+        const { error } = await supabase.storage
+          .from('avatars')
+          .upload(path, blob, { upsert: true, contentType })
+        if (!error) {
+          const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+          cachedImageUrl = `${publicUrl}?t=${Date.now()}`
+        }
+      }
+    } catch {
+      // Fall back to the original URL if caching fails
+    }
+  }
 
   return NextResponse.json({
     handle: d.username ?? clean,
     name: d.full_name ?? null,
-    image: d.profile_pic_url_hd ?? d.profile_pic_url ?? null,
+    image: cachedImageUrl,
     bio: d.biography ?? null,
     followers: d.follower_count ?? null,
     following: d.following_count ?? null,
