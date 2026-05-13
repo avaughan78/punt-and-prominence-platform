@@ -1,6 +1,27 @@
 'use client'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { Heart, MessageSquare, Star, Check, Building2, Sparkles, BadgeCheck, MapPin } from 'lucide-react'
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface LiveCreator {
+  id: string
+  display_name: string
+  instagram_handle: string | null
+  avatar_url: string | null
+  follower_count: number | null
+  tiktok_follower_count: number | null
+  bio: string | null
+  verified_matches: number
+  total_matches: number
+}
+
+function formatFollowers(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')}K`
+  return String(n)
+}
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -80,44 +101,6 @@ const stats = [
   { num: '20',   label: 'Founding business spots', sub: 'available this year' },
 ]
 
-const featuredCreators = [
-  {
-    name: 'Priya Sharma',
-    handle: '@priya.eats.cam',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
-    niche: 'Food & Dining',
-    followers: '1.2K',
-    localAudience: '84%',
-    collabs: 4,
-  },
-  {
-    name: 'Aisha Rahman',
-    handle: '@aisha.local',
-    avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
-    niche: 'Lifestyle',
-    followers: '2.4K',
-    localAudience: '79%',
-    collabs: 7,
-  },
-  {
-    name: 'Tom Whitfield',
-    handle: '@tomincambridge',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
-    niche: 'Arts & Culture',
-    followers: '892',
-    localAudience: '91%',
-    collabs: 2,
-  },
-  {
-    name: 'Emma Clarke',
-    handle: '@sundaybrunchcam',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
-    niche: 'Food & Brunch',
-    followers: '3.1K',
-    localAudience: '76%',
-    collabs: 9,
-  },
-]
 
 const places = [
   'Mill Road', 'Newnham', 'Castle Hill', 'Romsey', 'Chesterton',
@@ -168,37 +151,42 @@ function PostCard({ p }: { p: Post }) {
   )
 }
 
-function CreatorCard({ c }: { c: typeof featuredCreators[0] }) {
+function CreatorCard({ c }: { c: LiveCreator }) {
+  const initials = c.display_name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+  const totalFollowers = (c.follower_count ?? 0) + (c.tiktok_follower_count ?? 0)
   return (
     <div
       className="flex flex-col rounded-2xl overflow-hidden flex-shrink-0 w-56"
       style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
     >
-      {/* Top band */}
       <div className="h-10 w-full" style={{ background: 'linear-gradient(135deg, #1a3347 0%, #253d54 100%)' }} />
-      {/* Avatar */}
       <div className="flex flex-col items-center px-4 pb-5 -mt-6">
         <div className="p-[2.5px] rounded-full mb-2" style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}>
           <div className="p-[2px] rounded-full" style={{ background: '#1e3348' }}>
-            <img src={c.avatar} alt={c.name} className="w-12 h-12 rounded-full object-cover block" />
+            {c.avatar_url ? (
+              <img src={c.avatar_url} alt={c.display_name} className="w-12 h-12 rounded-full object-cover block" />
+            ) : (
+              <div className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}>
+                {initials}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-1 mb-0.5">
-          <span className="text-sm font-bold text-white" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{c.name}</span>
-          <BadgeCheck className="w-3.5 h-3.5 shrink-0" style={{ color: '#6BE6B0' }} />
+          <span className="text-sm font-bold text-white" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{c.display_name}</span>
+          {c.verified_matches > 0 && <BadgeCheck className="w-3.5 h-3.5 shrink-0" style={{ color: '#6BE6B0' }} />}
         </div>
-        <span className="text-xs mb-3" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.4)' }}>{c.handle}</span>
-        <span
-          className="text-xs font-semibold px-2.5 py-1 rounded-full mb-4"
-          style={{ background: 'rgba(245,184,0,0.12)', color: '#F5B800', border: '1px solid rgba(245,184,0,0.25)', fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          {c.niche}
-        </span>
+        {c.instagram_handle && (
+          <span className="text-xs mb-3" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.4)' }}>@{c.instagram_handle}</span>
+        )}
+        {c.bio && (
+          <p className="text-[10px] text-center mb-3 line-clamp-2 leading-relaxed" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: "'Inter', sans-serif" }}>{c.bio}</p>
+        )}
         <div className="w-full grid grid-cols-3 gap-1" style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '12px' }}>
           {[
-            { val: c.followers, label: 'Followers' },
-            { val: c.localAudience, label: 'Local' },
-            { val: String(c.collabs), label: 'Collabs' },
+            { val: totalFollowers > 0 ? formatFollowers(totalFollowers) : '—', label: 'Followers' },
+            { val: String(c.total_matches), label: 'Collabs' },
+            { val: String(c.verified_matches), label: 'Verified' },
           ].map((s, i) => (
             <div key={s.label} className="flex flex-col items-center" style={{ borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.07)' : undefined }}>
               <span className="text-sm font-bold text-white" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{s.val}</span>
@@ -214,6 +202,23 @@ function CreatorCard({ c }: { c: typeof featuredCreators[0] }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
+  const [creators, setCreators] = useState<LiveCreator[]>([])
+
+  useEffect(() => {
+    fetch('/api/public/creators')
+      .then(r => r.json())
+      .then(d => setCreators(Array.isArray(d) ? d.slice(0, 4) : []))
+      .catch(() => {})
+  }, [])
+
+  const displayCreators = creators.length > 0 ? creators : []
+  const totalFollowers = creators.reduce((s, c) => s + (c.follower_count ?? 0) + (c.tiktok_follower_count ?? 0), 0)
+  const liveStats = [
+    { num: creators.length > 0 ? `${creators.length}+` : '30+', label: 'Verified creators', sub: 'joining at launch' },
+    { num: totalFollowers > 0 ? `${formatFollowers(totalFollowers)}+` : '30K+', label: 'Combined local reach', sub: 'Cambridge followers across the network' },
+    { num: '20', label: 'Founding business spots', sub: 'available this year' },
+  ]
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#1C2B3A' }}>
 
@@ -363,7 +368,7 @@ export default function HomePage() {
 
           {/* Cards — scrollable on mobile, 4-up on desktop */}
           <div className="flex gap-4 overflow-x-auto pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4" style={{ scrollbarWidth: 'none' } as React.CSSProperties}>
-            {featuredCreators.map(c => <CreatorCard key={c.handle} c={c} />)}
+            {displayCreators.map(c => <CreatorCard key={c.id} c={c} />)}
           </div>
 
           <div className="mt-8 flex items-center gap-3">
@@ -394,7 +399,7 @@ export default function HomePage() {
                 We&apos;re building the most focused creator network in the UK — 30 verified Cambridge creators, a combined local reach of 30,000 local followers, and just 20 founding business spots. Small by design. Effective by necessity.
               </p>
               <div className="grid grid-cols-3 gap-4 sm:gap-6">
-                {stats.map(s => (
+                {liveStats.map(s => (
                   <div key={s.label}>
                     <div className="mb-1 leading-none font-bold" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(1.6rem, 3.5vw, 2.5rem)', color: '#F5B800' }}>{s.num}</div>
                     <div className="text-sm font-semibold mb-0.5" style={{ color: '#ffffff', fontFamily: "'Inter', sans-serif" }}>{s.label}</div>
@@ -406,12 +411,12 @@ export default function HomePage() {
             <div className="relative rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
               <img src="/cambridge-map.png" alt="Cambridge city map" className="w-full h-auto object-cover" style={{ opacity: 0.75, filter: 'grayscale(20%) brightness(1.3) contrast(0.9)' }} />
               {/* Profile circles overlaid on the map */}
-              {[
-                { avatar: featuredCreators[0].avatar, handle: featuredCreators[0].handle, top: '12%',  left: '18%' },
-                { avatar: featuredCreators[1].avatar, handle: featuredCreators[1].handle, top: '22%',  left: '62%' },
-                { avatar: featuredCreators[2].avatar, handle: featuredCreators[2].handle, top: '58%',  left: '38%' },
-                { avatar: featuredCreators[3].avatar, handle: featuredCreators[3].handle, top: '68%',  left: '70%' },
-              ].map(c => (
+              {displayCreators.slice(0, 4).map((c, i) => ({
+                avatar: c.avatar_url,
+                handle: c.instagram_handle ? `@${c.instagram_handle}` : c.display_name,
+                top: ['12%', '22%', '58%', '68%'][i],
+                left: ['18%', '62%', '38%', '70%'][i],
+              })).map(c => (
                 <div
                   key={c.handle}
                   className="absolute flex flex-col items-center gap-1"
@@ -419,7 +424,13 @@ export default function HomePage() {
                 >
                   <div className="p-[2.5px] rounded-full shadow-lg" style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}>
                     <div className="p-[2px] rounded-full" style={{ background: '#1C2B3A' }}>
-                      <img src={c.avatar} alt={c.handle} className="w-10 h-10 rounded-full object-cover block" />
+                      {c.avatar ? (
+                        <img src={c.avatar} alt={c.handle} className="w-10 h-10 rounded-full object-cover block" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}>
+                          {c.handle.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <span
