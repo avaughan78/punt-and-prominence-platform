@@ -47,7 +47,19 @@ export async function GET(request: NextRequest) {
       )
       return response
     }
+
+    const errMsg = error?.message ?? 'exchange_failed'
+    console.error('[auth/callback] exchangeCodeForSession error:', errMsg)
+    const errorDest = next.startsWith('/admin')
+      ? `${appOrigin}/admin/login?error=${encodeURIComponent(errMsg)}`
+      : `${appOrigin}/login?error=auth&detail=${encodeURIComponent(errMsg)}`
+    return NextResponse.redirect(errorDest)
   }
 
-  return NextResponse.redirect(`${appOrigin}/login?error=auth`)
+  const allParams = Object.fromEntries(new URL(request.url).searchParams)
+  console.error('[auth/callback] no code param, searchParams:', allParams)
+  const noCodeDest = next.startsWith('/admin')
+    ? `${appOrigin}/admin/login?error=no_code_in_callback`
+    : `${appOrigin}/login?error=auth&detail=no_code`
+  return NextResponse.redirect(noCodeDest)
 }
