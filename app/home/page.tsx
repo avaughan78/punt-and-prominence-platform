@@ -541,11 +541,17 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* 3-D coverflow — full section width */}
-        {creators.length > 0
-          ? <CreatorRoundabout creators={creators} />
-          : <div className="px-6 py-20 text-center"><p style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'Inter', sans-serif" }}>Creators coming soon.</p></div>
-        }
+        {/* 3-D carousel */}
+        <div className="max-w-5xl mx-auto px-6">
+          <div style={{ padding: '2.5px', background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)', borderRadius: '26px' }}>
+            <div style={{ background: '#1C2B3A', borderRadius: '24px', overflow: 'hidden' }}>
+              {creators.length > 0
+                ? <CreatorRoundabout creators={creators} />
+                : <div className="py-20 text-center"><p style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'Inter', sans-serif" }}>Creators coming soon.</p></div>
+              }
+            </div>
+          </div>
+        </div>
 
         {/* Links */}
         <div className="max-w-5xl mx-auto px-6 py-4">
