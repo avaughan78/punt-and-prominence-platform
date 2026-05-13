@@ -11,7 +11,8 @@ export default function AdminLoginPage() {
     setLoading(true)
     setError('')
     const res = await fetch('/api/admin/magic-link', { method: 'POST' })
-    if (!res.ok) { setError('Something went wrong'); setLoading(false); return }
+    const body = await res.json().catch(() => ({}))
+    if (!res.ok) { setError(body.error ?? 'Something went wrong'); setLoading(false); return }
     setSent(true)
     setLoading(false)
   }
