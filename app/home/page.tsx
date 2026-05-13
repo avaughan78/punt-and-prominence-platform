@@ -272,8 +272,8 @@ function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
     <div
       ref={wrapRef}
       style={{
-        background: 'linear-gradient(180deg, #152232 0%, #1C2B3A 50%, #152232 100%)',
-        padding: '48px 0',
+        background: '#1C2B3A',
+        padding: '24px 0',
         cursor: 'grab',
         userSelect: 'none',
       }}
@@ -496,7 +496,7 @@ export default function HomePage() {
       <section style={{ background: '#1C2B3A', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
 
         {/* Header + stats */}
-        <div className="max-w-5xl mx-auto px-6 pt-16 pb-6">
+        <div className="max-w-5xl mx-auto px-6 pt-10 pb-4">
           <div className="mb-6">
             <span className="text-xs font-bold tracking-widest uppercase mb-3 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.35)' }}>
               Meet the creators
@@ -535,7 +535,7 @@ export default function HomePage() {
         }
 
         {/* Links */}
-        <div className="max-w-5xl mx-auto px-6 py-6 flex items-center gap-3">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
           <Link
             href="/creators"
             className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
