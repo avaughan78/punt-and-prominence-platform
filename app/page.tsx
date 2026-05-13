@@ -123,8 +123,8 @@ export default function ComingSoon() {
       <div
         className="absolute pointer-events-none overflow-hidden"
         style={{
-          width: 'min(700px, 88vmin)',
-          height: 'min(700px, 88vmin)',
+          width: 'min(910px, 92vmin)',
+          height: 'min(910px, 92vmin)',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
