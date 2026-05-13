@@ -5,8 +5,8 @@ const PREVIEW_COOKIE = 'preview_access'
 
 function needsPreviewAccess(path: string): boolean {
   if (path === '/') return false
-  if (path.startsWith('/api/auth/preview')) return false
   if (path.startsWith('/api/')) return false
+  if (path.startsWith('/admin')) return false  // has its own Supabase + email auth guard
   return true
 }
 
