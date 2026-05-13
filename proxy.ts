@@ -1,7 +1,28 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const PREVIEW_COOKIE = 'preview_access'
+
+function needsPreviewAccess(path: string): boolean {
+  if (path === '/') return false
+  if (path.startsWith('/api/auth/preview')) return false
+  if (path.startsWith('/api/')) return false
+  return true
+}
+
 export async function proxy(request: NextRequest) {
+  const path = request.nextUrl.pathname
+
+  // Gate all non-root page routes behind the preview cookie
+  if (needsPreviewAccess(path)) {
+    const hasAccess = request.cookies.get(PREVIEW_COOKIE)?.value === '1'
+    if (!hasAccess) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -23,7 +44,6 @@ export async function proxy(request: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession()
   const user = session?.user ?? null
-  const path = request.nextUrl.pathname
 
   const isBusinessRoute = path.startsWith('/business')
   const isCreatorRoute = path.startsWith('/creator')

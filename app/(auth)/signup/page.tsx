@@ -1,7 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { Building2, Sparkles, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -11,8 +11,17 @@ import type { Role } from '@/lib/types'
 
 export default function SignupPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [step, setStep] = useState<1 | 2>(1)
   const [role, setRole] = useState<Role | null>(null)
+
+  useEffect(() => {
+    const r = searchParams.get('role')
+    if (r === 'business' || r === 'creator') {
+      setRole(r)
+      setStep(2)
+    }
+  }, [searchParams])
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
