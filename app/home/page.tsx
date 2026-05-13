@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { Heart, MessageSquare, Star, Check, Building2, Sparkles } from 'lucide-react'
+import { Heart, MessageSquare, Star, Check, Building2, Sparkles, BadgeCheck, MapPin } from 'lucide-react'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -80,6 +80,45 @@ const stats = [
   { num: '20',   label: 'Founding business spots', sub: 'available this year' },
 ]
 
+const featuredCreators = [
+  {
+    name: 'Priya Sharma',
+    handle: '@priya.eats.cam',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    niche: 'Food & Dining',
+    followers: '1.2K',
+    localAudience: '84%',
+    collabs: 4,
+  },
+  {
+    name: 'Aisha Rahman',
+    handle: '@aisha.local',
+    avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    niche: 'Lifestyle',
+    followers: '2.4K',
+    localAudience: '79%',
+    collabs: 7,
+  },
+  {
+    name: 'Tom Whitfield',
+    handle: '@tomincambridge',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    niche: 'Arts & Culture',
+    followers: '892',
+    localAudience: '91%',
+    collabs: 2,
+  },
+  {
+    name: 'Emma Clarke',
+    handle: '@sundaybrunchcam',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    niche: 'Food & Brunch',
+    followers: '3.1K',
+    localAudience: '76%',
+    collabs: 9,
+  },
+]
+
 const places = [
   'Mill Road', 'Newnham', 'Castle Hill', 'Romsey', 'Chesterton',
   'Coleridge', 'Cherry Hinton', 'Trumpington', 'Arbury', 'King Hedges',
@@ -123,6 +162,49 @@ function PostCard({ p }: { p: Post }) {
           <span className="flex items-center gap-1 text-white font-semibold" style={{ fontSize: '13px', fontFamily: "'Inter', sans-serif", textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
             <MessageSquare className="w-3.5 h-3.5 text-white" /> {p.comments}
           </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CreatorCard({ c }: { c: typeof featuredCreators[0] }) {
+  return (
+    <div
+      className="flex flex-col rounded-2xl overflow-hidden flex-shrink-0 w-56"
+      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+    >
+      {/* Top band */}
+      <div className="h-10 w-full" style={{ background: 'linear-gradient(135deg, #1a3347 0%, #253d54 100%)' }} />
+      {/* Avatar */}
+      <div className="flex flex-col items-center px-4 pb-5 -mt-6">
+        <div className="p-[2.5px] rounded-full mb-2" style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}>
+          <div className="p-[2px] rounded-full" style={{ background: '#1e3348' }}>
+            <img src={c.avatar} alt={c.name} className="w-12 h-12 rounded-full object-cover block" />
+          </div>
+        </div>
+        <div className="flex items-center gap-1 mb-0.5">
+          <span className="text-sm font-bold text-white" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{c.name}</span>
+          <BadgeCheck className="w-3.5 h-3.5 shrink-0" style={{ color: '#6BE6B0' }} />
+        </div>
+        <span className="text-xs mb-3" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.4)' }}>{c.handle}</span>
+        <span
+          className="text-xs font-semibold px-2.5 py-1 rounded-full mb-4"
+          style={{ background: 'rgba(245,184,0,0.12)', color: '#F5B800', border: '1px solid rgba(245,184,0,0.25)', fontFamily: "'JetBrains Mono', monospace" }}
+        >
+          {c.niche}
+        </span>
+        <div className="w-full grid grid-cols-3 gap-1" style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '12px' }}>
+          {[
+            { val: c.followers, label: 'Followers' },
+            { val: c.localAudience, label: 'Local' },
+            { val: String(c.collabs), label: 'Collabs' },
+          ].map((s, i) => (
+            <div key={s.label} className="flex flex-col items-center" style={{ borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.07)' : undefined }}>
+              <span className="text-sm font-bold text-white" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{s.val}</span>
+              <span className="text-[9px] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.3)' }}>{s.label}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -253,6 +335,41 @@ export default function HomePage() {
             <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.75)', fontFamily: "'Inter', sans-serif" }}>
               <span className="font-semibold" style={{ color: '#F5B800' }}>Zero-risk guarantee — </span>
               every match is fully backed. If a creator visits and doesn&apos;t post within 72 hours, we&apos;ll reimburse you the full value of what you offered. Great content, or your money back.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Meet the creators ── */}
+      <section className="py-24 px-6" style={{ backgroundColor: '#1C2B3A', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-4">
+            <span className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.35)' }}>
+              Meet the creators
+            </span>
+          </div>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
+            <h2 className="leading-tight max-w-xl" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 800, color: '#ffffff' }}>
+              Real Cambridge creators.<br />Verified and ready to work.
+            </h2>
+            <Link
+              href="/signup?role=creator"
+              className="shrink-0 text-sm font-semibold px-5 py-2.5 rounded-lg transition-all hover:opacity-90 self-start md:self-auto"
+              style={{ background: '#6BE6B0', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+            >
+              Join as a creator →
+            </Link>
+          </div>
+
+          {/* Cards — scrollable on mobile, 4-up on desktop */}
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4" style={{ scrollbarWidth: 'none' } as React.CSSProperties}>
+            {featuredCreators.map(c => <CreatorCard key={c.handle} c={c} />)}
+          </div>
+
+          <div className="mt-8 flex items-center gap-3">
+            <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: 'rgba(255,255,255,0.25)' }} />
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: "'Inter', sans-serif" }}>
+              Every creator is Cambridge-based and personally reviewed. Audience demographics verified before onboarding.
             </p>
           </div>
         </div>
