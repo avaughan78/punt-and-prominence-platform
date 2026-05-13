@@ -172,15 +172,16 @@ export default function ComingSoon() {
         />
       </div>
 
+      {/* ── Top-left logo ── */}
+      <div className="absolute top-5 left-6 z-20 flex items-center gap-2">
+        <Star className="w-4 h-4" style={{ color: '#F5B800' }} />
+        <span className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.9)', fontFamily: "'JetBrains Mono', monospace" }}>
+          Punt &amp; Prominence
+        </span>
+      </div>
+
       {/* ── Main content ── */}
       <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-lg">
-
-        <div className="flex items-center gap-2 mb-10">
-          <Star className="w-4 h-4" style={{ color: '#F5B800' }} />
-          <span className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.9)', fontFamily: "'JetBrains Mono', monospace" }}>
-            Punt &amp; Prominence
-          </span>
-        </div>
 
         <div
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mb-6 text-xs font-medium"
