@@ -543,7 +543,7 @@ export default function HomePage() {
 
         {/* 3-D carousel */}
         <div className="max-w-5xl mx-auto px-6">
-          <div style={{ padding: '2.5px', background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)', borderRadius: '26px' }}>
+          <div style={{ padding: '2.5px', background: '#ffffff', borderRadius: '26px' }}>
             <div style={{ background: '#1C2B3A', borderRadius: '24px', overflow: 'hidden' }}>
               {creators.length > 0
                 ? <CreatorRoundabout creators={creators} />
