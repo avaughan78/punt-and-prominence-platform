@@ -7,18 +7,26 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (user.user_metadata?.role !== 'business') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(`
-      id, display_name, instagram_handle, avatar_url,
-      follower_count, bio, website_url,
-      matches:matches!matches_creator_id_fkey(status)
-    `)
-    .eq('role', 'creator')
-    .eq('is_approved', true)
-    .order('follower_count', { ascending: false, nullsFirst: false })
+  const [{ data, error }, { data: nudgeRows }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select(`
+        id, display_name, instagram_handle, avatar_url,
+        follower_count, bio, website_url,
+        matches:matches!matches_creator_id_fkey(status)
+      `)
+      .eq('role', 'creator')
+      .eq('is_approved', true)
+      .order('follower_count', { ascending: false, nullsFirst: false }),
+    supabase
+      .from('nudges')
+      .select('creator_id')
+      .eq('business_id', user.id),
+  ])
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  const nudgedSet = new Set((nudgeRows ?? []).map(n => n.creator_id))
 
   const creators = (data ?? []).map(c => ({
     id: c.id,
@@ -30,6 +38,7 @@ export async function GET() {
     website_url: c.website_url,
     verified_matches: (c.matches as { status: string }[]).filter(m => m.status === 'verified').length,
     total_matches: (c.matches as { status: string }[]).length,
+    nudged: nudgedSet.has(c.id),
   }))
 
   return NextResponse.json(creators)

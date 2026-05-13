@@ -13,6 +13,7 @@ interface Creator {
   website_url: string | null
   verified_matches: number
   total_matches: number
+  nudged: boolean
 }
 
 function formatFollowers(n: number): string {
@@ -23,7 +24,7 @@ function formatFollowers(n: number): string {
 
 function CreatorCard({ creator }: { creator: Creator }) {
   const [nudging, setNudging] = useState(false)
-  const [nudged, setNudged] = useState(false)
+  const [nudged, setNudged] = useState(creator.nudged)
 
   async function handleNudge() {
     setNudging(true)

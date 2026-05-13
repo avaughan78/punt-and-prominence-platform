@@ -42,9 +42,24 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: 'You need an active invite before you can nudge creators.' }, { status: 400 })
   }
 
+  // One nudge per business-creator pair
+  const { data: existing } = await supabase
+    .from('nudges')
+    .select('business_id')
+    .eq('business_id', user.id)
+    .eq('creator_id', creatorId)
+    .single()
+
+  if (existing) {
+    return NextResponse.json({ error: 'You have already nudged this creator.' }, { status: 409 })
+  }
+
   const bizName = biz?.business_name ?? biz?.display_name ?? 'A business'
   const creatorFirstName = creator.display_name.split(' ')[0]
   const inviteList = invites.map(i => `<li style="margin-bottom:6px;">${i.title}</li>`).join('')
+
+  // Record nudge before sending so a failed email doesn't allow a retry loop
+  await supabase.from('nudges').insert({ business_id: user.id, creator_id: creatorId })
 
   if (resend) {
     await resend.emails.send({

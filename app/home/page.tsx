@@ -1,27 +1,8 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Heart, MessageSquare, Star, Check, Building2, Sparkles, BadgeCheck, MapPin } from 'lucide-react'
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface LiveCreator {
-  id: string
-  display_name: string
-  instagram_handle: string | null
-  avatar_url: string | null
-  follower_count: number | null
-  tiktok_follower_count: number | null
-  bio: string | null
-  verified_matches: number
-  total_matches: number
-}
-
-function formatFollowers(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')}K`
-  return String(n)
-}
+import { Heart, MessageSquare, Star, Check, Building2, Sparkles } from 'lucide-react'
+import { CreatorCard, formatFollowers, type CreatorCardData } from '@/components/creators/CreatorCard'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -151,58 +132,10 @@ function PostCard({ p }: { p: Post }) {
   )
 }
 
-function CreatorCard({ c }: { c: LiveCreator }) {
-  const initials = c.display_name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
-  const totalFollowers = (c.follower_count ?? 0) + (c.tiktok_follower_count ?? 0)
-  return (
-    <div
-      className="flex flex-col rounded-2xl overflow-hidden flex-shrink-0 w-56"
-      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-    >
-      <div className="h-10 w-full" style={{ background: 'linear-gradient(135deg, #1a3347 0%, #253d54 100%)' }} />
-      <div className="flex flex-col items-center px-4 pb-5 -mt-6">
-        <div className="p-[2.5px] rounded-full mb-2" style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}>
-          <div className="p-[2px] rounded-full" style={{ background: '#1e3348' }}>
-            {c.avatar_url ? (
-              <img src={c.avatar_url} alt={c.display_name} className="w-12 h-12 rounded-full object-cover block" />
-            ) : (
-              <div className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}>
-                {initials}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-1 mb-0.5">
-          <span className="text-sm font-bold text-white" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{c.display_name}</span>
-          {c.verified_matches > 0 && <BadgeCheck className="w-3.5 h-3.5 shrink-0" style={{ color: '#6BE6B0' }} />}
-        </div>
-        {c.instagram_handle && (
-          <span className="text-xs mb-3" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.4)' }}>@{c.instagram_handle}</span>
-        )}
-        {c.bio && (
-          <p className="text-[10px] text-center mb-3 line-clamp-2 leading-relaxed" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: "'Inter', sans-serif" }}>{c.bio}</p>
-        )}
-        <div className="w-full grid grid-cols-3 gap-1" style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '12px' }}>
-          {[
-            { val: totalFollowers > 0 ? formatFollowers(totalFollowers) : '—', label: 'Followers' },
-            { val: String(c.total_matches), label: 'Collabs' },
-            { val: String(c.verified_matches), label: 'Verified' },
-          ].map((s, i) => (
-            <div key={s.label} className="flex flex-col items-center" style={{ borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.07)' : undefined }}>
-              <span className="text-sm font-bold text-white" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{s.val}</span>
-              <span className="text-[9px] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.3)' }}>{s.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
-  const [creators, setCreators] = useState<LiveCreator[]>([])
+  const [creators, setCreators] = useState<CreatorCardData[]>([])
 
   useEffect(() => {
     fetch('/api/public/creators')
@@ -346,36 +279,64 @@ export default function HomePage() {
       </section>
 
       {/* ── Meet the creators ── */}
-      <section className="py-24 px-6" style={{ backgroundColor: '#1C2B3A', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <section className="py-24 px-6" style={{ background: '#f9fafb', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
         <div className="max-w-5xl mx-auto">
-          <div className="mb-4">
-            <span className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.35)' }}>
-              Meet the creators
-            </span>
-          </div>
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
-            <h2 className="leading-tight max-w-xl" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 800, color: '#ffffff' }}>
-              Real Cambridge creators.<br />Verified and ready to work.
+
+          {/* Hero */}
+          <div className="text-center mb-10">
+            <h2 className="text-4xl font-bold text-[#1C2B3A] mb-4" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              Meet our creators
             </h2>
+            <p className="text-lg text-gray-500 max-w-xl mx-auto" style={{ fontFamily: "'Inter', sans-serif" }}>
+              Cambridge-based content creators ready to showcase local businesses. All verified, all local.
+            </p>
+          </div>
+
+          {/* Stats bar */}
+          {creators.length > 0 && (
+            <div className="flex items-center justify-center gap-8 mb-12 flex-wrap">
+              {[
+                { value: creators.length, label: 'Active creators' },
+                { value: creators.reduce((s, c) => s + (c.follower_count ?? 0) + (c.tiktok_follower_count ?? 0), 0), label: 'Combined followers', format: formatFollowers },
+                { value: creators.reduce((s, c) => s + c.verified_matches, 0), label: 'Verified collabs' },
+              ].map(stat => (
+                <div key={stat.label} className="text-center">
+                  <p className="text-3xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                    {'format' in stat && stat.format ? stat.format(stat.value) : stat.value}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5 uppercase tracking-widest" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Grid */}
+          {displayCreators.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-gray-400">Creators coming soon.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+              {displayCreators.map(c => <CreatorCard key={c.id} creator={c} />)}
+            </div>
+          )}
+
+          {/* Links */}
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <Link
+              href="/creators"
+              className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
+              style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif", border: '1px solid rgba(28,43,58,0.2)' }}
+            >
+              View all creators →
+            </Link>
             <Link
               href="/signup?role=creator"
-              className="shrink-0 text-sm font-semibold px-5 py-2.5 rounded-lg transition-all hover:opacity-90 self-start md:self-auto"
-              style={{ background: '#6BE6B0', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+              className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-90"
+              style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
             >
               Join as a creator →
             </Link>
-          </div>
-
-          {/* Cards — scrollable on mobile, 4-up on desktop */}
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4" style={{ scrollbarWidth: 'none' } as React.CSSProperties}>
-            {displayCreators.map(c => <CreatorCard key={c.id} c={c} />)}
-          </div>
-
-          <div className="mt-8 flex items-center gap-3">
-            <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: 'rgba(255,255,255,0.25)' }} />
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: "'Inter', sans-serif" }}>
-              Every creator is Cambridge-based and personally reviewed. Audience demographics verified before onboarding.
-            </p>
           </div>
         </div>
       </section>
