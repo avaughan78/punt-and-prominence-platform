@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Check, AlertTriangle, Camera, Loader2, Search, ShieldCheck } from 'lucide-react'
+import { Check, AlertTriangle, Camera, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
@@ -10,16 +10,6 @@ import { createClient } from '@/lib/supabase/client'
 
 const FOLLOWER_MIN = 1000
 const STEPS = ['Your Instagram', 'About you', 'All set!']
-
-interface IGProfile {
-  username: string
-  full_name: string | null
-  biography: string | null
-  profile_pic_url: string | null
-  follower_count: number | null
-  post_count: number | null
-  is_verified: boolean
-}
 
 interface Props {
   userId: string
@@ -36,32 +26,12 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl ?? '')
 
   const [instagram, setInstagram] = useState('')
-  const [igProfile, setIgProfile] = useState<IGProfile | null>(null)
-  const [looking, setLooking] = useState(false)
   const [followerCount, setFollowerCount] = useState('')
   const [bio, setBio] = useState('')
   const [website, setWebsite] = useState('')
 
-  const followers = igProfile?.follower_count ?? parseInt(followerCount.replace(/,/g, ''), 10)
-  const belowThreshold = !isNaN(followers) && followers < FOLLOWER_MIN
-
-  async function lookupInstagram() {
-    const handle = instagram.replace(/^@/, '').trim()
-    if (!handle) { toast.error('Enter your Instagram handle first'); return }
-    setLooking(true)
-    setIgProfile(null)
-    try {
-      const res = await fetch(`/api/instagram/${encodeURIComponent(handle)}`)
-      const data = await res.json()
-      if (!res.ok) { toast.error(data.error ?? 'Could not find profile'); setLooking(false); return }
-      setIgProfile(data)
-      if (data.follower_count != null) setFollowerCount(String(data.follower_count))
-      if (data.biography) setBio(prev => prev || data.biography)
-    } catch {
-      toast.error('Could not reach Instagram — enter your follower count manually')
-    }
-    setLooking(false)
-  }
+  const followers = parseInt(followerCount.replace(/,/g, ''), 10)
+  const belowThreshold = followerCount !== '' && !isNaN(followers) && followers < FOLLOWER_MIN
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -82,16 +52,16 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
 
   async function saveStep1() {
     if (!instagram.trim()) { toast.error('Please enter your Instagram handle'); return }
-    const count = igProfile?.follower_count ?? (followerCount ? parseInt(followerCount.replace(/,/g, ''), 10) : null)
+    if (!followerCount.trim()) { toast.error('Please enter your follower count'); return }
+    const count = parseInt(followerCount.replace(/,/g, ''), 10)
     setSaving(true)
     const res = await fetch('/api/profile', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         instagram_handle: instagram.replace(/^@/, ''),
-        follower_count: count,
-        bio: igProfile?.biography ?? undefined,
-        is_approved: count == null || count >= FOLLOWER_MIN,
+        follower_count: isNaN(count) ? null : count,
+        is_approved: isNaN(count) || count >= FOLLOWER_MIN,
       }),
     })
     setSaving(false)
@@ -186,74 +156,39 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
             <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               Instagram handle
             </label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">@</span>
-                <input
-                  placeholder="yourhandle"
-                  value={instagram}
-                  onChange={e => { setInstagram(e.target.value.replace(/^@/, '')); setIgProfile(null) }}
-                  onKeyDown={e => e.key === 'Enter' && lookupInstagram()}
-                  className="w-full pl-8 pr-4 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={lookupInstagram}
-                disabled={looking || !instagram.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-40"
-                style={{ background: '#1C2B3A', color: 'white', fontFamily: "'Inter', sans-serif" }}
-              >
-                {looking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                Look up
-              </button>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">@</span>
+              <input
+                placeholder="yourhandle"
+                value={instagram}
+                onChange={e => setInstagram(e.target.value.replace(/^@/, ''))}
+                className="w-full pl-8 pr-4 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              />
             </div>
             <p className="text-xs text-gray-400">Must be a public account</p>
           </div>
 
-          {igProfile && (
-            <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ background: 'rgba(107,230,176,0.08)', border: '1.5px solid rgba(107,230,176,0.3)' }}>
-              {igProfile.profile_pic_url && (
-                <img src={igProfile.profile_pic_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-sm font-semibold text-[#1C2B3A]">{igProfile.full_name ?? `@${igProfile.username}`}</p>
-                  {igProfile.is_verified && <ShieldCheck className="w-3.5 h-3.5 shrink-0" style={{ color: '#6BE6B0' }} />}
-                </div>
-                <p className="text-xs text-gray-500">
-                  {igProfile.follower_count != null ? `${igProfile.follower_count.toLocaleString()} followers` : '@' + igProfile.username}
-                  {igProfile.post_count != null ? ` · ${igProfile.post_count} posts` : ''}
+          <div className="flex flex-col gap-1.5">
+            <Input
+              label="Follower count"
+              type="number"
+              placeholder="e.g. 2500"
+              value={followerCount}
+              onChange={e => setFollowerCount(e.target.value)}
+              required
+            />
+            {belowThreshold && (
+              <div className="flex items-start gap-2 rounded-xl px-3 py-2.5" style={{ background: 'rgba(245,184,0,0.08)', border: '1px solid rgba(245,184,0,0.25)' }}>
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#F5B800' }} />
+                <p className="text-xs text-gray-600" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  We typically work with creators with <strong>1,000+ followers</strong>. You can still sign up — we&apos;ll review your profile and be in touch.
                 </p>
               </div>
-              <Check className="w-4 h-4 shrink-0" style={{ color: '#6BE6B0' }} />
-            </div>
-          )}
+            )}
+          </div>
 
-          {!igProfile && (
-            <div className="flex flex-col gap-1.5">
-              <Input
-                label="Follower count"
-                type="number"
-                placeholder="e.g. 2500"
-                value={followerCount}
-                onChange={e => setFollowerCount(e.target.value)}
-                hint="Enter manually if look up didn't work"
-              />
-            </div>
-          )}
-
-          {belowThreshold && (
-            <div className="flex items-start gap-2 rounded-xl px-3 py-2.5" style={{ background: 'rgba(245,184,0,0.08)', border: '1px solid rgba(245,184,0,0.25)' }}>
-              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#F5B800' }} />
-              <p className="text-xs text-gray-600" style={{ fontFamily: "'Inter', sans-serif" }}>
-                We typically work with creators with <strong>1,000+ followers</strong>. You can still sign up — we&apos;ll review your profile and be in touch.
-              </p>
-            </div>
-          )}
-
-          <Button onClick={saveStep1} loading={saving} disabled={!instagram.trim() || (!igProfile && !followerCount)}>Continue →</Button>
+          <Button onClick={saveStep1} loading={saving}>Continue →</Button>
         </div>
       )}
 
