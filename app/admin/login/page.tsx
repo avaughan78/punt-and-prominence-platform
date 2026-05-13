@@ -1,37 +1,89 @@
 'use client'
-import { Suspense, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { Suspense, useState, useRef } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 
 function AdminLoginForm() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const callbackError = searchParams.get('error')
-  const [sent, setSent] = useState(false)
+  const [step, setStep] = useState<'send' | 'verify'>('send')
+  const [adminEmail, setAdminEmail] = useState('')
+  const [code, setCode] = useState(['', '', '', '', '', ''])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(callbackError ?? '')
+  const inputs = useRef<(HTMLInputElement | null)[]>([])
 
   async function handleSend() {
     setLoading(true)
     setError('')
 
-    // Fetch the admin email from the server (keeps it out of client bundle)
     const res = await fetch('/api/admin/magic-link', { method: 'POST' })
     const body = await res.json().catch(() => ({}))
     if (!res.ok) { setError(body.error ?? 'Something went wrong'); setLoading(false); return }
 
-    // Call signInWithOtp from the browser so the PKCE code verifier is stored
-    // in this browser's cookies — the callback will find it when the link is clicked
     const supabase = createClient()
-    const redirectTo = `${window.location.origin}/api/auth/callback`
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: body.email,
-      options: { emailRedirectTo: redirectTo },
+      options: { shouldCreateUser: false },
     })
 
     if (otpError) { setError(otpError.message); setLoading(false); return }
-    setSent(true)
+    setAdminEmail(body.email)
+    setStep('verify')
     setLoading(false)
+  }
+
+  async function submitToken(token: string) {
+    if (token.length !== 6) return
+    setLoading(true)
+    setError('')
+
+    const supabase = createClient()
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email: adminEmail,
+      token,
+      type: 'email',
+    })
+
+    if (verifyError) {
+      setError('Invalid or expired code. Try again.')
+      setCode(['', '', '', '', '', ''])
+      inputs.current[0]?.focus()
+      setLoading(false)
+      return
+    }
+
+    router.replace('/admin')
+  }
+
+  function handleDigit(index: number, value: string) {
+    const digit = value.replace(/\D/g, '').slice(-1)
+    const next = [...code]
+    next[index] = digit
+    setCode(next)
+    if (digit && index < 5) inputs.current[index + 1]?.focus()
+    if (digit && index === 5) {
+      const token = next.join('')
+      if (token.length === 6) submitToken(token)
+    }
+  }
+
+  function handleKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Backspace' && !code[index] && index > 0) {
+      inputs.current[index - 1]?.focus()
+    }
+    if (e.key === 'Enter') submitToken(code.join(''))
+  }
+
+  function handlePaste(e: React.ClipboardEvent) {
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    if (pasted.length === 6) {
+      setCode(pasted.split(''))
+      inputs.current[5]?.focus()
+      submitToken(pasted)
+    }
   }
 
   return (
@@ -42,16 +94,41 @@ function AdminLoginForm() {
           <h1 className="text-xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Admin access</h1>
         </div>
 
-        {sent ? (
-          <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(107,230,176,0.1)', border: '1px solid rgba(107,230,176,0.3)' }}>
-            <p className="text-sm font-semibold text-[#1C2B3A] mb-1">Check your email</p>
-            <p className="text-xs text-gray-500">A magic link has been sent. Click it to sign in — make sure to open it in this same browser.</p>
+        {step === 'send' ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-gray-500">Click below to receive a 6-digit code at the configured admin address.</p>
+            {error && <p className="text-xs text-red-500">{error}</p>}
+            <Button loading={loading} onClick={handleSend}>Send code</Button>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            <p className="text-sm text-gray-500">Click below to receive a magic link at the configured admin address.</p>
+          <div className="flex flex-col gap-5">
+            <p className="text-sm text-gray-500">Enter the 6-digit code sent to <span className="font-medium text-[#1C2B3A]">{adminEmail}</span>.</p>
+            <div className="flex gap-2 justify-between" onPaste={handlePaste}>
+              {code.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={el => { inputs.current[i] = el }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={e => handleDigit(i, e.target.value)}
+                  onKeyDown={e => handleKeyDown(i, e)}
+                  autoFocus={i === 0}
+                  className="w-11 h-12 text-center text-lg font-bold text-[#1C2B3A] rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#F5B800]"
+                  style={{ border: '1.5px solid rgba(0,0,0,0.15)', fontFamily: "'JetBrains Mono', monospace" }}
+                />
+              ))}
+            </div>
             {error && <p className="text-xs text-red-500">{error}</p>}
-            <Button loading={loading} onClick={handleSend}>Send magic link</Button>
+            <Button loading={loading} onClick={() => submitToken(code.join(''))} disabled={code.join('').length !== 6}>Verify</Button>
+            <button
+              type="button"
+              onClick={() => { setStep('send'); setCode(['', '', '', '', '', '']); setError('') }}
+              className="text-xs text-gray-400 hover:text-gray-600 text-center"
+            >
+              Resend code
+            </button>
           </div>
         )}
       </div>
