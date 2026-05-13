@@ -28,7 +28,10 @@ interface VerifiedData {
 declare global {
   interface Window {
     PhylloConnect: {
-      initialize: (config: Record<string, unknown>) => { open: () => void }
+      initialize: (config: Record<string, unknown>) => {
+        open: () => void
+        on: (event: string, fn: (...args: unknown[]) => void) => void
+      }
     }
   }
 }
@@ -85,26 +88,31 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
         userId: body.phyllo_user_id,
         token: body.sdk_token,
         singleAccount: true,
-        accountConnected: async (accountId: string) => {
-          try {
-            const dataRes = await fetch('/api/phyllo/fetch-data', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ account_id: accountId }),
-            })
-            const data = await dataRes.json()
-            if (!dataRes.ok) throw new Error(data.error ?? 'Failed to fetch data')
-            setVerified(data)
-          } catch (err) {
-            toast.error(err instanceof Error ? err.message : 'Could not fetch Instagram data')
-          }
-        },
-        exit: () => setPhylloLoading(false),
-        connectionFailure: () => {
-          toast.error('Instagram connection failed — please try again')
-          setPhylloLoading(false)
-        },
       })
+
+      connect.on('accountConnected', async (...args: unknown[]) => {
+        const accountId = args[0] as string
+        try {
+          const dataRes = await fetch('/api/phyllo/fetch-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ account_id: accountId }),
+          })
+          const data = await dataRes.json()
+          if (!dataRes.ok) throw new Error(data.error ?? 'Failed to fetch data')
+          setVerified(data)
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : 'Could not fetch Instagram data')
+        }
+      })
+      connect.on('accountDisconnected', () => { setVerified(null) })
+      connect.on('tokenExpired', () => { toast.error('Session expired — please try again'); setPhylloLoading(false) })
+      connect.on('exit', () => { setPhylloLoading(false) })
+      connect.on('connectionFailure', () => {
+        toast.error('Instagram connection failed — please try again')
+        setPhylloLoading(false)
+      })
+
       connect.open()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not open connection')
