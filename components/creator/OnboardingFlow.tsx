@@ -48,6 +48,8 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
   const [phylloLoaded, setPhylloLoaded] = useState(false)
   const [phylloLoading, setPhylloLoading] = useState(false)
   const [verified, setVerified] = useState<VerifiedData | null>(null)
+  const [manualHandle, setManualHandle] = useState('')
+  const [manualFallback, setManualFallback] = useState(false)
 
   // Step 2 fields
   const [bio, setBio] = useState('')
@@ -119,6 +121,20 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
       toast.error(err instanceof Error ? err.message : 'Could not open connection')
     }
     setPhylloLoading(false)
+  }
+
+  async function saveManualHandle() {
+    if (!manualHandle.trim()) { toast.error('Please enter your Instagram handle'); return }
+    setSaving(true)
+    const handle = manualHandle.replace(/^@/, '').trim()
+    const res = await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instagram_handle: handle, is_approved: false }),
+    })
+    setSaving(false)
+    if (!res.ok) { toast.error('Failed to save'); return }
+    setVerified({ instagram_handle: handle, follower_count: null, engagement_rate: null, audience_local_pct: null, audience_local_label: null })
   }
 
   async function saveStep2() {
@@ -242,18 +258,46 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
                   </div>
                 )}
               </div>
+            ) : manualFallback ? (
+              <div className="flex flex-col gap-3">
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">@</span>
+                  <input
+                    autoFocus
+                    placeholder="yourhandle"
+                    value={manualHandle}
+                    onChange={e => setManualHandle(e.target.value.replace(/^@/, ''))}
+                    className="w-full pl-8 pr-4 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                  />
+                </div>
+                <p className="text-xs text-gray-400">We&apos;ll verify your account manually before you&apos;re approved.</p>
+                <div className="flex gap-2">
+                  <Button variant="ghost" onClick={() => setManualFallback(false)}>Back</Button>
+                  <Button loading={saving} onClick={saveManualHandle} className="flex-1">Save handle →</Button>
+                </div>
+              </div>
             ) : (
-              <button
-                onClick={openPhylloConnect}
-                disabled={phylloLoading}
-                className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-semibold text-sm transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ background: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)', color: '#fff', fontFamily: "'Inter', sans-serif" }}
-              >
-                {phylloLoading
-                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Connecting…</>
-                  : <>Connect Instagram</>
-                }
-              </button>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={openPhylloConnect}
+                  disabled={phylloLoading}
+                  className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-semibold text-sm transition-all hover:opacity-90 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)', color: '#fff', fontFamily: "'Inter', sans-serif" }}
+                >
+                  {phylloLoading
+                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Connecting…</>
+                    : <>Connect Instagram</>
+                  }
+                </button>
+                <button
+                  onClick={() => setManualFallback(true)}
+                  className="text-xs text-center text-gray-400 hover:text-gray-600 transition-colors"
+                  style={{ fontFamily: "'Inter', sans-serif" }}
+                >
+                  Having trouble? Enter your handle manually instead
+                </button>
+              </div>
             )}
 
             <Button onClick={() => setStep(1)} disabled={!verified}>
