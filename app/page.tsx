@@ -40,10 +40,10 @@ const mockProfiles = [
 ]
 
 const cardPositions = [
-  { top: '12%', left: '6%',  rotate: '-4deg' },
-  { top: '16%', left: '53%', rotate:  '3deg' },
-  { top: '55%', left: '9%',  rotate:  '2deg' },
-  { top: '52%', left: '51%', rotate: '-3deg' },
+  { top: '10%', left: '4%',  rotate: '-4deg' },
+  { top: '14%', left: '50%', rotate:  '3deg' },
+  { top: '56%', left: '4%',  rotate:  '2.5deg' },
+  { top: '53%', left: '50%', rotate: '-3deg'  },
 ]
 
 function MockProfileCard({ profile, style }: { profile: typeof mockProfiles[0]; style?: React.CSSProperties }) {
@@ -52,17 +52,13 @@ function MockProfileCard({ profile, style }: { profile: typeof mockProfiles[0]; 
       className="absolute bg-white rounded-2xl overflow-hidden shadow-2xl"
       style={{ width: '168px', ...style }}
     >
-      {/* Header band */}
       <div className="w-full h-10 shrink-0" style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)' }} />
-
       <div className="flex flex-col items-center px-3 pb-3 -mt-5">
-        {/* Avatar with stories ring */}
         <div className="p-[2.5px] rounded-full" style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}>
           <div className="p-[2px] bg-white rounded-full">
             <img src={profile.avatar} alt={profile.name} className="w-10 h-10 rounded-full object-cover block" />
           </div>
         </div>
-
         <div className="flex items-center gap-1 mt-1.5">
           <span className="text-[11px] font-bold text-[#1C2B3A] leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
             {profile.name}
@@ -72,8 +68,6 @@ function MockProfileCard({ profile, style }: { profile: typeof mockProfiles[0]; 
         <span className="text-[9px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
           @{profile.handle}
         </span>
-
-        {/* Stats row */}
         <div className="flex w-full mt-2.5" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)', padding: '5px 0' }}>
           {[
             { val: profile.followers, label: 'Followers' },
@@ -86,8 +80,6 @@ function MockProfileCard({ profile, style }: { profile: typeof mockProfiles[0]; 
             </div>
           ))}
         </div>
-
-        {/* Instagram CTA */}
         <div
           className="w-full mt-2.5 py-1.5 rounded-lg text-[9px] font-semibold text-center text-white"
           style={{ background: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)' }}
@@ -127,27 +119,37 @@ export default function ComingSoon() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: '#1C2B3A' }}>
 
-      {/* ── Background layer ── */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-
+      {/* ── Square frame behind content ── */}
+      <div
+        className="absolute pointer-events-none overflow-hidden"
+        style={{
+          width: 'min(700px, 88vmin)',
+          height: 'min(700px, 88vmin)',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          borderRadius: '32px',
+          border: '1px solid rgba(255,255,255,0.07)',
+        }}
+      >
         {/* Left half: Cambridge map */}
-        <div className="absolute top-0 left-0 w-1/2 h-full overflow-hidden">
+        <div className="absolute top-0 left-0 w-1/2 h-full">
           <img
             src="/cambridge-map.png"
             alt=""
             className="w-full h-full object-cover"
-            style={{ opacity: 0.18, filter: 'grayscale(60%) brightness(1.6) contrast(0.85)' }}
+            style={{ opacity: 0.45, filter: 'grayscale(30%) brightness(1.5) contrast(0.9)' }}
           />
         </div>
 
         {/* Centre divider */}
         <div
           className="absolute top-0 left-1/2 -translate-x-px w-px h-full"
-          style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.07) 30%, rgba(255,255,255,0.07) 70%, transparent 100%)' }}
+          style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.1) 20%, rgba(255,255,255,0.1) 80%, transparent 100%)' }}
         />
 
-        {/* Right half: profile card mockups */}
-        <div className="absolute top-0 right-0 w-1/2 h-full" style={{ opacity: 0.22 }}>
+        {/* Right half: profile cards */}
+        <div className="absolute top-0 right-0 w-1/2 h-full" style={{ opacity: 0.55 }}>
           {mockProfiles.map((p, i) => (
             <MockProfileCard
               key={p.handle}
@@ -161,16 +163,13 @@ export default function ComingSoon() {
           ))}
         </div>
 
-        {/* Radial vignette — darkens centre so text stays readable */}
+        {/* Inner vignette — keeps text readable */}
         <div
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse 60% 65% at 50% 48%, rgba(28,43,58,0.94) 0%, rgba(28,43,58,0.72) 45%, rgba(28,43,58,0.18) 100%)',
+            background: 'radial-gradient(ellipse 62% 60% at 50% 50%, rgba(28,43,58,0.88) 0%, rgba(28,43,58,0.55) 52%, rgba(28,43,58,0.05) 100%)',
           }}
         />
-
-        {/* Edge fade — left and right edges bleed into background */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(28,43,58,0.55) 0%, transparent 18%, transparent 82%, rgba(28,43,58,0.55) 100%)' }} />
       </div>
 
       {/* ── Main content ── */}
