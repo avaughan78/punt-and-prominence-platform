@@ -518,7 +518,7 @@ export default function HomePage() {
                 { value: totalVerifiedCollabs, label: 'Verified collabs' },
               ].map(stat => (
                 <div key={stat.label}>
-                  <p className="text-3xl font-bold" style={{ color: '#ffffff', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                  <p className="text-3xl font-bold" style={{ color: '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                     {'format' in stat && stat.format ? stat.format(stat.value) : stat.value}
                   </p>
                   <p className="text-xs mt-0.5 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: "'JetBrains Mono', monospace" }}>{stat.label}</p>
@@ -535,20 +535,13 @@ export default function HomePage() {
         }
 
         {/* Links */}
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
+        <div className="max-w-5xl mx-auto px-6 py-4">
           <Link
             href="/creators"
             className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
             style={{ color: '#ffffff', fontFamily: "'Inter', sans-serif", border: '1px solid rgba(255,255,255,0.2)' }}
           >
             View all creators →
-          </Link>
-          <Link
-            href="/signup?role=creator"
-            className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-90"
-            style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
-          >
-            Join as a creator →
           </Link>
         </div>
       </section>
