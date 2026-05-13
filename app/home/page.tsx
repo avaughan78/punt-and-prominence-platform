@@ -350,7 +350,7 @@ export default function HomePage() {
 
           {/* Hero */}
           <div className="text-center mb-10">
-            <h2 className="text-4xl font-bold text-[#1C2B3A] mb-4" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+            <h2 className="mb-4 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2.2rem, 5vw, 3.75rem)', fontWeight: 800, color: '#1C2B3A' }}>
               Meet our creators
             </h2>
             <p className="text-lg text-gray-500 max-w-xl mx-auto" style={{ fontFamily: "'Inter', sans-serif" }}>
