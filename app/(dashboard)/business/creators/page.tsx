@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { ExternalLink, Search } from 'lucide-react'
+import { ExternalLink, Search, BadgeCheck } from 'lucide-react'
 
 interface Creator {
   id: string
@@ -28,84 +28,125 @@ function CreatorCard({ creator }: { creator: Creator }) {
     .toUpperCase()
     .slice(0, 2)
 
+  const igUrl = creator.instagram_handle
+    ? `https://instagram.com/${creator.instagram_handle}`
+    : null
+
   return (
     <div
-      className="bg-white rounded-2xl p-5 flex flex-col gap-3 transition-all hover:-translate-y-0.5 hover:shadow-md"
+      className="bg-white rounded-2xl flex flex-col items-center overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg"
       style={{ border: '1px solid rgba(0,0,0,0.07)' }}
     >
-      {/* Avatar + name row */}
-      <div className="flex items-center gap-3">
-        {creator.avatar_url ? (
-          <img
-            src={creator.avatar_url}
-            alt=""
-            className="w-12 h-12 rounded-full object-cover shrink-0"
-          />
-        ) : (
-          <div
-            className="w-12 h-12 rounded-full shrink-0 flex items-center justify-center text-sm font-bold text-white"
-            style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}
-          >
-            {initials}
+      {/* Top gradient band */}
+      <div className="w-full h-14 shrink-0" style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)' }} />
+
+      {/* Avatar — overlapping the band */}
+      <div className="-mt-8 mb-3 shrink-0">
+        {/* Stories-style gradient ring */}
+        <div
+          className="p-[2.5px] rounded-full"
+          style={{ background: creator.instagram_handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(0,0,0,0.12)' }}
+        >
+          <div className="p-[2px] bg-white rounded-full">
+            {creator.avatar_url ? (
+              <img
+                src={creator.avatar_url}
+                alt={creator.display_name}
+                className="w-16 h-16 rounded-full object-cover block"
+              />
+            ) : (
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center text-base font-bold text-white"
+                style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}
+              >
+                {initials}
+              </div>
+            )}
           </div>
-        )}
-        <div className="min-w-0">
-          <p className="font-semibold text-[#1C2B3A] truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {creator.display_name}
-          </p>
-          {creator.instagram_handle && (
-            <a
-              href={`https://instagram.com/${creator.instagram_handle}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#1C2B3A] transition-colors"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              @{creator.instagram_handle}
-            </a>
-          )}
         </div>
       </div>
 
-      {/* Follower count */}
-      {creator.follower_count != null && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span
-            className="text-xs font-bold px-2.5 py-1 rounded-full"
-            style={{ background: 'rgba(245,184,0,0.1)', color: '#d49700', fontFamily: "'JetBrains Mono', monospace" }}
-          >
-            {formatFollowers(creator.follower_count)} followers
-          </span>
+      {/* Name + handle */}
+      <div className="flex flex-col items-center px-4 gap-0.5 mb-4">
+        <div className="flex items-center gap-1">
+          <p className="font-bold text-[#1C2B3A] text-sm leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+            {creator.display_name}
+          </p>
           {creator.verified_matches > 0 && (
-            <span
-              className="text-xs font-semibold px-2.5 py-1 rounded-full"
-              style={{ background: 'rgba(107,230,176,0.12)', color: '#059669', fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              {creator.verified_matches} verified collab{creator.verified_matches !== 1 ? 's' : ''}
-            </span>
+            <BadgeCheck className="w-4 h-4 shrink-0" style={{ color: '#6BE6B0' }} />
           )}
         </div>
-      )}
+        {creator.instagram_handle && (
+          <a
+            href={igUrl!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs hover:underline"
+            style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}
+          >
+            @{creator.instagram_handle}
+          </a>
+        )}
+      </div>
 
-      {/* Bio */}
-      {creator.bio && (
-        <p className="text-xs text-gray-500 leading-relaxed line-clamp-2" style={{ fontFamily: "'Inter', sans-serif" }}>
-          {creator.bio}
-        </p>
-      )}
+      {/* Stats row */}
+      <div className="w-full flex items-stretch" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+        {[
+          { value: creator.follower_count != null ? formatFollowers(creator.follower_count) : '—', label: 'Followers' },
+          { value: creator.total_matches,    label: 'Collabs' },
+          { value: creator.verified_matches, label: 'Verified' },
+        ].map((stat, i) => (
+          <div
+            key={stat.label}
+            className="flex-1 flex flex-col items-center py-3"
+            style={{ borderLeft: i > 0 ? '1px solid rgba(0,0,0,0.06)' : undefined }}
+          >
+            <span className="font-bold text-sm text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              {stat.value}
+            </span>
+            <span className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {stat.label}
+            </span>
+          </div>
+        ))}
+      </div>
 
-      {/* Website */}
-      {creator.website_url && (
-        <a
-          href={creator.website_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#1C2B3A] transition-colors w-fit"
-          style={{ fontFamily: "'Inter', sans-serif" }}
-        >
-          <ExternalLink className="w-3 h-3 shrink-0" />
-          <span className="truncate">{creator.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
-        </a>
+      {/* Bio + website */}
+      <div className="px-4 pt-3 pb-4 flex flex-col items-center gap-1.5 w-full flex-1">
+        {creator.bio && (
+          <p className="text-xs text-gray-500 leading-relaxed text-center line-clamp-2 w-full" style={{ fontFamily: "'Inter', sans-serif" }}>
+            {creator.bio}
+          </p>
+        )}
+        {creator.website_url && (
+          <a
+            href={creator.website_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-xs font-medium hover:underline"
+            style={{ color: '#3b82f6', fontFamily: "'Inter', sans-serif" }}
+          >
+            <ExternalLink className="w-3 h-3 shrink-0" />
+            <span className="truncate max-w-[160px]">
+              {creator.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+            </span>
+          </a>
+        )}
+      </div>
+
+      {/* Instagram CTA */}
+      {igUrl && (
+        <div className="px-4 pb-4 w-full">
+          <a
+            href={igUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full py-2 rounded-lg text-xs font-semibold text-center text-white transition-all hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)' }}
+          >
+            View on Instagram
+          </a>
+        </div>
       )}
     </div>
   )
