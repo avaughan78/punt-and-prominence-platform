@@ -2,6 +2,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Camera, Loader2, MapPin, Search, Check, AlertTriangle, RefreshCw } from 'lucide-react'
+import { SocialHandleInput } from '@/components/ui/SocialHandleInput'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
@@ -382,27 +383,15 @@ export function ProfileForm({ role, initial, userId }: Props) {
             <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               Instagram handle
             </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">@</span>
-              <input
-                placeholder="yourhandle"
-                value={form.instagram_handle}
-                onChange={e => { set('instagram_handle', e.target.value.replace(/^@/, '')); setLookupData(null); setLookupError(null) }}
-                onKeyDown={e => { if (e.key === 'Enter') lookupInstagram(form.instagram_handle) }}
-                className="w-full pl-8 pr-12 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              />
-              <button
-                type="button"
-                onClick={() => lookupInstagram(form.instagram_handle)}
-                disabled={looking || !form.instagram_handle.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-25"
-                style={{ background: lookupData ? '#059669' : '#F5B800' }}
-              >
-                {looking ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Check className="w-4 h-4 text-white" />}
-              </button>
-            </div>
-            <p className="text-xs text-gray-400">Must be a public account — tap ✓ to sync stats</p>
+            <SocialHandleInput
+              platform="instagram"
+              value={form.instagram_handle}
+              onChange={v => { set('instagram_handle', v); setLookupData(null); setLookupError(null) }}
+              onVerify={() => lookupInstagram(form.instagram_handle)}
+              looking={looking}
+              verified={!!lookupData}
+            />
+            <p className="text-xs text-gray-400">Must be a public account — tap → to sync stats</p>
           </div>
 
           {/* Profile preview card */}
@@ -486,27 +475,16 @@ export function ProfileForm({ role, initial, userId }: Props) {
             <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               TikTok handle <span className="text-gray-400 normal-case font-normal">· optional</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">@</span>
-              <input
-                placeholder="yourtiktok"
-                value={form.tiktok_handle}
-                onChange={e => { set('tiktok_handle', e.target.value.replace(/^@/, '')); setTiktokLookupData(null); setTiktokLookupError(null) }}
-                onKeyDown={e => { if (e.key === 'Enter') lookupTiktok(form.tiktok_handle) }}
-                className="w-full pl-8 pr-12 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              />
-              <button
-                type="button"
-                onClick={() => lookupTiktok(form.tiktok_handle)}
-                disabled={tiktokLooking || !form.tiktok_handle.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-25"
-                style={{ background: tiktokLookupData ? '#059669' : '#F5B800' }}
-              >
-                {tiktokLooking ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Check className="w-4 h-4 text-white" />}
-              </button>
-            </div>
-            <p className="text-xs text-gray-400">Tap ✓ to sync stats</p>
+            <SocialHandleInput
+              platform="tiktok"
+              value={form.tiktok_handle}
+              onChange={v => { set('tiktok_handle', v); setTiktokLookupData(null); setTiktokLookupError(null) }}
+              onVerify={() => lookupTiktok(form.tiktok_handle)}
+              looking={tiktokLooking}
+              verified={!!tiktokLookupData}
+              placeholder="yourtiktok"
+            />
+            <p className="text-xs text-gray-400">Tap → to sync stats</p>
           </div>
 
           {tiktokLookupData && (

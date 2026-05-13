@@ -2,10 +2,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Check, AlertTriangle, Loader2, RefreshCw } from 'lucide-react'
+import { Check, AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
+import { SocialHandleInput } from '@/components/ui/SocialHandleInput'
 
 const FOLLOWER_MIN = 1000
 const STEPS = ['Your Instagram', 'About you', 'All set!']
@@ -58,48 +59,6 @@ function ProfileCard({ data, platform }: { data: LookupData; platform: 'instagra
         </p>
         <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>followers</p>
       </div>
-    </div>
-  )
-}
-
-function HandleInput({
-  value,
-  onChange,
-  onVerify,
-  looking,
-  verified,
-  placeholder,
-}: {
-  value: string
-  onChange: (v: string) => void
-  onVerify: () => void
-  looking: boolean
-  verified: boolean
-  placeholder?: string
-}) {
-  return (
-    <div className="relative">
-      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">@</span>
-      <input
-        placeholder={placeholder ?? 'yourhandle'}
-        value={value}
-        onChange={e => onChange(e.target.value.replace(/^@/, ''))}
-        onKeyDown={e => { if (e.key === 'Enter') onVerify() }}
-        className="w-full pl-8 pr-12 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
-        style={{ fontFamily: "'Inter', sans-serif" }}
-      />
-      <button
-        type="button"
-        onClick={onVerify}
-        disabled={looking || !value.trim()}
-        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-25"
-        style={{ background: verified ? '#059669' : '#F5B800' }}
-      >
-        {looking
-          ? <Loader2 className="w-4 h-4 text-white animate-spin" />
-          : <Check className="w-4 h-4 text-white" />
-        }
-      </button>
     </div>
   )
 }
@@ -194,7 +153,8 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl: _
       body: JSON.stringify({
         instagram_handle: instagram.replace(/^@/, ''),
         follower_count: isNaN(count) ? null : count,
-        is_approved: isNaN(count) || count >= FOLLOWER_MIN,
+        // Approve if verified by API, or if manually entered count meets threshold
+        is_approved: igData ? true : (isNaN(count) || count >= FOLLOWER_MIN),
       }),
     })
     setSaving(false)
@@ -265,7 +225,8 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl: _
             <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               Instagram handle
             </label>
-            <HandleInput
+            <SocialHandleInput
+              platform="instagram"
               value={instagram}
               onChange={v => { setInstagram(v); setIgData(null); setIgError(null) }}
               onVerify={lookupInstagram}
@@ -330,7 +291,8 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl: _
             <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               TikTok handle <span className="text-gray-400 normal-case font-normal">· optional</span>
             </label>
-            <HandleInput
+            <SocialHandleInput
+              platform="tiktok"
               value={tiktok}
               onChange={v => { setTiktok(v); setTtData(null); setTtError(null) }}
               onVerify={lookupTiktok}
