@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Check, AlertTriangle, Camera, Loader2 } from 'lucide-react'
+import { Check, AlertTriangle, Camera, Loader2, Search } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
@@ -29,6 +29,8 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
   const [followerCount, setFollowerCount] = useState('')
   const [bio, setBio] = useState('')
   const [website, setWebsite] = useState('')
+  const [looking, setLooking] = useState(false)
+  const [lookupResult, setLookupResult] = useState<{ collecting?: boolean; verified?: boolean } | null>(null)
 
   const followers = parseInt(followerCount.replace(/,/g, ''), 10)
   const belowThreshold = followerCount !== '' && !isNaN(followers) && followers < FOLLOWER_MIN
@@ -82,6 +84,32 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
     setSaving(false)
     if (!res.ok) { toast.error('Failed to save'); return }
     setStep(2)
+  }
+
+  async function lookupInstagram() {
+    if (!instagram.trim()) { toast.error('Enter your Instagram handle first'); return }
+    setLooking(true)
+    setLookupResult(null)
+    try {
+      const res = await fetch(`/api/instagram/lookup?handle=${encodeURIComponent(instagram)}`)
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error ?? 'Lookup failed'); return }
+      if (data.collecting) {
+        toast.info('Profile found — stats still loading. Enter your follower count manually.')
+        setLookupResult({ collecting: true })
+      } else {
+        if (data.followers != null) setFollowerCount(String(data.followers))
+        if (data.bio && !bio) setBio(data.bio)
+        if (data.image && !avatarUrl) {
+          setAvatarUrl(data.image)
+          await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatar_url: data.image }) })
+        }
+        setLookupResult({ verified: data.verified, collecting: false })
+        toast.success('Profile found — stats filled in!')
+      }
+    } finally {
+      setLooking(false)
+    }
   }
 
   const initials = contactName
@@ -156,17 +184,38 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
             <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               Instagram handle
             </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">@</span>
-              <input
-                placeholder="yourhandle"
-                value={instagram}
-                onChange={e => setInstagram(e.target.value.replace(/^@/, ''))}
-                className="w-full pl-8 pr-4 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              />
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">@</span>
+                <input
+                  placeholder="yourhandle"
+                  value={instagram}
+                  onChange={e => { setInstagram(e.target.value.replace(/^@/, '')); setLookupResult(null) }}
+                  className="w-full pl-8 pr-4 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
+                  style={{ fontFamily: "'Inter', sans-serif" }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={lookupInstagram}
+                disabled={looking || !instagram.trim()}
+                className="px-3 py-3 rounded-xl border text-sm font-medium transition-all disabled:opacity-40 flex items-center gap-1.5 shrink-0"
+                style={{ border: '1px solid rgba(0,0,0,0.1)', color: '#1C2B3A', background: 'white', fontFamily: "'Inter', sans-serif" }}
+              >
+                {looking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                {looking ? 'Looking up…' : 'Look up'}
+              </button>
             </div>
-            <p className="text-xs text-gray-400">Must be a public account</p>
+            {lookupResult && !lookupResult.collecting && (
+              <div className="flex items-center gap-1.5 text-xs" style={{ color: '#059669' }}>
+                <Check className="w-3.5 h-3.5" />
+                Profile found{lookupResult.verified ? ' · Verified account' : ''} — stats filled in
+              </div>
+            )}
+            {lookupResult?.collecting && (
+              <p className="text-xs text-gray-400">Stats still being collected — enter your follower count manually below</p>
+            )}
+            {!lookupResult && <p className="text-xs text-gray-400">Must be a public account · Click Look up to auto-fill your stats</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
