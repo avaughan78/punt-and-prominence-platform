@@ -177,10 +177,10 @@ function ValuePostCard({ p, card }: { p: Post; card: { title: string; body: stri
 // ─── Roundabout carousel ──────────────────────────────────────────────────────
 // Items orbit on an ellipse. Drag left/right to spin; auto-spins slowly.
 
-const RB_CARD_W  = 210   // card width px
-const RB_RADIUS_X = 370  // horizontal radius of ellipse
-const RB_RADIUS_Z = 110  // depth radius (how far items recede into background)
-const RB_H        = 420  // container height px
+const RB_CARD_W  = 168   // card width px
+const RB_RADIUS_X = 300  // horizontal radius of ellipse
+const RB_RADIUS_Z = 88   // depth radius (how far items recede into background)
+const RB_H        = 340  // container height px
 const RB_SPEED    = 0.20 // auto-spin radians/second (~31s per full rotation)
 
 function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
@@ -424,35 +424,35 @@ export default function HomePage() {
       </section>
 
       {/* ── Proudly Cambridge ── */}
-      <section className="py-24 px-6" style={{ backgroundColor: '#1C2B3A' }}>
+      <section className="py-24 px-6" style={{ backgroundColor: '#ffffff', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
         <div className="max-w-5xl mx-auto">
           <div className="mb-4">
-            <span className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.35)' }}>
+            <span className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(0,0,0,0.35)' }}>
               Cambridge-first
             </span>
           </div>
-          <h2 className="mb-4 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2.2rem, 5vw, 3.75rem)', fontWeight: 800, color: '#ffffff' }}>
+          <h2 className="mb-4 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2.2rem, 5vw, 3.75rem)', fontWeight: 800, color: '#1C2B3A' }}>
             Proudly Cambridge.
           </h2>
           <div className="w-16 h-1 mb-10 rounded-full" style={{ background: '#F5B800' }} />
 
           <div className="grid md:grid-cols-2 gap-12 items-start">
             <div>
-              <p className="text-lg leading-relaxed mb-10" style={{ color: 'rgb(153,153,153)', fontFamily: "'Inter', sans-serif" }}>
+              <p className="text-lg leading-relaxed mb-10" style={{ color: 'rgb(107,114,128)', fontFamily: "'Inter', sans-serif" }}>
                 We&apos;re building the most focused creator network in the UK — 30 verified Cambridge creators, a combined local reach of 30,000 local followers, and just 20 founding business spots. Small by design. Effective by necessity.
               </p>
               <div className="grid grid-cols-3 gap-4 sm:gap-6">
                 {liveStats.map(s => (
                   <div key={s.label}>
                     <div className="mb-1 leading-none font-bold" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(1.6rem, 3.5vw, 2.5rem)', color: '#F5B800' }}>{s.num}</div>
-                    <div className="text-sm font-semibold mb-0.5" style={{ color: '#ffffff', fontFamily: "'Inter', sans-serif" }}>{s.label}</div>
-                    <div className="text-xs" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: "'Inter', sans-serif" }}>{s.sub}</div>
+                    <div className="text-sm font-semibold mb-0.5" style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}>{s.label}</div>
+                    <div className="text-xs" style={{ color: 'rgba(0,0,0,0.4)', fontFamily: "'Inter', sans-serif" }}>{s.sub}</div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="relative rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-              <img src="/cambridge-map.png" alt="Cambridge city map" className="w-full h-auto object-cover" style={{ opacity: 0.75, filter: 'grayscale(20%) brightness(1.3) contrast(0.9)' }} />
+            <div className="relative rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
+              <img src="/cambridge-map.png" alt="Cambridge city map" className="w-full h-auto object-cover" style={{ opacity: 0.85, filter: 'grayscale(10%) brightness(1.05) contrast(0.95)' }} />
               {/* Profile circles overlaid on the map */}
               {creators.slice(0, 4).map((c, i) => ({
                 avatar: c.avatar_url,
@@ -466,7 +466,7 @@ export default function HomePage() {
                   style={{ top: c.top, left: c.left, transform: 'translate(-50%, -50%)' }}
                 >
                   <div className="p-[2.5px] rounded-full shadow-lg" style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}>
-                    <div className="p-[2px] rounded-full" style={{ background: '#1C2B3A' }}>
+                    <div className="p-[2px] rounded-full" style={{ background: '#ffffff' }}>
                       {c.avatar ? (
                         <img src={c.avatar} alt={c.handle} className="w-10 h-10 rounded-full object-cover block" />
                       ) : (
@@ -490,19 +490,19 @@ export default function HomePage() {
       </section>
 
       {/* ── Meet the creators ── */}
-      <section style={{ background: '#f9fafb', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+      <section style={{ background: '#1C2B3A', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
 
         {/* Header + stats */}
-        <div className="max-w-5xl mx-auto px-6 pt-24 pb-10">
-          <div className="mb-10">
-            <span className="text-xs font-bold tracking-widest uppercase mb-4 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(0,0,0,0.35)' }}>
+        <div className="max-w-5xl mx-auto px-6 pt-16 pb-6">
+          <div className="mb-6">
+            <span className="text-xs font-bold tracking-widest uppercase mb-3 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.35)' }}>
               Meet the creators
             </span>
-            <h2 className="mb-3 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2.2rem, 5vw, 3.75rem)', fontWeight: 800, color: '#1C2B3A' }}>
+            <h2 className="mb-3 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(1.9rem, 4vw, 3rem)', fontWeight: 800, color: '#ffffff' }}>
               Meet our creators.
             </h2>
-            <div className="w-12 h-1 rounded-full mb-4" style={{ background: '#F5B800' }} />
-            <p className="text-lg max-w-xl" style={{ color: 'rgb(107,114,128)', fontFamily: "'Inter', sans-serif" }}>
+            <div className="w-12 h-1 rounded-full mb-3" style={{ background: '#F5B800' }} />
+            <p className="text-base max-w-xl" style={{ color: 'rgba(255,255,255,0.55)', fontFamily: "'Inter', sans-serif" }}>
               Cambridge-based content creators ready to showcase local businesses. All verified, all local.
             </p>
           </div>
@@ -515,10 +515,10 @@ export default function HomePage() {
                 { value: totalVerifiedCollabs, label: 'Verified collabs' },
               ].map(stat => (
                 <div key={stat.label}>
-                  <p className="text-3xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                  <p className="text-3xl font-bold" style={{ color: '#ffffff', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                     {'format' in stat && stat.format ? stat.format(stat.value) : stat.value}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5 uppercase tracking-widest" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{stat.label}</p>
+                  <p className="text-xs mt-0.5 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: "'JetBrains Mono', monospace" }}>{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -528,15 +528,15 @@ export default function HomePage() {
         {/* 3-D coverflow — full section width */}
         {creators.length > 0
           ? <CreatorRoundabout creators={creators} />
-          : <div className="px-6 py-20 text-center"><p className="text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>Creators coming soon.</p></div>
+          : <div className="px-6 py-20 text-center"><p style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'Inter', sans-serif" }}>Creators coming soon.</p></div>
         }
 
         {/* Links */}
-        <div className="max-w-5xl mx-auto px-6 py-10 flex items-center gap-3">
+        <div className="max-w-5xl mx-auto px-6 py-6 flex items-center gap-3">
           <Link
             href="/creators"
             className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
-            style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif", border: '1px solid rgba(28,43,58,0.2)' }}
+            style={{ color: '#ffffff', fontFamily: "'Inter', sans-serif", border: '1px solid rgba(255,255,255,0.2)' }}
           >
             View all creators →
           </Link>
@@ -551,12 +551,12 @@ export default function HomePage() {
       </section>
 
       {/* ── Join the platform ── */}
-      <section style={{ backgroundColor: '#1C2B3A', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <section style={{ backgroundColor: '#ffffff', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
         {/* Cambridge areas marquee */}
-        <div className="overflow-hidden py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="overflow-hidden py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
           <div className="flex gap-8 whitespace-nowrap" style={{ animation: 'marquee 30s linear infinite' }}>
             {places.map((p, i) => (
-              <span key={i} className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.2)' }}>
+              <span key={i} className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(0,0,0,0.18)' }}>
                 <span style={{ color: '#F5B800' }}>·</span> {p}
               </span>
             ))}
@@ -566,54 +566,54 @@ export default function HomePage() {
         <div className="py-24 px-6">
           <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <span className="text-xs font-bold tracking-widest uppercase mb-4 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.35)' }}>
+              <span className="text-xs font-bold tracking-widest uppercase mb-4 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(0,0,0,0.35)' }}>
                 Join the platform
               </span>
-              <h2 className="mb-4 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2rem, 5vw, 3.25rem)', fontWeight: 800, color: '#ffffff' }}>
+              <h2 className="mb-4 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2rem, 5vw, 3.25rem)', fontWeight: 800, color: '#1C2B3A' }}>
                 Ready to get<br />started?
               </h2>
               <div className="w-12 h-1 rounded-full mb-4" style={{ background: '#F5B800' }} />
-              <p className="text-base leading-relaxed" style={{ color: 'rgb(153,153,153)', fontFamily: "'Inter', sans-serif" }}>
+              <p className="text-base leading-relaxed" style={{ color: 'rgb(107,114,128)', fontFamily: "'Inter', sans-serif" }}>
                 We&apos;re opening the doors to a small group of Cambridge businesses and creators this year. Get early access, shape the product, and lock in founder pricing.
               </p>
             </div>
             <div className="flex flex-col gap-4">
               <Link
                 href="/signup?role=business"
-                className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-xl"
-                style={{ background: '#ffffff' }}
+                className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                style={{ background: '#1C2B3A' }}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(245,184,0,0.12)' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(245,184,0,0.15)' }}>
                   <Building2 className="w-5 h-5" style={{ color: '#F5B800' }} />
                 </div>
                 <div>
-                  <p className="font-semibold mb-0.5" style={{ color: '#1C2B3A', fontFamily: "'Bricolage Grotesque', sans-serif" }}>Join as a business</p>
-                  <p className="text-xs" style={{ color: 'rgba(28,43,58,0.5)', fontFamily: "'Inter', sans-serif" }}>Post collabs and get matched with Cambridge creators</p>
+                  <p className="font-semibold mb-0.5" style={{ color: '#ffffff', fontFamily: "'Bricolage Grotesque', sans-serif" }}>Join as a business</p>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>Post collabs and get matched with Cambridge creators</p>
                 </div>
               </Link>
               <Link
                 href="/signup?role=creator"
-                className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-xl"
-                style={{ background: '#ffffff' }}
+                className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                style={{ background: '#1C2B3A' }}
               >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(107,230,176,0.15)' }}>
                   <Sparkles className="w-5 h-5" style={{ color: '#6BE6B0' }} />
                 </div>
                 <div>
-                  <p className="font-semibold mb-0.5" style={{ color: '#1C2B3A', fontFamily: "'Bricolage Grotesque', sans-serif" }}>Join as a creator</p>
-                  <p className="text-xs" style={{ color: 'rgba(28,43,58,0.5)', fontFamily: "'Inter', sans-serif" }}>Browse and claim exclusive Cambridge business offers</p>
+                  <p className="font-semibold mb-0.5" style={{ color: '#ffffff', fontFamily: "'Bricolage Grotesque', sans-serif" }}>Join as a creator</p>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>Browse and claim exclusive Cambridge business offers</p>
                 </div>
               </Link>
-              <div className="flex items-start gap-2.5 rounded-xl px-4 py-3" style={{ background: 'rgba(245,184,0,0.07)', border: '1px solid rgba(245,184,0,0.18)' }}>
+              <div className="flex items-start gap-2.5 rounded-xl px-4 py-3" style={{ background: 'rgba(245,184,0,0.08)', border: '1px solid rgba(245,184,0,0.25)' }}>
                 <Check className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: '#F5B800' }} />
-                <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)', fontFamily: "'Inter', sans-serif" }}>
-                  <span className="font-semibold" style={{ color: 'rgba(255,255,255,0.8)' }}>Zero-risk guarantee — </span>
+                <p className="text-xs leading-relaxed" style={{ color: 'rgba(28,43,58,0.6)', fontFamily: "'Inter', sans-serif" }}>
+                  <span className="font-semibold" style={{ color: '#1C2B3A' }}>Zero-risk guarantee — </span>
                   if a creator visits and doesn&apos;t post, we reimburse the full value.
                 </p>
               </div>
-              <p className="text-xs text-center" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: "'Inter', sans-serif" }}>
+              <p className="text-xs text-center" style={{ color: 'rgba(0,0,0,0.3)', fontFamily: "'Inter', sans-serif" }}>
                 Already have an account?{' '}
-                <Link href="/login" className="font-semibold hover:underline" style={{ color: '#F5B800' }}>Sign in</Link>
+                <Link href="/login" className="font-semibold hover:underline" style={{ color: '#1C2B3A' }}>Sign in</Link>
               </p>
             </div>
           </div>
