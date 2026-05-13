@@ -177,10 +177,11 @@ function ValuePostCard({ p, card }: { p: Post; card: { title: string; body: stri
 // ─── Roundabout carousel ──────────────────────────────────────────────────────
 // Items orbit on an ellipse. Drag left/right to spin; auto-spins slowly.
 
-const RB_CARD_W  = 168   // card width px
-const RB_RADIUS_X = 300  // horizontal radius of ellipse
-const RB_RADIUS_Z = 88   // depth radius (how far items recede into background)
-const RB_H        = 340  // container height px
+const RB_CARD_W   = 224   // layout width of slot; card renders at this size
+const CARD_SCALE  = 0.75  // CSS scale applied to inner card → apparent width ~168px
+const RB_RADIUS_X = 300   // horizontal radius of ellipse
+const RB_RADIUS_Z = 88    // depth radius (how far items recede into background)
+const RB_H        = 360   // container height px
 const RB_SPEED    = 0.20 // auto-spin radians/second (~31s per full rotation)
 
 function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
@@ -301,7 +302,9 @@ function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
               pointerEvents: 'none',
             }}
           >
-            <CreatorCard creator={creator} />
+            <div style={{ transform: `scale(${CARD_SCALE})`, transformOrigin: 'center center' }}>
+              <CreatorCard creator={creator} />
+            </div>
           </div>
         ))}
       </div>
