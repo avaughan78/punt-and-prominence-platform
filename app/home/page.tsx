@@ -461,13 +461,13 @@ export default function HomePage() {
       </section>
 
       {/* ── Join the platform ── */}
-      <section className="bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+      <section style={{ backgroundColor: '#1C2B3A', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         {/* Cambridge areas marquee */}
-        <div className="overflow-hidden border-b py-3" style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
+        <div className="overflow-hidden py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="flex gap-8 whitespace-nowrap" style={{ animation: 'marquee 30s linear infinite' }}>
             {places.map((p, i) => (
-              <span key={i} className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(0,0,0,0.25)' }}>
-                <span style={{ color: '#1C2B3A' }}>·</span> {p}
+              <span key={i} className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.2)' }}>
+                <span style={{ color: '#F5B800' }}>·</span> {p}
               </span>
             ))}
           </div>
@@ -476,21 +476,22 @@ export default function HomePage() {
         <div className="py-24 px-6">
           <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <span className="text-xs font-bold tracking-widest uppercase mb-4 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(0,0,0,0.35)' }}>
+              <span className="text-xs font-bold tracking-widest uppercase mb-4 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.35)' }}>
                 Join the platform
               </span>
-              <h2 className="mb-4 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2rem, 5vw, 3.25rem)', fontWeight: 800, color: '#1C2B3A' }}>
+              <h2 className="mb-4 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2rem, 5vw, 3.25rem)', fontWeight: 800, color: '#ffffff' }}>
                 Ready to get<br />started?
               </h2>
-              <p className="text-base leading-relaxed" style={{ color: '#555555', fontFamily: "'Inter', sans-serif" }}>
+              <div className="w-12 h-1 rounded-full mb-4" style={{ background: '#F5B800' }} />
+              <p className="text-base leading-relaxed" style={{ color: 'rgb(153,153,153)', fontFamily: "'Inter', sans-serif" }}>
                 We&apos;re opening the doors to a small group of Cambridge businesses and creators this year. Get early access, shape the product, and lock in founder pricing.
               </p>
             </div>
             <div className="flex flex-col gap-4">
               <Link
                 href="/signup?role=business"
-                className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-lg"
-                style={{ background: '#1C2B3A', border: '2px solid rgba(245,184,0,0.3)' }}
+                className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-xl"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(245,184,0,0.3)' }}
               >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(245,184,0,0.15)' }}>
                   <Building2 className="w-5 h-5" style={{ color: '#F5B800' }} />
@@ -502,8 +503,8 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/signup?role=creator"
-                className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-lg"
-                style={{ background: '#1C2B3A', border: '2px solid rgba(107,230,176,0.3)' }}
+                className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-xl"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(107,230,176,0.3)' }}
               >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(107,230,176,0.15)' }}>
                   <Sparkles className="w-5 h-5" style={{ color: '#6BE6B0' }} />
@@ -513,9 +514,9 @@ export default function HomePage() {
                   <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>Browse and claim exclusive Cambridge business offers</p>
                 </div>
               </Link>
-              <p className="text-xs text-center mt-1" style={{ color: 'rgba(0,0,0,0.3)', fontFamily: "'Inter', sans-serif" }}>
+              <p className="text-xs text-center mt-1" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: "'Inter', sans-serif" }}>
                 Already have an account?{' '}
-                <Link href="/login" className="font-semibold hover:underline" style={{ color: '#1C2B3A' }}>Sign in</Link>
+                <Link href="/login" className="font-semibold hover:underline" style={{ color: '#F5B800' }}>Sign in</Link>
               </p>
             </div>
           </div>
