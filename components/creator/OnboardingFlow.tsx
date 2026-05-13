@@ -96,9 +96,9 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
       if (!res.ok) { toast.error(data.error ?? 'Profile not found — check the handle and try again'); return }
       if (data.isPrivate) { toast.error('This account is private — it must be public to be verified'); return }
       if (data.followers != null) setFollowerCount(String(data.followers))
-      if (data.bio && !bio) setBio(data.bio)
-      if (data.website && !website) setWebsite(data.website)
-      if (data.image && !avatarUrl) {
+      if (data.bio) setBio(data.bio)
+      if (data.website) setWebsite(data.website)
+      if (data.image) {
         setAvatarUrl(data.image)
         await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatar_url: data.image }) })
       }
