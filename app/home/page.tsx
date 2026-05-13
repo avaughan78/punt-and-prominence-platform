@@ -403,8 +403,33 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
-            <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-              <img src="/cambridge-map.png" alt="Cambridge city map" className="w-full h-auto object-cover" />
+            <div className="relative rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+              <img src="/cambridge-map.png" alt="Cambridge city map" className="w-full h-auto object-cover" style={{ opacity: 0.75, filter: 'grayscale(20%) brightness(1.3) contrast(0.9)' }} />
+              {/* Profile circles overlaid on the map */}
+              {[
+                { avatar: featuredCreators[0].avatar, handle: featuredCreators[0].handle, top: '12%',  left: '18%' },
+                { avatar: featuredCreators[1].avatar, handle: featuredCreators[1].handle, top: '22%',  left: '62%' },
+                { avatar: featuredCreators[2].avatar, handle: featuredCreators[2].handle, top: '58%',  left: '38%' },
+                { avatar: featuredCreators[3].avatar, handle: featuredCreators[3].handle, top: '68%',  left: '70%' },
+              ].map(c => (
+                <div
+                  key={c.handle}
+                  className="absolute flex flex-col items-center gap-1"
+                  style={{ top: c.top, left: c.left, transform: 'translate(-50%, -50%)' }}
+                >
+                  <div className="p-[2.5px] rounded-full shadow-lg" style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}>
+                    <div className="p-[2px] rounded-full" style={{ background: '#1C2B3A' }}>
+                      <img src={c.avatar} alt={c.handle} className="w-10 h-10 rounded-full object-cover block" />
+                    </div>
+                  </div>
+                  <span
+                    className="text-white text-[9px] font-medium px-1.5 py-0.5 rounded-md whitespace-nowrap"
+                    style={{ background: 'rgba(0,0,0,0.55)', fontFamily: "'JetBrains Mono', monospace", backdropFilter: 'blur(4px)' }}
+                  >
+                    {c.handle}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
