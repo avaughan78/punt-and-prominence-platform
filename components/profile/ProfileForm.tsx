@@ -1,7 +1,7 @@
 'use client'
 import { useRef, useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Camera, Loader2, MapPin, Search } from 'lucide-react'
+import { Camera, Loader2, MapPin, Search, Check, AlertTriangle, RefreshCw } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
@@ -22,6 +22,14 @@ const CATEGORIES = [
   { value: 'beauty', label: 'Beauty & lifestyle' },
   { value: 'other', label: 'Other' },
 ]
+
+interface LookupData {
+  handle: string
+  name: string | null
+  image: string | null
+  followers: number | null
+  verified: boolean
+}
 
 interface Props {
   role: Role
@@ -61,6 +69,10 @@ export function ProfileForm({ role, initial, userId }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const acLoadedRef = useRef(false)
+
+  const [looking, setLooking] = useState(false)
+  const [lookupData, setLookupData] = useState<LookupData | null>(null)
+  const [lookupError, setLookupError] = useState<string | null>(null)
 
   useEffect(() => {
     if (role !== 'business' || acLoadedRef.current) return
@@ -115,11 +127,9 @@ export function ProfileForm({ role, initial, userId }: Props) {
     }
 
     const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-    // Bust cache with timestamp
     const url = `${publicUrl}?t=${Date.now()}`
     setForm(f => ({ ...f, avatar_url: url }))
 
-    // Save immediately
     await fetch('/api/profile', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -127,6 +137,39 @@ export function ProfileForm({ role, initial, userId }: Props) {
     })
     toast.success('Photo updated')
     setUploading(false)
+  }
+
+  async function lookupInstagram(handle: string) {
+    const clean = handle.replace(/^@/, '').trim()
+    if (!clean) return
+    setLooking(true)
+    setLookupData(null)
+    setLookupError(null)
+    try {
+      const res = await fetch(`/api/instagram/lookup?handle=${encodeURIComponent(clean)}&userId=${encodeURIComponent(userId)}`)
+      const data = await res.json()
+      if (!res.ok) {
+        setLookupError(data.error ?? 'Profile not found — check the handle is correct and the account is public')
+        return
+      }
+      if (data.isPrivate) {
+        setLookupError('This account is private — make it public to sync your stats')
+        return
+      }
+      setForm(f => ({
+        ...f,
+        follower_count: data.followers ?? f.follower_count,
+        bio: data.bio || f.bio,
+        website_url: data.website || f.website_url,
+        avatar_url: data.image || f.avatar_url,
+      }))
+      if (data.image) {
+        await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatar_url: data.image }) })
+      }
+      setLookupData({ handle: data.handle, name: data.name, image: data.image, followers: data.followers, verified: data.verified })
+    } finally {
+      setLooking(false)
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -296,6 +339,88 @@ export function ProfileForm({ role, initial, userId }: Props) {
             onChange={e => set('display_name', e.target.value)}
             required
           />
+
+          {/* Instagram handle with auto-lookup */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              Instagram handle
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">@</span>
+              <input
+                placeholder="yourhandle"
+                value={form.instagram_handle}
+                onChange={e => {
+                  set('instagram_handle', e.target.value.replace(/^@/, ''))
+                  setLookupData(null)
+                  setLookupError(null)
+                }}
+                onBlur={e => { if (e.target.value.trim()) lookupInstagram(e.target.value) }}
+                className="w-full pl-8 pr-10 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              />
+              {looking && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />}
+              {lookupData && !looking && <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#059669' }} />}
+            </div>
+            <p className="text-xs text-gray-400">Must be a public account — stats sync automatically on blur</p>
+          </div>
+
+          {/* Profile preview card */}
+          {lookupData && (
+            <div
+              className="flex items-center gap-3 rounded-xl px-4 py-3"
+              style={{ background: 'rgba(107,230,176,0.08)', border: '1px solid rgba(107,230,176,0.3)' }}
+            >
+              <div className="relative shrink-0">
+                <div className="w-12 h-12 rounded-full overflow-hidden" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}>
+                  {lookupData.image
+                    ? <img src={lookupData.image} alt="" className="w-full h-full object-cover" />
+                    : <span className="w-full h-full flex items-center justify-center text-white font-bold text-sm">{initials}</span>
+                  }
+                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: '#059669' }}>
+                  <Check className="w-2.5 h-2.5 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-semibold text-[#1C2B3A] truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                    {lookupData.name ?? `@${lookupData.handle}`}
+                  </p>
+                  {lookupData.verified && (
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(245,184,0,0.15)', color: '#b45309', fontFamily: "'JetBrains Mono', monospace" }}>
+                      VERIFIED
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500">@{lookupData.handle}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-sm font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                  {lookupData.followers != null ? lookupData.followers.toLocaleString() : '—'}
+                </p>
+                <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>followers</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error state */}
+          {lookupError && (
+            <div className="flex items-start gap-3 rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)' }}>
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
+              <p className="text-xs text-red-600 flex-1">{lookupError}</p>
+              <button
+                type="button"
+                onClick={() => lookupInstagram(form.instagram_handle)}
+                className="flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700 shrink-0"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Retry
+              </button>
+            </div>
+          )}
+
+          {/* Follower count — always editable, auto-filled from lookup */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               Instagram followers
@@ -318,13 +443,15 @@ export function ProfileForm({ role, initial, userId }: Props) {
         </>
       )}
 
-      <Input
-        label="Instagram handle"
-        placeholder="yourhandle"
-        value={form.instagram_handle}
-        onChange={e => set('instagram_handle', e.target.value.replace(/^@/, ''))}
-        hint="Without the @"
-      />
+      {role === 'business' && (
+        <Input
+          label="Instagram handle"
+          placeholder="yourhandle"
+          value={form.instagram_handle}
+          onChange={e => set('instagram_handle', e.target.value.replace(/^@/, ''))}
+          hint="Without the @"
+        />
+      )}
 
       <Input
         label="Website"
