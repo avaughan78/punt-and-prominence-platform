@@ -59,7 +59,7 @@ export async function proxy(request: NextRequest) {
   const user = session?.user ?? null
 
   const isBusinessRoute = path.startsWith('/business')
-  const isCreatorRoute = path.startsWith('/creator')
+  const isCreatorRoute = path === '/creator' || path.startsWith('/creator/')
   const isAuthPage = path === '/login' || path === '/signup'
 
   // Redirect unauthenticated users away from dashboard routes
