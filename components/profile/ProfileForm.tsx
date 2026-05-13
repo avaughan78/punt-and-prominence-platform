@@ -377,7 +377,7 @@ export function ProfileForm({ role, initial, userId }: Props) {
             required
           />
 
-          {/* Instagram handle with auto-lookup */}
+          {/* Instagram handle with lookup */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               Instagram handle
@@ -387,19 +387,22 @@ export function ProfileForm({ role, initial, userId }: Props) {
               <input
                 placeholder="yourhandle"
                 value={form.instagram_handle}
-                onChange={e => {
-                  set('instagram_handle', e.target.value.replace(/^@/, ''))
-                  setLookupData(null)
-                  setLookupError(null)
-                }}
-                onBlur={e => { if (e.target.value.trim()) lookupInstagram(e.target.value) }}
-                className="w-full pl-8 pr-10 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
+                onChange={e => { set('instagram_handle', e.target.value.replace(/^@/, '')); setLookupData(null); setLookupError(null) }}
+                onKeyDown={e => { if (e.key === 'Enter') lookupInstagram(form.instagram_handle) }}
+                className="w-full pl-8 pr-12 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               />
-              {looking && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />}
-              {lookupData && !looking && <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#059669' }} />}
+              <button
+                type="button"
+                onClick={() => lookupInstagram(form.instagram_handle)}
+                disabled={looking || !form.instagram_handle.trim()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-25"
+                style={{ background: lookupData ? '#059669' : '#F5B800' }}
+              >
+                {looking ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Check className="w-4 h-4 text-white" />}
+              </button>
             </div>
-            <p className="text-xs text-gray-400">Must be a public account — stats sync automatically on blur</p>
+            <p className="text-xs text-gray-400">Must be a public account — tap ✓ to sync stats</p>
           </div>
 
           {/* Profile preview card */}
@@ -478,7 +481,7 @@ export function ProfileForm({ role, initial, userId }: Props) {
             )}
           </div>
 
-          {/* TikTok handle with auto-lookup */}
+          {/* TikTok handle with lookup */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               TikTok handle <span className="text-gray-400 normal-case font-normal">· optional</span>
@@ -489,14 +492,21 @@ export function ProfileForm({ role, initial, userId }: Props) {
                 placeholder="yourtiktok"
                 value={form.tiktok_handle}
                 onChange={e => { set('tiktok_handle', e.target.value.replace(/^@/, '')); setTiktokLookupData(null); setTiktokLookupError(null) }}
-                onBlur={e => { if (e.target.value.trim()) lookupTiktok(e.target.value) }}
-                className="w-full pl-8 pr-10 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
+                onKeyDown={e => { if (e.key === 'Enter') lookupTiktok(form.tiktok_handle) }}
+                className="w-full pl-8 pr-12 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               />
-              {tiktokLooking && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />}
-              {tiktokLookupData && !tiktokLooking && <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#059669' }} />}
+              <button
+                type="button"
+                onClick={() => lookupTiktok(form.tiktok_handle)}
+                disabled={tiktokLooking || !form.tiktok_handle.trim()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-25"
+                style={{ background: tiktokLookupData ? '#059669' : '#F5B800' }}
+              >
+                {tiktokLooking ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Check className="w-4 h-4 text-white" />}
+              </button>
             </div>
-            <p className="text-xs text-gray-400">Stats sync automatically when you tab off</p>
+            <p className="text-xs text-gray-400">Tap ✓ to sync stats</p>
           </div>
 
           {tiktokLookupData && (
