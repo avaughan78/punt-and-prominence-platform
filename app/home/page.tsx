@@ -132,61 +132,68 @@ function PostCard({ p }: { p: Post }) {
   )
 }
 
-// ─── 3-D coverflow carousel ───────────────────────────────────────────────────
+// ─── Roundabout carousel ──────────────────────────────────────────────────────
+// Items orbit on an ellipse. Drag left/right to spin; auto-spins slowly.
 
-const COVERFLOW_CARD_W = 210   // px
-const COVERFLOW_SPREAD = 265   // centre-to-centre horizontal distance
-const COVERFLOW_H = 390        // container height px
+const RB_CARD_W  = 210   // card width px
+const RB_RADIUS_X = 370  // horizontal radius of ellipse
+const RB_RADIUS_Z = 110  // depth radius (how far items recede into background)
+const RB_H        = 420  // container height px
+const RB_SPEED    = 0.20 // auto-spin radians/second (~31s per full rotation)
 
-function CreatorCoverflow({ creators }: { creators: CreatorCardData[] }) {
-  const posRef   = useRef(0)   // float: which creator index is centred
-  const pausedRef = useRef(false)
-  const navRef   = useRef<{ from: number; to: number; t0: number } | null>(null)
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([])
+function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
+  const angleRef   = useRef(Math.PI / 2)  // start with first item at front (sin=1)
+  const velRef     = useRef(0)            // spin momentum after drag
+  const dragging   = useRef(false)
+  const lastX      = useRef(0)
+  const cardRefs   = useRef<(HTMLDivElement | null)[]>([])
+  const wrapRef    = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const n = creators.length
     if (!n) return
     let last = performance.now()
     let raf: number
+    const TAU = Math.PI * 2
 
     function paint() {
-      const pos = posRef.current
+      const base = angleRef.current
       cardRefs.current.forEach((el, i) => {
         if (!el) return
-        // Shortest-path offset wrapping around the circle
-        let d = i - pos
-        while (d >  n / 2) d -= n
-        while (d < -n / 2) d += n
+        const theta = base + (TAU * i / n)
+        const sinT  = Math.sin(theta)
+        const cosT  = Math.cos(theta)
 
-        const abs = Math.abs(d)
-        if (abs > 2.6) { el.style.opacity = '0'; return }
-
-        const tx = d * COVERFLOW_SPREAD
-        const tz = -abs * 160
-        const ry = -d * 44          // degrees of Y-rotation
-        const sc = Math.max(0.55, 1 - abs * 0.14)
-        const op = Math.max(0,    1 - abs * 0.25)
+        const x  = cosT * RB_RADIUS_X
+        const z  = sinT * RB_RADIUS_Z
+        // sinT ranges [-1, 1]; map to front=1 / back=0
+        const t  = (sinT + 1) / 2
+        const sc = 0.52 + t * 0.48          // [0.52 … 1.0]
+        const op = 0.30 + t * 0.70          // [0.30 … 1.0]
+        const zi = Math.round(t * 100)
 
         el.style.opacity  = String(op)
-        el.style.zIndex   = String(Math.round(50 - abs * 10))
+        el.style.zIndex   = String(zi)
         el.style.transform =
-          `translateX(calc(-50% + ${tx}px)) translateY(-50%) translateZ(${tz}px) rotateY(${ry}deg) scale(${sc})`
+          `translateX(calc(-50% + ${x}px)) translateY(-50%) translateZ(${z}px) scale(${sc})`
       })
     }
 
     function tick(now: number) {
       const dt = now - last
       last = now
-      const nav = navRef.current
-      if (nav) {
-        const t = Math.min((now - nav.t0) / 600, 1)
-        const e = t < 0.5 ? 2*t*t : -1 + (4 - 2*t)*t
-        posRef.current = nav.from + (nav.to - nav.from) * e
-        if (t >= 1) { posRef.current = ((nav.to % n) + n) % n; navRef.current = null }
-      } else if (!pausedRef.current) {
-        posRef.current = (posRef.current + 0.18 * dt / 1000 + n) % n
+
+      if (!dragging.current) {
+        // Apply and decay drag momentum, then resume auto-spin
+        if (Math.abs(velRef.current) > 0.0005) {
+          angleRef.current += velRef.current * dt / 1000
+          velRef.current   *= Math.pow(0.88, dt / 16.67)
+        } else {
+          velRef.current    = 0
+          angleRef.current += RB_SPEED * dt / 1000
+        }
       }
+
       paint()
       raf = requestAnimationFrame(tick)
     }
@@ -195,35 +202,50 @@ function CreatorCoverflow({ creators }: { creators: CreatorCardData[] }) {
     return () => cancelAnimationFrame(raf)
   }, [creators.length])
 
-  function nudge(dir: 1 | -1) {
-    const n = creators.length
-    const target = (Math.round(posRef.current) + dir + n) % n
-    navRef.current = { from: posRef.current, to: target, t0: performance.now() }
+  // Drag to spin — content follows cursor (drag right → items move right)
+  const SENSITIVITY = 0.005  // radians per pixel
+
+  function onDown(x: number) {
+    dragging.current = true
+    lastX.current    = x
+    velRef.current   = 0
+    if (wrapRef.current) wrapRef.current.style.cursor = 'grabbing'
+  }
+
+  function onMove(x: number) {
+    if (!dragging.current) return
+    const dx         = x - lastX.current
+    lastX.current    = x
+    angleRef.current -= dx * SENSITIVITY          // negative: drag right = items go right
+    velRef.current   = -dx * SENSITIVITY * 60     // momentum in rad/s
+  }
+
+  function onUp() {
+    dragging.current = false
+    if (wrapRef.current) wrapRef.current.style.cursor = 'grab'
   }
 
   return (
     <div
-      style={{ background: 'linear-gradient(180deg, #152232 0%, #1C2B3A 40%, #152232 100%)', padding: '48px 0' }}
-      onMouseEnter={() => { pausedRef.current = true }}
-      onMouseLeave={() => { pausedRef.current = false }}
+      ref={wrapRef}
+      style={{
+        background: 'linear-gradient(180deg, #152232 0%, #1C2B3A 50%, #152232 100%)',
+        padding: '48px 0',
+        cursor: 'grab',
+        userSelect: 'none',
+      }}
+      onMouseDown={e => onDown(e.clientX)}
+      onMouseMove={e => onMove(e.clientX)}
+      onMouseUp={onUp}
+      onMouseLeave={onUp}
+      onTouchStart={e => onDown(e.touches[0].clientX)}
+      onTouchMove={e => { e.preventDefault(); onMove(e.touches[0].clientX) }}
+      onTouchEnd={onUp}
     >
       <div
-        className="relative mx-auto"
-        style={{ height: `${COVERFLOW_H}px`, perspective: '1100px', perspectiveOrigin: '50% 50%', overflow: 'hidden' }}
+        className="relative mx-auto overflow-hidden"
+        style={{ height: `${RB_H}px`, perspective: '1000px', perspectiveOrigin: '50% 50%' }}
       >
-        {/* Arrows */}
-        <button type="button" onClick={() => nudge(-1)} aria-label="Previous"
-          className="absolute left-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-          style={{ background: 'rgba(255,255,255,0.12)', color: 'white', border: '1px solid rgba(255,255,255,0.18)' }}>
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <button type="button" onClick={() => nudge(1)} aria-label="Next"
-          className="absolute right-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-          style={{ background: 'rgba(255,255,255,0.12)', color: 'white', border: '1px solid rgba(255,255,255,0.18)' }}>
-          <ChevronRight className="w-5 h-5" />
-        </button>
-
-        {/* Cards */}
         {creators.map((creator, i) => (
           <div
             key={creator.id}
@@ -232,14 +254,19 @@ function CreatorCoverflow({ creators }: { creators: CreatorCardData[] }) {
               position: 'absolute',
               top: '50%',
               left: '50%',
-              width: `${COVERFLOW_CARD_W}px`,
+              width: `${RB_CARD_W}px`,
               willChange: 'transform, opacity',
+              pointerEvents: 'none',
             }}
           >
             <CreatorCard creator={creator} />
           </div>
         ))}
       </div>
+
+      <p className="text-center mt-4 text-xs" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: "'JetBrains Mono', monospace" }}>
+        drag to spin
+      </p>
     </div>
   )
 }
@@ -493,7 +520,7 @@ export default function HomePage() {
 
         {/* 3-D coverflow — full section width */}
         {creators.length > 0
-          ? <CreatorCoverflow creators={creators} />
+          ? <CreatorRoundabout creators={creators} />
           : <div className="px-6 py-20 text-center"><p className="text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>Creators coming soon.</p></div>
         }
 
