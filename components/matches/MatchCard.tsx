@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { StatusBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { MatchMessages } from '@/components/matches/MatchMessages'
 import { formatDate, formatGBP } from '@/lib/utils'
 import type { Match, MatchDeliverable, Role } from '@/lib/types'
 
@@ -15,10 +16,11 @@ const STEPS = ['pending', 'posted', 'verified'] as const
 interface Props {
   match: Match
   role: Role
+  currentUserId: string
   onUpdated: (updated: Match) => void
 }
 
-export function MatchCard({ match, role, onUpdated }: Props) {
+export function MatchCard({ match, role, currentUserId, onUpdated }: Props) {
   const [loading, setLoading] = useState(false)
   const [showPostUrl, setShowPostUrl] = useState(false)
   const [postUrl, setPostUrl] = useState(match.post_url ?? '')
@@ -280,8 +282,13 @@ export function MatchCard({ match, role, onUpdated }: Props) {
         </div>
       )}
 
+      {/* Messages */}
+      <div className="pt-3 border-t border-black/5">
+        <MatchMessages matchId={match.id} currentUserId={currentUserId} />
+      </div>
+
       {/* Action button */}
-      <div className="pt-1 border-t border-black/5">
+      <div className="pt-3 border-t border-black/5">
         {/* One-off actions */}
         {!isRetainer && role === 'business' && match.status === 'posted' && (
           <Button size="sm" onClick={() => updateStatus('verified')} loading={loading}>Verify post</Button>

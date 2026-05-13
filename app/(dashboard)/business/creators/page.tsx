@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { ExternalLink, Search, BadgeCheck } from 'lucide-react'
+import { ExternalLink, Search, BadgeCheck, Bell } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Creator {
   id: string
@@ -21,6 +22,21 @@ function formatFollowers(n: number): string {
 }
 
 function CreatorCard({ creator }: { creator: Creator }) {
+  const [nudging, setNudging] = useState(false)
+  const [nudged, setNudged] = useState(false)
+
+  async function handleNudge() {
+    setNudging(true)
+    const res = await fetch(`/api/business/creators/${creator.id}/nudge`, { method: 'POST' })
+    const body = await res.json().catch(() => ({}))
+    if (res.ok) {
+      setNudged(true)
+      toast.success(`Invite sent to ${creator.display_name}`)
+    } else {
+      toast.error(body.error ?? 'Failed to send invite')
+    }
+    setNudging(false)
+  }
   const initials = creator.display_name
     .split(' ')
     .map(w => w[0])
@@ -134,9 +150,19 @@ function CreatorCard({ creator }: { creator: Creator }) {
         )}
       </div>
 
-      {/* Instagram CTA */}
-      {igUrl && (
-        <div className="px-4 pb-4 w-full">
+      {/* Actions */}
+      <div className="px-4 pb-4 w-full flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={handleNudge}
+          disabled={nudging || nudged}
+          className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold text-center transition-all disabled:opacity-50"
+          style={{ background: nudged ? 'rgba(107,230,176,0.15)' : '#F5B800', color: nudged ? '#059669' : '#1C2B3A' }}
+        >
+          <Bell className="w-3 h-3" />
+          {nudged ? 'Invite sent' : nudging ? 'Sending…' : 'Nudge creator'}
+        </button>
+        {igUrl && (
           <a
             href={igUrl}
             target="_blank"
@@ -146,8 +172,8 @@ function CreatorCard({ creator }: { creator: Creator }) {
           >
             View on Instagram
           </a>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
