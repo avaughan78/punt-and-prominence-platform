@@ -90,13 +90,13 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
         singleAccount: true,
       })
 
-      connect.on('accountConnected', async (...args: unknown[]) => {
-        const accountId = args[0] as string
+      connect.on('accountConnected', async (accountId: unknown, _workplatformId: unknown, _userId: unknown) => {
+        const id = accountId as string
         try {
           const dataRes = await fetch('/api/phyllo/fetch-data', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ account_id: accountId }),
+            body: JSON.stringify({ account_id: id }),
           })
           const data = await dataRes.json()
           if (!dataRes.ok) throw new Error(data.error ?? 'Failed to fetch data')
@@ -105,10 +105,10 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
           toast.error(err instanceof Error ? err.message : 'Could not fetch Instagram data')
         }
       })
-      connect.on('accountDisconnected', () => { setVerified(null) })
-      connect.on('tokenExpired', () => { toast.error('Session expired — please try again'); setPhylloLoading(false) })
-      connect.on('exit', () => { setPhylloLoading(false) })
-      connect.on('connectionFailure', () => {
+      connect.on('accountDisconnected', (_accountId: unknown, _workplatformId: unknown, _userId: unknown) => { setVerified(null) })
+      connect.on('tokenExpired', (_userId: unknown) => { toast.error('Session expired — please try again'); setPhylloLoading(false) })
+      connect.on('exit', (_reason: unknown, _userId: unknown) => { setPhylloLoading(false) })
+      connect.on('connectionFailure', (_reason: unknown, _workplatformId: unknown, _userId: unknown) => {
         toast.error('Instagram connection failed — please try again')
         setPhylloLoading(false)
       })
