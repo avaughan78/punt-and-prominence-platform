@@ -5,14 +5,14 @@ import { StatCard } from '@/components/ui/Card'
 import { StatusBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { formatDate, formatGBP } from '@/lib/utils'
-import { Plus, AlertCircle } from 'lucide-react'
+import { Plus, AlertCircle, MessageCircle } from 'lucide-react'
 
 export default async function BusinessDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { data: offers }, { data: matches }] = await Promise.all([
+  const [{ data: profile }, { data: offers }, { data: matches }, { data: unreadCount }] = await Promise.all([
     supabase.from('profiles').select('business_name').eq('id', user!.id).single(),
     supabase.from('offers').select('id, is_active').eq('business_id', user!.id),
     supabase.from('matches')
@@ -20,6 +20,7 @@ export default async function BusinessDashboard() {
       .eq('business_id', user!.id)
       .order('created_at', { ascending: false })
       .limit(5),
+    supabase.rpc('get_unread_message_count'),
   ])
 
   const activeOffers = offers?.filter(o => o.is_active).length ?? 0
@@ -41,6 +42,21 @@ export default async function BusinessDashboard() {
           </Button>
         </Link>
       </div>
+
+      {/* Unread messages banner */}
+      {(unreadCount ?? 0) > 0 && (
+        <Link href="/business/matches">
+          <div className="flex items-center gap-3 rounded-2xl px-4 py-3 mb-4 cursor-pointer hover:opacity-90 transition-opacity" style={{ background: 'rgba(245,184,0,0.1)', border: '1.5px solid rgba(245,184,0,0.3)' }}>
+            <MessageCircle className="w-4 h-4 shrink-0" style={{ color: '#F5B800' }} />
+            <p className="text-sm text-[#1C2B3A] flex-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <span className="font-semibold">
+                {unreadCount} unread message{(unreadCount ?? 0) !== 1 ? 's' : ''}
+              </span>{' '}from your creators
+            </p>
+            <span className="text-xs font-semibold text-[#F5B800] shrink-0">View →</span>
+          </div>
+        </Link>
+      )}
 
       {/* Incomplete profile banner */}
       {!profile?.business_name && (

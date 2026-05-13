@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { LayoutDashboard, ShoppingBag, GitMerge, CreditCard, Search, LogOut, Star, UserCircle, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -42,6 +43,14 @@ export function DashboardShell({ children, role, displayName }: Props) {
   const pathname = usePathname()
   const router = useRouter()
   const navItems = role === 'business' ? businessNav() : creatorNav()
+  const [unread, setUnread] = useState(0)
+
+  useEffect(() => {
+    fetch('/api/messages/unread')
+      .then(r => r.json())
+      .then(d => setUnread(d.count ?? 0))
+      .catch(() => {})
+  }, [pathname]) // re-check when navigating
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -85,6 +94,8 @@ export function DashboardShell({ children, role, displayName }: Props) {
         <nav className="flex-1 px-3 py-2">
           {navItems.map(item => {
             const active = pathname === item.href || (item.href !== '/business' && item.href !== '/creator' && pathname.startsWith(item.href))
+            const isMatches = item.href.endsWith('/matches')
+            const showBadge = isMatches && unread > 0 && !active
             return (
               <Link
                 key={item.href}
@@ -98,7 +109,12 @@ export function DashboardShell({ children, role, displayName }: Props) {
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
                 {item.icon}
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {showBadge && (
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold text-[#1C2B3A]" style={{ background: '#F5B800' }}>
+                    {unread}
+                  </span>
+                )}
               </Link>
             )
           })}
@@ -156,17 +172,26 @@ export function DashboardShell({ children, role, displayName }: Props) {
       >
         {navItems.map(item => {
           const active = pathname === item.href || (item.href !== '/business' && item.href !== '/creator' && pathname.startsWith(item.href))
+          const isMatches = item.href.endsWith('/matches')
+          const showBadge = isMatches && unread > 0 && !active
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'flex-1 flex flex-col items-center gap-1 py-3 text-[10px] transition-all',
+                'flex-1 flex flex-col items-center gap-1 py-3 text-[10px] transition-all relative',
                 active ? 'text-[#F5B800]' : 'text-white/40'
               )}
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              {item.icon}
+              <span className="relative">
+                {item.icon}
+                {showBadge && (
+                  <span className="absolute -top-1 -right-1.5 w-3.5 h-3.5 rounded-full text-[8px] font-bold flex items-center justify-center text-[#1C2B3A]" style={{ background: '#F5B800' }}>
+                    {unread > 9 ? '9+' : unread}
+                  </span>
+                )}
+              </span>
               {item.label}
             </Link>
           )

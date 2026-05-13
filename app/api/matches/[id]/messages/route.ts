@@ -25,6 +25,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     .order('created_at', { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Mark thread as read
+  await supabase.from('match_message_reads').upsert(
+    { match_id: id, user_id: user.id, last_read_at: new Date().toISOString() },
+    { onConflict: 'match_id,user_id' }
+  )
+
   return NextResponse.json(data ?? [])
 }
 
