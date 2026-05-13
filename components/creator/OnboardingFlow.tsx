@@ -87,6 +87,7 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl }:
         environment: process.env.NEXT_PUBLIC_PHYLLO_ENV ?? 'sandbox',
         userId: body.phyllo_user_id,
         token: body.sdk_token,
+        workPlatformId: '9bb8913b-ddd9-430b-a66a-d74d846e6c66', // Instagram
         singleAccount: true,
       })
 
