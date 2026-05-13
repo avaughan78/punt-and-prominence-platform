@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { Heart, MessageSquare, Star, Check, Building2, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Heart, MessageSquare, Star, Check, Building2, Sparkles } from 'lucide-react'
 import { CreatorCard, formatFollowers, type CreatorCardData } from '@/components/creators/CreatorCard'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ const posts = [
   },
 ]
 
-const valueCards = [
+const hoverCards = [
   {
     title: 'Verified Cambridge audiences',
     body: 'No inflated follower counts. No out-of-area reach. Just real Cambridge people who follow someone they trust.',
@@ -67,12 +67,8 @@ const valueCards = [
     body: "Our creators have 1,000–10,000 followers with genuine engagement — the kind of trust a paid ad can't buy.",
   },
   {
-    title: 'Foot traffic you can measure',
-    body: 'Every match comes with a unique Punt Code and QR tracking so you can see exactly what each post drove to your door.',
-  },
-  {
-    title: 'Content from the inside out',
-    body: 'Not a brief sent remotely. Not stock footage. A real person, in your space, living the experience — and that authenticity shows.',
+    title: 'Zero-risk guarantee',
+    body: "If a creator visits and doesn't post within 72 hours, we'll reimburse the full value of what you offered. Great content, or your money back.",
   },
 ]
 
@@ -126,6 +122,52 @@ function PostCard({ p }: { p: Post }) {
           <span className="flex items-center gap-1 text-white font-semibold" style={{ fontSize: '13px', fontFamily: "'Inter', sans-serif", textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
             <MessageSquare className="w-3.5 h-3.5 text-white" /> {p.comments}
           </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ValuePostCard({ p, card }: { p: Post; card: { title: string; body: string } }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div
+      className="relative group w-full h-full cursor-pointer select-none"
+      style={{ padding: '2px', background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)', borderRadius: '14px' }}
+      onClick={() => setOpen(o => !o)}
+    >
+      <div className="relative w-full h-full overflow-hidden" style={{ borderRadius: '12px' }}>
+        <img src={p.poster} alt="" className="w-full h-full object-cover" />
+
+        {/* Text overlay — hover on desktop, tap on mobile */}
+        <div
+          className={`absolute inset-0 flex flex-col justify-center px-4 py-4 transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+          style={{ background: 'rgba(28,43,58,0.92)' }}
+        >
+          <p className="font-bold text-white text-sm leading-snug mb-2.5" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+            {card.title}
+          </p>
+          <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.72)', fontFamily: "'Inter', sans-serif" }}>
+            {card.body}
+          </p>
+        </div>
+
+        {/* Handle bar — fades on hover/open */}
+        <div
+          className={`absolute top-0 left-0 right-0 flex items-center justify-end gap-1.5 px-2 py-2 transition-opacity duration-200 ${open ? 'opacity-0' : 'group-hover:opacity-0'}`}
+          style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%)' }}
+        >
+          <span className="text-white font-semibold truncate" style={{ fontSize: '13px', fontFamily: "'Inter', sans-serif", textShadow: '0 1px 3px rgba(0,0,0,0.6)', maxWidth: '120px' }}>
+            {p.handle}
+          </span>
+          <img src={p.profilePic} alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" style={{ border: '2px solid rgba(255,255,255,0.95)', boxShadow: '0 2px 6px rgba(0,0,0,0.5)' }} />
+        </div>
+
+        {/* Mobile tap hint */}
+        <div className={`md:hidden absolute bottom-2 right-2 transition-opacity duration-200 ${open ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(245,184,0,0.9)' }}>
+            <Star className="w-3 h-3" style={{ color: '#1C2B3A' }} />
+          </div>
         </div>
       </div>
     </div>
@@ -348,16 +390,26 @@ export default function HomePage() {
         <div className="w-full md:flex-shrink-0 md:w-auto">
           {/* Mobile carousel */}
           <div className="md:hidden flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-6 px-6 pb-2" style={{ scrollbarWidth: 'none' } as React.CSSProperties}>
-            {posts.map(p => (
+            {posts.slice(0, 3).map((p, i) => (
+              <div key={p.handle} className="snap-center flex-shrink-0" style={{ width: '72vw', height: '72vw', maxWidth: '260px', maxHeight: '260px' }}>
+                <ValuePostCard p={p} card={hoverCards[i]} />
+              </div>
+            ))}
+            {posts.slice(3).map(p => (
               <div key={p.handle} className="snap-center flex-shrink-0" style={{ width: '72vw', height: '72vw', maxWidth: '260px', maxHeight: '260px' }}>
                 <PostCard p={p} />
               </div>
             ))}
             <div className="flex-shrink-0 w-2" aria-hidden />
           </div>
-          {/* Desktop grid */}
+          {/* Desktop grid — top row: hover/tap to reveal value prop; bottom row: video plays */}
           <div className="hidden md:grid grid-cols-3 gap-3" style={{ width: '609px' }}>
-            {posts.map(p => (
+            {posts.slice(0, 3).map((p, i) => (
+              <div key={p.handle} style={{ width: '195px', height: '195px' }}>
+                <ValuePostCard p={p} card={hoverCards[i]} />
+              </div>
+            ))}
+            {posts.slice(3).map(p => (
               <div key={p.handle} style={{ width: '195px', height: '195px' }}>
                 <PostCard p={p} />
               </div>
@@ -367,51 +419,6 @@ export default function HomePage() {
             <span className="text-xs md:text-sm" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'Inter', sans-serif" }}>
               Examples of the content your business could inspire
             </span>
-          </div>
-        </div>
-      </section>
-
-      {/* ── For businesses ── */}
-      <section className="py-24 px-6" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f0f4f8 100%)', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-        <div className="max-w-5xl mx-auto">
-          <div className="mb-10">
-            <span className="text-xs font-bold tracking-widest uppercase mb-4 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(0,0,0,0.35)' }}>
-              For Cambridge businesses
-            </span>
-            <h2 className="mb-3 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2rem, 4.5vw, 4rem)', fontWeight: 800, color: '#1C2B3A' }}>
-              A curated pool of influential local creators — bespoke marketing built around your business.
-            </h2>
-            <div className="w-12 h-1 rounded-full" style={{ background: '#F5B800' }} />
-          </div>
-
-          <div className="grid md:grid-cols-4 gap-5 mb-12">
-            {valueCards.map(card => (
-              <div
-                key={card.title}
-                className="rounded-2xl p-6 flex flex-col gap-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-                style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
-              >
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(245,184,0,0.1)' }}>
-                  <Star className="w-4 h-4" style={{ color: '#F5B800' }} />
-                </div>
-                <h3 className="font-semibold text-xs" style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}>{card.title}</h3>
-                <p className="text-xs leading-relaxed" style={{ color: '#666666', fontFamily: "'Inter', sans-serif" }}>{card.body}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Guarantee bar */}
-          <div
-            className="rounded-2xl px-8 py-7 flex flex-col sm:flex-row items-start sm:items-center gap-5"
-            style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #253d54 100%)', boxShadow: '0 8px 32px rgba(28,43,58,0.25)' }}
-          >
-            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(245,184,0,0.2)', border: '1px solid rgba(245,184,0,0.3)' }}>
-              <Check className="w-5 h-5" style={{ color: '#F5B800' }} />
-            </div>
-            <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.75)', fontFamily: "'Inter', sans-serif" }}>
-              <span className="font-semibold" style={{ color: '#F5B800' }}>Zero-risk guarantee — </span>
-              every match is fully backed. If a creator visits and doesn&apos;t post within 72 hours, we&apos;ll reimburse you the full value of what you offered. Great content, or your money back.
-            </p>
           </div>
         </div>
       </section>
@@ -597,7 +604,14 @@ export default function HomePage() {
                   <p className="text-xs" style={{ color: 'rgba(28,43,58,0.5)', fontFamily: "'Inter', sans-serif" }}>Browse and claim exclusive Cambridge business offers</p>
                 </div>
               </Link>
-              <p className="text-xs text-center mt-1" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: "'Inter', sans-serif" }}>
+              <div className="flex items-start gap-2.5 rounded-xl px-4 py-3" style={{ background: 'rgba(245,184,0,0.07)', border: '1px solid rgba(245,184,0,0.18)' }}>
+                <Check className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: '#F5B800' }} />
+                <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)', fontFamily: "'Inter', sans-serif" }}>
+                  <span className="font-semibold" style={{ color: 'rgba(255,255,255,0.8)' }}>Zero-risk guarantee — </span>
+                  if a creator visits and doesn&apos;t post, we reimburse the full value.
+                </p>
+              </div>
+              <p className="text-xs text-center" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: "'Inter', sans-serif" }}>
                 Already have an account?{' '}
                 <Link href="/login" className="font-semibold hover:underline" style={{ color: '#F5B800' }}>Sign in</Link>
               </p>
