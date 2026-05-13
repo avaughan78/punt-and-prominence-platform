@@ -23,7 +23,7 @@ function AdminLoginForm() {
     // Call signInWithOtp from the browser so the PKCE code verifier is stored
     // in this browser's cookies — the callback will find it when the link is clicked
     const supabase = createClient()
-    const redirectTo = `${window.location.origin}/api/auth/callback?next=/admin`
+    const redirectTo = `${window.location.origin}/api/auth/callback`
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: body.email,
       options: { emailRedirectTo: redirectTo },

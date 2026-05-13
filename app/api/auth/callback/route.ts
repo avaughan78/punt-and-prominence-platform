@@ -32,7 +32,10 @@ export async function GET(request: NextRequest) {
 
     if (!error && data.user) {
       let destination: string
-      if (next !== '/') {
+      const adminEmail = process.env.ADMIN_EMAIL
+      if (adminEmail && data.user.email === adminEmail) {
+        destination = `${appOrigin}/admin`
+      } else if (next !== '/') {
         destination = `${appOrigin}${next}`
       } else {
         const role = data.user.user_metadata?.role
