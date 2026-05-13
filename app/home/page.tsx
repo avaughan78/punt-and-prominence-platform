@@ -278,69 +278,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Meet the creators ── */}
-      <section className="py-24 px-6" style={{ background: '#f9fafb', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-        <div className="max-w-5xl mx-auto">
-
-          {/* Hero */}
-          <div className="text-center mb-10">
-            <h2 className="text-4xl font-bold text-[#1C2B3A] mb-4" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-              Meet our creators
-            </h2>
-            <p className="text-lg text-gray-500 max-w-xl mx-auto" style={{ fontFamily: "'Inter', sans-serif" }}>
-              Cambridge-based content creators ready to showcase local businesses. All verified, all local.
-            </p>
-          </div>
-
-          {/* Stats bar */}
-          {creators.length > 0 && (
-            <div className="flex items-center justify-center gap-8 mb-12 flex-wrap">
-              {[
-                { value: creators.length, label: 'Active creators' },
-                { value: creators.reduce((s, c) => s + (c.follower_count ?? 0) + (c.tiktok_follower_count ?? 0), 0), label: 'Combined followers', format: formatFollowers },
-                { value: creators.reduce((s, c) => s + c.verified_matches, 0), label: 'Verified collabs' },
-              ].map(stat => (
-                <div key={stat.label} className="text-center">
-                  <p className="text-3xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                    {'format' in stat && stat.format ? stat.format(stat.value) : stat.value}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5 uppercase tracking-widest" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Grid */}
-          {displayCreators.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-gray-400">Creators coming soon.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-              {displayCreators.map(c => <CreatorCard key={c.id} creator={c} />)}
-            </div>
-          )}
-
-          {/* Links */}
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <Link
-              href="/creators"
-              className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
-              style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif", border: '1px solid rgba(28,43,58,0.2)' }}
-            >
-              View all creators →
-            </Link>
-            <Link
-              href="/signup?role=creator"
-              className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-90"
-              style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
-            >
-              Join as a creator →
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* ── Proudly Cambridge ── */}
       <section className="py-24 px-6" style={{ backgroundColor: '#1C2B3A' }}>
         <div className="max-w-5xl mx-auto">
@@ -403,6 +340,69 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Meet the creators ── */}
+      <section className="py-24 px-6" style={{ background: '#f9fafb', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+        <div className="max-w-5xl mx-auto">
+
+          {/* Hero */}
+          <div className="text-center mb-10">
+            <h2 className="text-4xl font-bold text-[#1C2B3A] mb-4" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              Meet our creators
+            </h2>
+            <p className="text-lg text-gray-500 max-w-xl mx-auto" style={{ fontFamily: "'Inter', sans-serif" }}>
+              Cambridge-based content creators ready to showcase local businesses. All verified, all local.
+            </p>
+          </div>
+
+          {/* Stats bar */}
+          {creators.length > 0 && (
+            <div className="flex items-center justify-center gap-8 mb-12 flex-wrap">
+              {[
+                { value: creators.length, label: 'Active creators' },
+                { value: creators.reduce((s, c) => s + (c.follower_count ?? 0) + (c.tiktok_follower_count ?? 0), 0), label: 'Combined followers', format: formatFollowers },
+                { value: creators.reduce((s, c) => s + c.verified_matches, 0), label: 'Verified collabs' },
+              ].map(stat => (
+                <div key={stat.label} className="text-center">
+                  <p className="text-3xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                    {'format' in stat && stat.format ? stat.format(stat.value) : stat.value}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5 uppercase tracking-widest" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Grid */}
+          {displayCreators.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-gray-400">Creators coming soon.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+              {displayCreators.map(c => <CreatorCard key={c.id} creator={c} />)}
+            </div>
+          )}
+
+          {/* Links */}
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <Link
+              href="/creators"
+              className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
+              style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif", border: '1px solid rgba(28,43,58,0.2)' }}
+            >
+              View all creators →
+            </Link>
+            <Link
+              href="/signup?role=creator"
+              className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-90"
+              style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+            >
+              Join as a creator →
+            </Link>
           </div>
         </div>
       </section>
