@@ -132,100 +132,110 @@ function PostCard({ p }: { p: Post }) {
   )
 }
 
-// ─── Creator carousel ─────────────────────────────────────────────────────────
+// ─── 3-D coverflow carousel ───────────────────────────────────────────────────
 
-const CARD_W = 220
-const CARD_GAP = 16
-const CARD_SLOT = CARD_W + CARD_GAP
+const COVERFLOW_CARD_W = 210   // px
+const COVERFLOW_SPREAD = 265   // centre-to-centre horizontal distance
+const COVERFLOW_H = 390        // container height px
 
-function CreatorCarousel({ creators }: { creators: CreatorCardData[] }) {
-  const trackRef = useRef<HTMLDivElement>(null)
-  const posRef = useRef(0)
+function CreatorCoverflow({ creators }: { creators: CreatorCardData[] }) {
+  const posRef   = useRef(0)   // float: which creator index is centred
   const pausedRef = useRef(false)
-  const nudgingRef = useRef(false)
-  const singleW = creators.length * CARD_SLOT
+  const navRef   = useRef<{ from: number; to: number; t0: number } | null>(null)
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([])
 
-  // Initialise position to middle copy so going left always has room
   useEffect(() => {
-    posRef.current = singleW
-    if (trackRef.current) trackRef.current.style.transform = `translateX(-${singleW}px)`
-  }, [singleW])
-
-  // Auto-scroll loop — 40 px/s
-  useEffect(() => {
-    if (!creators.length) return
+    const n = creators.length
+    if (!n) return
     let last = performance.now()
     let raf: number
+
+    function paint() {
+      const pos = posRef.current
+      cardRefs.current.forEach((el, i) => {
+        if (!el) return
+        // Shortest-path offset wrapping around the circle
+        let d = i - pos
+        while (d >  n / 2) d -= n
+        while (d < -n / 2) d += n
+
+        const abs = Math.abs(d)
+        if (abs > 2.6) { el.style.opacity = '0'; return }
+
+        const tx = d * COVERFLOW_SPREAD
+        const tz = -abs * 160
+        const ry = -d * 44          // degrees of Y-rotation
+        const sc = Math.max(0.55, 1 - abs * 0.14)
+        const op = Math.max(0,    1 - abs * 0.25)
+
+        el.style.opacity  = String(op)
+        el.style.zIndex   = String(Math.round(50 - abs * 10))
+        el.style.transform =
+          `translateX(calc(-50% + ${tx}px)) translateY(-50%) translateZ(${tz}px) rotateY(${ry}deg) scale(${sc})`
+      })
+    }
+
     function tick(now: number) {
-      const delta = now - last
+      const dt = now - last
       last = now
-      if (!pausedRef.current && !nudgingRef.current && trackRef.current) {
-        posRef.current += 40 * delta / 1000
-        if (posRef.current >= 2 * singleW) posRef.current -= singleW
-        trackRef.current.style.transform = `translateX(-${posRef.current}px)`
+      const nav = navRef.current
+      if (nav) {
+        const t = Math.min((now - nav.t0) / 600, 1)
+        const e = t < 0.5 ? 2*t*t : -1 + (4 - 2*t)*t
+        posRef.current = nav.from + (nav.to - nav.from) * e
+        if (t >= 1) { posRef.current = ((nav.to % n) + n) % n; navRef.current = null }
+      } else if (!pausedRef.current) {
+        posRef.current = (posRef.current + 0.18 * dt / 1000 + n) % n
       }
+      paint()
       raf = requestAnimationFrame(tick)
     }
+
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [creators.length, singleW])
+  }, [creators.length])
 
   function nudge(dir: 1 | -1) {
-    nudgingRef.current = true
-    const start = posRef.current
-    const target = start + dir * CARD_SLOT
-    const t0 = performance.now()
-    const DURATION = 500
-    function step(now: number) {
-      const t = Math.min((now - t0) / DURATION, 1)
-      const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
-      posRef.current = start + (target - start) * eased
-      if (trackRef.current) trackRef.current.style.transform = `translateX(-${posRef.current}px)`
-      if (t < 1) {
-        requestAnimationFrame(step)
-      } else {
-        // Normalise back to [singleW, 2*singleW)
-        while (posRef.current < singleW) posRef.current += singleW
-        while (posRef.current >= 2 * singleW) posRef.current -= singleW
-        if (trackRef.current) trackRef.current.style.transform = `translateX(-${posRef.current}px)`
-        nudgingRef.current = false
-      }
-    }
-    requestAnimationFrame(step)
+    const n = creators.length
+    const target = (Math.round(posRef.current) + dir + n) % n
+    navRef.current = { from: posRef.current, to: target, t0: performance.now() }
   }
 
-  const tripled = [...creators, ...creators, ...creators]
-
   return (
-    <div className="relative overflow-hidden" style={{ paddingBottom: '2px' }}>
-      {/* Edge fades */}
-      <div className="absolute inset-y-0 left-0 w-20 z-10 pointer-events-none"
-        style={{ background: 'linear-gradient(to right, #f9fafb 20%, transparent)' }} />
-      <div className="absolute inset-y-0 right-0 w-20 z-10 pointer-events-none"
-        style={{ background: 'linear-gradient(to left, #f9fafb 20%, transparent)' }} />
-
-      {/* Arrows */}
-      <button type="button" onClick={() => nudge(-1)} aria-label="Previous"
-        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
-        style={{ background: '#1C2B3A' }}>
-        <ChevronLeft className="w-4 h-4 text-white" />
-      </button>
-      <button type="button" onClick={() => nudge(1)} aria-label="Next"
-        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
-        style={{ background: '#1C2B3A' }}>
-        <ChevronRight className="w-4 h-4 text-white" />
-      </button>
-
-      {/* Track */}
+    <div
+      style={{ background: 'linear-gradient(180deg, #152232 0%, #1C2B3A 40%, #152232 100%)', padding: '48px 0' }}
+      onMouseEnter={() => { pausedRef.current = true }}
+      onMouseLeave={() => { pausedRef.current = false }}
+    >
       <div
-        ref={trackRef}
-        className="flex"
-        style={{ gap: `${CARD_GAP}px`, willChange: 'transform' }}
-        onMouseEnter={() => { pausedRef.current = true }}
-        onMouseLeave={() => { pausedRef.current = false }}
+        className="relative mx-auto"
+        style={{ height: `${COVERFLOW_H}px`, perspective: '1100px', perspectiveOrigin: '50% 50%', overflow: 'hidden' }}
       >
-        {tripled.map((creator, i) => (
-          <div key={i} style={{ width: `${CARD_W}px`, flexShrink: 0 }}>
+        {/* Arrows */}
+        <button type="button" onClick={() => nudge(-1)} aria-label="Previous"
+          className="absolute left-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          style={{ background: 'rgba(255,255,255,0.12)', color: 'white', border: '1px solid rgba(255,255,255,0.18)' }}>
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <button type="button" onClick={() => nudge(1)} aria-label="Next"
+          className="absolute right-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          style={{ background: 'rgba(255,255,255,0.12)', color: 'white', border: '1px solid rgba(255,255,255,0.18)' }}>
+          <ChevronRight className="w-5 h-5" />
+        </button>
+
+        {/* Cards */}
+        {creators.map((creator, i) => (
+          <div
+            key={creator.id}
+            ref={el => { cardRefs.current[i] = el }}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: `${COVERFLOW_CARD_W}px`,
+              willChange: 'transform, opacity',
+            }}
+          >
             <CreatorCard creator={creator} />
           </div>
         ))}
@@ -446,10 +456,10 @@ export default function HomePage() {
       </section>
 
       {/* ── Meet the creators ── */}
-      <section className="py-24 px-6" style={{ background: '#f9fafb', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-        <div className="max-w-5xl mx-auto">
+      <section style={{ background: '#f9fafb', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
 
-          {/* Header */}
+        {/* Header + stats */}
+        <div className="max-w-5xl mx-auto px-6 pt-24 pb-10">
           <div className="mb-10">
             <span className="text-xs font-bold tracking-widest uppercase mb-4 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(0,0,0,0.35)' }}>
               Meet the creators
@@ -463,9 +473,8 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Stats */}
           {creators.length > 0 && (
-            <div className="flex items-center gap-8 mb-10 flex-wrap">
+            <div className="flex items-center gap-8 flex-wrap">
               {[
                 { value: creators.length, label: 'Active creators' },
                 { value: totalFollowers, label: 'Combined followers', format: formatFollowers },
@@ -480,33 +489,30 @@ export default function HomePage() {
               ))}
             </div>
           )}
+        </div>
 
-          {/* Carousel */}
-          {creators.length === 0 ? (
-            <div className="py-20">
-              <p className="text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>Creators coming soon.</p>
-            </div>
-          ) : (
-            <CreatorCarousel creators={creators} />
-          )}
+        {/* 3-D coverflow — full section width */}
+        {creators.length > 0
+          ? <CreatorCoverflow creators={creators} />
+          : <div className="px-6 py-20 text-center"><p className="text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>Creators coming soon.</p></div>
+        }
 
-          {/* Links */}
-          <div className="flex items-center gap-3 mt-8">
-            <Link
-              href="/creators"
-              className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
-              style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif", border: '1px solid rgba(28,43,58,0.2)' }}
-            >
-              View all creators →
-            </Link>
-            <Link
-              href="/signup?role=creator"
-              className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-90"
-              style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
-            >
-              Join as a creator →
-            </Link>
-          </div>
+        {/* Links */}
+        <div className="max-w-5xl mx-auto px-6 py-10 flex items-center gap-3">
+          <Link
+            href="/creators"
+            className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
+            style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif", border: '1px solid rgba(28,43,58,0.2)' }}
+          >
+            View all creators →
+          </Link>
+          <Link
+            href="/signup?role=creator"
+            className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-90"
+            style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+          >
+            Join as a creator →
+          </Link>
         </div>
       </section>
 
