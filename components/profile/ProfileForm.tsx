@@ -1,16 +1,18 @@
 'use client'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Camera, Loader2 } from 'lucide-react'
+import { Camera, Loader2, MapPin, Search } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
-import { BusinessSearchPicker } from './BusinessSearchPicker'
 import { MapPickerModal } from './MapPickerModal'
-import { MapPin } from 'lucide-react'
+import { loadGoogleMaps } from '@/lib/googleMaps'
 import { createClient } from '@/lib/supabase/client'
 import type { Role } from '@/lib/types'
+
+const CAMBRIDGE_BOUNDS = { sw: { lat: 52.15, lng: 0.03 }, ne: { lat: 52.27, lng: 0.22 } }
+function stripCountry(s: string) { return s.replace(/, United Kingdom$/, '').replace(/, UK$/, '') }
 
 const CATEGORIES = [
   { value: 'dining', label: 'Dining & drinks' },
@@ -57,17 +59,39 @@ export function ProfileForm({ role, initial, userId }: Props) {
   const [uploading, setUploading] = useState(false)
   const [showMap, setShowMap] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
+  const acLoadedRef = useRef(false)
+
+  useEffect(() => {
+    if (role !== 'business' || acLoadedRef.current) return
+    loadGoogleMaps().then(() => {
+      if (!searchRef.current || acLoadedRef.current) return
+      acLoadedRef.current = true
+      const bounds = new window.google.maps.LatLngBounds(CAMBRIDGE_BOUNDS.sw, CAMBRIDGE_BOUNDS.ne)
+      const ac = new window.google.maps.places.Autocomplete(searchRef.current, {
+        bounds,
+        strictBounds: false,
+        componentRestrictions: { country: 'gb' },
+        fields: ['name', 'formatted_address', 'geometry', 'types'],
+      })
+      ac.addListener('place_changed', () => {
+        const place = ac.getPlace()
+        if (!place.geometry?.location) return
+        const isEstablishment = (place.types ?? []).includes('establishment')
+        setForm(f => ({
+          ...f,
+          ...(isEstablishment ? { business_name: place.name ?? f.business_name } : {}),
+          address_line: stripCountry(place.formatted_address ?? ''),
+          latitude: place.geometry!.location!.lat(),
+          longitude: place.geometry!.location!.lng(),
+        }))
+        if (searchRef.current) searchRef.current.value = ''
+      })
+    })
+  }, [role])
 
   function set(key: string, value: string) {
     setForm(f => ({ ...f, [key]: value }))
-  }
-
-  function setAddress(address: string, lat: number, lng: number) {
-    setForm(f => ({ ...f, address_line: address, latitude: lat, longitude: lng }))
-  }
-
-  function setFromGoogle(name: string, address: string, lat: number, lng: number) {
-    setForm(f => ({ ...f, business_name: name, address_line: address, latitude: lat, longitude: lng }))
   }
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -194,7 +218,6 @@ export function ProfileForm({ role, initial, userId }: Props) {
 
       {role === 'business' ? (
         <>
-          <BusinessSearchPicker onSelect={setFromGoogle} />
           <Input
             label="Your name"
             placeholder="Jane Smith"
@@ -202,48 +225,61 @@ export function ProfileForm({ role, initial, userId }: Props) {
             onChange={e => set('display_name', e.target.value)}
             required
           />
-          <Input
-            label="Business name"
-            placeholder="The Mill Road Café"
-            value={form.business_name}
-            onChange={e => set('business_name', e.target.value)}
-            required
-          />
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              Address
-            </label>
-            <div className="flex gap-2">
+
+          {/* Location search row */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <input
+                ref={searchRef}
                 type="text"
+                placeholder="Search to update business location…"
+                autoComplete="off"
+                className="w-full pl-9 pr-4 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowMap(true)}
+              title="Pick on map"
+              className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-all hover:bg-[#1C2B3A] group"
+              style={{ border: '1.5px solid rgba(0,0,0,0.1)', background: 'white' }}
+            >
+              <MapPin className="w-4 h-4 text-gray-400 group-hover:text-[#6BE6B0] transition-colors" />
+            </button>
+          </div>
+
+          {/* Location result card */}
+          {(form.business_name || form.address_line) && (
+            <div className="flex flex-col gap-3 rounded-2xl p-4" style={{ background: 'rgba(107,230,176,0.06)', border: '1.5px solid rgba(107,230,176,0.25)' }}>
+              <Input
+                label="Business name"
+                placeholder="The Mill Road Café"
+                value={form.business_name}
+                onChange={e => set('business_name', e.target.value)}
+                required
+              />
+              <Input
+                label="Address"
                 placeholder="123 Mill Road, Cambridge, CB1 2AZ"
                 value={form.address_line}
                 onChange={e => set('address_line', e.target.value)}
-                className="flex-1 px-4 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
-                style={{ fontFamily: "'Inter', sans-serif" }}
               />
-              <button
-                type="button"
-                onClick={() => setShowMap(true)}
-                title="Pick on map"
-                className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-colors hover:bg-[#1C2B3A] group"
-                style={{ border: '1.5px solid rgba(0,0,0,0.1)', background: 'white' }}
-              >
-                <MapPin className="w-4 h-4 text-gray-400 group-hover:text-[#6BE6B0] transition-colors" />
-              </button>
-            </div>
-          </div>
-          {form.latitude && form.longitude && (
-            <div className="rounded-xl overflow-hidden -mt-1" style={{ border: '1.5px solid rgba(0,0,0,0.08)' }}>
-              <iframe
-                title="Location"
-                width="100%"
-                height="200"
-                style={{ display: 'block', border: 'none' }}
-                src={`https://maps.google.com/maps?q=${form.latitude},${form.longitude}&z=17&output=embed`}
-              />
+              {form.latitude && form.longitude && (
+                <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
+                  <iframe
+                    title="Location"
+                    width="100%"
+                    height="160"
+                    style={{ display: 'block', border: 'none' }}
+                    src={`https://maps.google.com/maps?q=${form.latitude},${form.longitude}&z=17&output=embed`}
+                  />
+                </div>
+              )}
             </div>
           )}
+
           <Select
             label="Category"
             options={CATEGORIES}
