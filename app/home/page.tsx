@@ -134,18 +134,23 @@ function PostCard({ p }: { p: Post }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+const CARDS_PER_PAGE = 4
+
 export default function HomePage() {
   const [creators, setCreators] = useState<CreatorCardData[]>([])
+  const [creatorPage, setCreatorPage] = useState(0)
 
   useEffect(() => {
     fetch('/api/public/creators')
       .then(r => r.json())
-      .then(d => setCreators(Array.isArray(d) ? d.slice(0, 4) : []))
+      .then(d => setCreators(Array.isArray(d) ? d.slice(0, 8) : []))
       .catch(() => {})
   }, [])
 
-  const displayCreators = creators.length > 0 ? creators : []
+  const totalPages = Math.ceil(creators.length / CARDS_PER_PAGE)
+  const displayCreators = creators.slice(creatorPage * CARDS_PER_PAGE, (creatorPage + 1) * CARDS_PER_PAGE)
   const totalFollowers = creators.reduce((s, c) => s + (c.follower_count ?? 0) + (c.tiktok_follower_count ?? 0), 0)
+  const totalVerifiedCollabs = creators.reduce((s, c) => s + c.verified_matches, 0)
   const liveStats = [
     { num: creators.length > 0 ? `${creators.length}+` : '30+', label: 'Verified creators', sub: 'joining at launch' },
     { num: totalFollowers > 0 ? `${formatFollowers(totalFollowers)}+` : '30K+', label: 'Combined local reach', sub: 'Cambridge followers across the network' },
@@ -348,25 +353,29 @@ export default function HomePage() {
       <section className="py-24 px-6" style={{ background: '#f9fafb', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
         <div className="max-w-5xl mx-auto">
 
-          {/* Hero */}
-          <div className="text-center mb-10">
-            <h2 className="mb-4 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2.2rem, 5vw, 3.75rem)', fontWeight: 800, color: '#1C2B3A' }}>
-              Meet our creators
+          {/* Header */}
+          <div className="mb-10">
+            <span className="text-xs font-bold tracking-widest uppercase mb-4 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(0,0,0,0.35)' }}>
+              Meet the creators
+            </span>
+            <h2 className="mb-3 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2.2rem, 5vw, 3.75rem)', fontWeight: 800, color: '#1C2B3A' }}>
+              Meet our creators.
             </h2>
-            <p className="text-lg text-gray-500 max-w-xl mx-auto" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <div className="w-12 h-1 rounded-full mb-4" style={{ background: '#F5B800' }} />
+            <p className="text-lg max-w-xl" style={{ color: 'rgb(107,114,128)', fontFamily: "'Inter', sans-serif" }}>
               Cambridge-based content creators ready to showcase local businesses. All verified, all local.
             </p>
           </div>
 
-          {/* Stats bar */}
+          {/* Stats */}
           {creators.length > 0 && (
-            <div className="flex items-center justify-center gap-8 mb-12 flex-wrap">
+            <div className="flex items-center gap-8 mb-10 flex-wrap">
               {[
                 { value: creators.length, label: 'Active creators' },
-                { value: creators.reduce((s, c) => s + (c.follower_count ?? 0) + (c.tiktok_follower_count ?? 0), 0), label: 'Combined followers', format: formatFollowers },
-                { value: creators.reduce((s, c) => s + c.verified_matches, 0), label: 'Verified collabs' },
+                { value: totalFollowers, label: 'Combined followers', format: formatFollowers },
+                { value: totalVerifiedCollabs, label: 'Verified collabs' },
               ].map(stat => (
-                <div key={stat.label} className="text-center">
+                <div key={stat.label}>
                   <p className="text-3xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                     {'format' in stat && stat.format ? stat.format(stat.value) : stat.value}
                   </p>
@@ -377,32 +386,76 @@ export default function HomePage() {
           )}
 
           {/* Grid */}
-          {displayCreators.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-gray-400">Creators coming soon.</p>
+          {creators.length === 0 ? (
+            <div className="py-20">
+              <p className="text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>Creators coming soon.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               {displayCreators.map(c => <CreatorCard key={c.id} creator={c} />)}
             </div>
           )}
 
-          {/* Links */}
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <Link
-              href="/creators"
-              className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
-              style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif", border: '1px solid rgba(28,43,58,0.2)' }}
-            >
-              View all creators →
-            </Link>
-            <Link
-              href="/signup?role=creator"
-              className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-90"
-              style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
-            >
-              Join as a creator →
-            </Link>
+          {/* Carousel controls + links */}
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            {/* Prev / dot / next */}
+            {totalPages > 1 ? (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCreatorPage(p => Math.max(0, p - 1))}
+                  disabled={creatorPage === 0}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-30 hover:opacity-70"
+                  style={{ border: '1px solid rgba(28,43,58,0.2)', color: '#1C2B3A' }}
+                  aria-label="Previous"
+                >
+                  ←
+                </button>
+                <div className="flex items-center gap-1.5">
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setCreatorPage(i)}
+                      className="rounded-full transition-all"
+                      style={{
+                        width: creatorPage === i ? '20px' : '6px',
+                        height: '6px',
+                        background: creatorPage === i ? '#1C2B3A' : 'rgba(28,43,58,0.2)',
+                      }}
+                      aria-label={`Page ${i + 1}`}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCreatorPage(p => Math.min(totalPages - 1, p + 1))}
+                  disabled={creatorPage === totalPages - 1}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-30 hover:opacity-70"
+                  style={{ border: '1px solid rgba(28,43,58,0.2)', color: '#1C2B3A' }}
+                  aria-label="Next"
+                >
+                  →
+                </button>
+              </div>
+            ) : <div />}
+
+            <div className="flex items-center gap-3">
+              <Link
+                href="/creators"
+                className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
+                style={{ color: '#1C2B3A', fontFamily: "'Inter', sans-serif", border: '1px solid rgba(28,43,58,0.2)' }}
+              >
+                View all creators →
+              </Link>
+              <Link
+                href="/signup?role=creator"
+                className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-90"
+                style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+              >
+                Join as a creator →
+              </Link>
+            </div>
           </div>
         </div>
       </section>
