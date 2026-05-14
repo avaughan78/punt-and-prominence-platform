@@ -82,14 +82,14 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
         style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 8px 40px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.06)' }}
       >
         {/* Hero band */}
-        <div className="relative" style={{ height: '160px' }}>
+        <div className="relative" style={{ height: '110px' }}>
           <div
             className="absolute inset-0"
             style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 60%, #1a3a52 100%)' }}
           />
           {/* Decorative star */}
-          <div className="absolute right-7 top-7 opacity-[0.06]">
-            <Star className="w-24 h-24" style={{ color: '#F5B800' }} />
+          <div className="absolute right-7 top-4 opacity-[0.06]">
+            <Star className="w-20 h-20" style={{ color: '#F5B800' }} />
           </div>
           {/* Gold accent line */}
           <div className="absolute bottom-0 left-0 right-0 h-[2px]" style={{ background: 'linear-gradient(90deg, transparent, #F5B800 30%, #F5B800 70%, transparent)' }} />
@@ -114,7 +114,7 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
         </div>
 
         {/* Body */}
-        <div className="px-6 pt-16 pb-6 flex flex-col gap-6">
+        <div className="px-6 pt-14 pb-6 flex flex-col gap-6">
 
           {/* Name + category row */}
           <div className="flex items-start justify-between gap-4">
