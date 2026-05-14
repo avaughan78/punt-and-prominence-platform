@@ -91,8 +91,8 @@ export default function AdminBusinesses() {
             {businesses.length} registered{suspendedCount > 0 ? ` · ${suspendedCount} suspended` : ''}
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex gap-1.5">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="flex gap-1.5 flex-wrap">
             {(['all', 'active', 'suspended'] as const).map(f => (
               <button
                 key={f}
@@ -113,7 +113,7 @@ export default function AdminBusinesses() {
             placeholder="Search…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="text-sm px-4 py-1.5 rounded-xl border border-black/10 outline-none focus:border-[#F5B800] w-44"
+            className="text-sm px-4 py-1.5 rounded-xl border border-black/10 outline-none focus:border-[#F5B800] w-full sm:w-44"
           />
         </div>
       </div>
@@ -127,50 +127,51 @@ export default function AdminBusinesses() {
           {filtered.map((biz, i) => (
             <div
               key={biz.id}
-              className="flex items-center gap-4 px-4 py-4"
+              className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-4"
               style={{
                 borderBottom: i < filtered.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
                 opacity: biz.is_suspended ? 0.6 : 1,
               }}
             >
-              {/* Avatar */}
-              {biz.avatar_url ? (
-                <img src={biz.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-100 shrink-0 flex items-center justify-center text-sm font-bold text-gray-400">
-                  {(biz.business_name ?? biz.display_name)?.[0]?.toUpperCase()}
-                </div>
-              )}
+              {/* Avatar + info row */}
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {biz.avatar_url ? (
+                  <img src={biz.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gray-100 shrink-0 flex items-center justify-center text-sm font-bold text-gray-400">
+                    {(biz.business_name ?? biz.display_name)?.[0]?.toUpperCase()}
+                  </div>
+                )}
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-semibold text-[#1C2B3A]">{biz.business_name ?? biz.display_name}</p>
-                  {biz.is_suspended && (
-                    <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-red-50 text-red-500">suspended</span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-400">
-                  {biz.display_name}{biz.category ? ` · ${biz.category}` : ''}{biz.address_line ? ` · ${biz.address_line}` : ''}
-                </p>
-                {/* Stats row */}
-                <div className="flex gap-3 mt-1.5">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#6BE6B0', fontFamily: "'JetBrains Mono', monospace" }}>
-                    {biz.active_invites} collab{biz.active_invites !== 1 ? 's' : ''}
-                  </span>
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    {biz.total_matches} match{biz.total_matches !== 1 ? 'es' : ''}
-                  </span>
-                  {biz.verified_matches > 0 && (
-                    <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#22c55e', fontFamily: "'JetBrains Mono', monospace" }}>
-                      {biz.verified_matches} verified
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-semibold text-[#1C2B3A]">{biz.business_name ?? biz.display_name}</p>
+                    {biz.is_suspended && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-red-50 text-red-500">suspended</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400 truncate">
+                    {biz.display_name}{biz.category ? ` · ${biz.category}` : ''}{biz.address_line ? ` · ${biz.address_line}` : ''}
+                  </p>
+                  <div className="flex gap-3 mt-1">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#6BE6B0', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {biz.active_invites} collab{biz.active_invites !== 1 ? 's' : ''}
                     </span>
-                  )}
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      {biz.total_matches} match{biz.total_matches !== 1 ? 'es' : ''}
+                    </span>
+                    {biz.verified_matches > 0 && (
+                      <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#22c55e', fontFamily: "'JetBrains Mono', monospace" }}>
+                        {biz.verified_matches} verified
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2 shrink-0 items-center">
+              <div className="flex gap-2 flex-wrap items-center sm:shrink-0">
                 {biz.instagram_handle && (
                   <a
                     href={`https://instagram.com/${biz.instagram_handle}`}

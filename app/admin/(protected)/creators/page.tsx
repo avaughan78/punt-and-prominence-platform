@@ -83,7 +83,7 @@ export default function AdminCreators() {
           <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Creators</h1>
           <p className="text-sm text-gray-500 mt-0.5">{creators.filter(c => !c.is_approved).length} pending approval</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {(['all', 'pending', 'approved'] as const).map(f => (
             <button
               key={f}
@@ -118,35 +118,34 @@ export default function AdminCreators() {
                 style={{ borderBottom: (!isLast || isExpanded) ? '1px solid rgba(0,0,0,0.06)' : 'none' }}
               >
                 {/* Main row */}
-                <div className="flex items-center gap-4 px-4 py-4">
-                  {/* Avatar */}
-                  {creator.avatar_url ? (
-                    <img src={creator.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-100 shrink-0 flex items-center justify-center text-sm font-bold text-gray-400">
-                      {creator.display_name?.[0]?.toUpperCase()}
-                    </div>
-                  )}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-4">
+                  {/* Avatar + info */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {creator.avatar_url ? (
+                      <img src={creator.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-100 shrink-0 flex items-center justify-center text-sm font-bold text-gray-400">
+                        {creator.display_name?.[0]?.toUpperCase()}
+                      </div>
+                    )}
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold text-[#1C2B3A]">{creator.display_name}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${creator.is_approved ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
-                        {creator.is_approved ? 'approved' : 'pending'}
-                      </span>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-semibold text-[#1C2B3A]">{creator.display_name}</p>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${creator.is_approved ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
+                          {creator.is_approved ? 'approved' : 'pending'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">
+                        {creator.instagram_handle ? `@${creator.instagram_handle}` : 'no instagram'}
+                        {totalFollowers > 0 ? ` · ${formatFollowers(totalFollowers)} followers` : ''}
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {creator.instagram_handle ? `@${creator.instagram_handle}` : 'no instagram'}
-                      {totalFollowers > 0 ? ` · ${formatFollowers(totalFollowers)} followers` : ''}
-                      {creator.email ? (
-                        <> · <a href={`mailto:${creator.email}`} className="hover:text-[#1C2B3A] transition-colors">{creator.email}</a></>
-                      ) : null}
-                    </p>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-2 shrink-0 items-center">
+                  <div className="flex gap-2 flex-wrap items-center sm:shrink-0">
                     {creator.instagram_handle && (
                       <a
                         href={`https://instagram.com/${creator.instagram_handle}`}
@@ -199,7 +198,7 @@ export default function AdminCreators() {
                 {/* Expanded drawer */}
                 {isExpanded && (
                   <div className="px-4 pb-4 pt-1" style={{ background: 'rgba(0,0,0,0.015)' }}>
-                    <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
 
                       {/* Profile details */}
                       <div className="rounded-xl bg-white p-3 flex flex-col gap-2" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>

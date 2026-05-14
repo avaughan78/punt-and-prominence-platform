@@ -227,7 +227,7 @@ export function CollabDetailModal({ invite, onClose }: Props) {
           {/* Retainer terms */}
           {isRetainer && (invite.posts_per_month != null || invite.duration_months != null) && (
             <div
-              className="flex items-center gap-6 rounded-xl px-4 py-3"
+              className="flex flex-wrap items-center gap-4 rounded-xl px-4 py-3"
               style={{ background: 'rgba(107,230,176,0.08)', border: '1px solid rgba(107,230,176,0.2)' }}
             >
               {invite.posts_per_month != null && (

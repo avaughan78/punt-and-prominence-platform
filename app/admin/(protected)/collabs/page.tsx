@@ -322,7 +322,7 @@ export default function AdminCollabs() {
             placeholder="Search collabs or businesses…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 pr-4 py-2 text-sm rounded-xl border border-black/10 outline-none focus:border-[#F5B800] w-64 transition-colors"
+            className="pl-9 pr-4 py-2 text-sm rounded-xl border border-black/10 outline-none focus:border-[#F5B800] w-full sm:w-64 transition-colors"
             style={{ fontFamily: "'Inter', sans-serif" }}
           />
         </div>
@@ -437,15 +437,17 @@ export default function AdminCollabs() {
                 {/* ── Expanded panel: 35/65 two-column ── */}
                 {isExpanded && (
                   <div
-                    className="flex gap-0"
+                    className="flex flex-col sm:flex-row"
                     style={{ background: '#f8f9fb', borderTop: '1px solid rgba(0,0,0,0.05)' }}
                   >
                     {/* Left: collab details */}
                     <div
-                      className="p-5 flex-shrink-0"
-                      style={{ width: '35%', borderRight: '1px solid rgba(0,0,0,0.06)' }}
+                      className="p-5 sm:flex-shrink-0 sm:border-r"
+                      style={{ borderColor: 'rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}
                     >
-                      <CollabDetail group={group} />
+                      <div className="sm:w-56 lg:w-64">
+                        <CollabDetail group={group} />
+                      </div>
                     </div>
 
                     {/* Right: creator rows */}

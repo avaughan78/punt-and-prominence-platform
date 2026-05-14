@@ -174,11 +174,11 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
                     href={`https://instagram.com/${profile.instagram_handle}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80 max-w-[200px]"
                     style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.08), rgba(253,29,29,0.08), rgba(252,176,69,0.08))', border: '1px solid rgba(131,58,180,0.2)', color: '#833ab4', fontFamily: "'Inter', sans-serif" }}
                   >
-                    <span className="text-xs font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>IG</span>
-                    @{profile.instagram_handle}
+                    <span className="text-xs font-bold shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>IG</span>
+                    <span className="truncate">@{profile.instagram_handle}</span>
                   </a>
                 )}
                 {profile.website_url && (
@@ -186,11 +186,11 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
                     href={profile.website_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-blue-600 transition-all hover:opacity-80"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-blue-600 transition-all hover:opacity-80 max-w-[200px]"
                     style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.18)', fontFamily: "'Inter', sans-serif" }}
                   >
                     <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                    {websiteDomain}
+                    <span className="truncate">{websiteDomain}</span>
                   </a>
                 )}
               </div>

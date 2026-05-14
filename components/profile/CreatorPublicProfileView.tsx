@@ -222,7 +222,7 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
 
           {/* Stats row */}
           <div
-            className="grid grid-cols-4 rounded-xl overflow-hidden"
+            className="grid grid-cols-2 sm:grid-cols-4 rounded-xl overflow-hidden"
             style={{ border: '1px solid rgba(0,0,0,0.08)' }}
           >
             {[
@@ -234,7 +234,10 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
               <div
                 key={s.label}
                 className="flex flex-col items-center py-3"
-                style={{ borderLeft: i > 0 ? '1px solid rgba(0,0,0,0.06)' : undefined }}
+                style={{
+                  borderLeft: i % 2 !== 0 ? '1px solid rgba(0,0,0,0.06)' : undefined,
+                  borderTop: i >= 2 ? '1px solid rgba(0,0,0,0.06)' : undefined,
+                }}
               >
                 <span className="font-bold text-base text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                   {s.value}

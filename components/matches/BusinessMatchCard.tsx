@@ -85,7 +85,6 @@ export function BusinessMatchCard({ match, currentUserId, onUpdated }: Props) {
   return (
     <div
       style={{
-        display: 'flex',
         borderRadius: '20px',
         overflow: 'hidden',
         border: '1px solid rgba(0,0,0,0.08)',
@@ -95,11 +94,11 @@ export function BusinessMatchCard({ match, currentUserId, onUpdated }: Props) {
         background: 'white',
       }}
     >
-      {/* Left status accent */}
-      <div style={{ width: '5px', flexShrink: 0, background: meta.border }} />
+      {/* Top status accent */}
+      <div style={{ height: '5px', background: meta.border }} />
 
       {/* Card body */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
 
         {/* ── Collab band ── */}
         <Link
@@ -318,37 +317,27 @@ export function BusinessMatchCard({ match, currentUserId, onUpdated }: Props) {
             Messages
           </button>
         </div>
-      </div>
 
-      {/* ── Messages side panel ── */}
-      <div
-        style={{
-          width: messagesOpen ? '340px' : '0',
-          flexShrink: 0,
-          overflow: 'hidden',
-          transition: 'width 0.25s ease',
-          borderLeft: messagesOpen ? '1px solid rgba(0,0,0,0.08)' : 'none',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <div
-          className="flex items-center justify-between px-4 py-3 shrink-0"
-          style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}
-        >
-          <p className="text-sm font-semibold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            Messages
-          </p>
-          <button
-            onClick={() => setMessagesOpen(false)}
-            className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-        <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
-          <MatchMessages matchId={match.id} currentUserId={currentUserId} />
-        </div>
+        {/* ── Inline messages ── */}
+        {messagesOpen && (
+          <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+            <div
+              className="flex items-center justify-between px-5 py-3 shrink-0"
+              style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}
+            >
+              <p className="text-sm font-semibold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                Messages
+              </p>
+              <button
+                onClick={() => setMessagesOpen(false)}
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <MatchMessages matchId={match.id} currentUserId={currentUserId} />
+          </div>
+        )}
       </div>
     </div>
   )
