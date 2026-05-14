@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
-import { REQUIREMENT_CHIPS } from '@/lib/requirementChips'
+import { REQUIREMENT_CHIPS, applyChip } from '@/lib/requirementChips'
 import type { Invite } from '@/lib/types'
 
 interface Props {
@@ -29,12 +29,8 @@ export function EditInviteModal({ invite, onClose, onSaved }: Props) {
     duration_months: String(invite.duration_months ?? ''),
   })
 
-  function addRequirement(text: string) {
-    setForm(f => {
-      const current = f.requirements.trim()
-      const joined = current ? (current.endsWith(',') ? `${current} ${text}` : `${current}, ${text}`) : text
-      return { ...f, requirements: joined }
-    })
+  function addRequirement(chip: typeof REQUIREMENT_CHIPS[0]) {
+    setForm(f => ({ ...f, requirements: applyChip(f.requirements, chip) }))
   }
 
   function set(key: string, value: string) {
@@ -199,16 +195,16 @@ export function EditInviteModal({ invite, onClose, onSaved }: Props) {
                 <button
                   key={chip.label}
                   type="button"
-                  onClick={() => addRequirement(chip.text)}
+                  onClick={() => addRequirement(chip)}
                   className="px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
                   style={{
-                    background: 'rgba(28,43,58,0.05)',
-                    color: '#1C2B3A',
-                    border: '1px solid rgba(28,43,58,0.1)',
+                    background: 'rgba(59,130,246,0.08)',
+                    color: '#2563eb',
+                    border: '1px solid rgba(59,130,246,0.2)',
                     fontFamily: "'JetBrains Mono', monospace",
                   }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(28,43,58,0.1)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(28,43,58,0.05)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.16)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.08)' }}
                 >
                   + {chip.label}
                 </button>
