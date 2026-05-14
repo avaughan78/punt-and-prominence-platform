@@ -327,16 +327,6 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
             </p>
           </div>
 
-          {/* Pending action badge */}
-          {pendingCount > 0 && (
-            <span
-              className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold px-1 flex-shrink-0"
-              style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              {pendingCount}
-            </span>
-          )}
-
           <ChevronDown
             className="w-3.5 h-3.5 text-gray-400 transition-transform duration-200 flex-shrink-0"
             style={{ transform: open ? 'rotate(180deg)' : 'none' }}
