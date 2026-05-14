@@ -28,18 +28,18 @@ const EVENT_META: Record<string, {
   summary: (m: Record<string, unknown>) => string
 }> = {
   'creator.registered':    { category: 'creator',  icon: '👤', label: 'Registered',     summary: m => `${m.display_name ?? 'New creator'} joined as a creator${m.email ? ` · ${m.email}` : ''}` },
-  'creator.approved':      { category: 'creator',  icon: '✅', label: 'Approved',        summary: m => `${m.display_name ?? 'Creator'} was approved${m.instagram_handle ? ` · @${m.instagram_handle}` : ''}${m.follower_count ? ` · ${Number(m.follower_count).toLocaleString()} followers` : ''}` },
-  'creator.rejected':      { category: 'creator',  icon: '❌', label: 'Rejected',        summary: m => `${m.display_name ?? 'Creator'} was rejected${m.reason ? ` — "${m.reason}"` : ''}` },
-  'creator.revoked':       { category: 'creator',  icon: '🔒', label: 'Revoked',         summary: m => `Access revoked for ${m.display_name ?? 'creator'}${m.reason ? ` — "${m.reason}"` : ''}` },
-  'creator.deleted':       { category: 'creator',  icon: '🗑️', label: 'Deleted',         summary: m => { const p = m.profile as Record<string,unknown>|null; const n = p?.display_name ?? m.display_name ?? 'Creator'; const mc = Array.isArray(m.matches) ? (m.matches as unknown[]).length : 0; return `${n} was deleted${m.email ? ` · ${m.email}` : ''}${mc > 0 ? ` · ${mc} match${mc !== 1 ? 'es' : ''} removed` : ''}` } },
+  'creator.approved':      { category: 'system',   icon: '✅', label: 'Approved',        summary: m => `${m.display_name ?? 'Creator'} was approved${m.instagram_handle ? ` · @${m.instagram_handle}` : ''}${m.follower_count ? ` · ${Number(m.follower_count).toLocaleString()} followers` : ''}` },
+  'creator.rejected':      { category: 'system',   icon: '❌', label: 'Rejected',        summary: m => `${m.display_name ?? 'Creator'} was rejected${m.reason ? ` — "${m.reason}"` : ''}` },
+  'creator.revoked':       { category: 'system',   icon: '🔒', label: 'Revoked',         summary: m => `Access revoked for ${m.display_name ?? 'creator'}${m.reason ? ` — "${m.reason}"` : ''}` },
+  'creator.deleted':       { category: 'system',   icon: '🗑️', label: 'Deleted',         summary: m => { const p = m.profile as Record<string,unknown>|null; const n = p?.display_name ?? m.display_name ?? 'Creator'; const mc = Array.isArray(m.matches) ? (m.matches as unknown[]).length : 0; return `${n} was deleted${m.email ? ` · ${m.email}` : ''}${mc > 0 ? ` · ${mc} match${mc !== 1 ? 'es' : ''} removed` : ''}` } },
   'business.registered':   { category: 'business', icon: '🏪', label: 'Registered',     summary: m => `${m.display_name ?? 'New business'} joined as a business${m.email ? ` · ${m.email}` : ''}` },
-  'business.suspended':    { category: 'business', icon: '⏸️', label: 'Suspended',       summary: m => `${m.business_name ?? 'Business'} was suspended${m.reason ? ` — "${m.reason}"` : ''}` },
-  'business.unsuspended':  { category: 'business', icon: '▶️', label: 'Reinstated',      summary: m => `${m.business_name ?? 'Business'} was reinstated` },
-  'business.deleted':      { category: 'business', icon: '🗑️', label: 'Deleted',         summary: m => { const p = m.profile as Record<string,unknown>|null; const n = p?.business_name ?? m.business_name ?? 'Business'; const mc = Array.isArray(m.matches) ? (m.matches as unknown[]).length : 0; return `${n} was deleted${m.email ? ` · ${m.email}` : ''}${mc > 0 ? ` · ${mc} match${mc !== 1 ? 'es' : ''} removed` : ''}` } },
+  'business.suspended':    { category: 'system',   icon: '⏸️', label: 'Suspended',       summary: m => `${m.business_name ?? 'Business'} was suspended${m.reason ? ` — "${m.reason}"` : ''}` },
+  'business.unsuspended':  { category: 'system',   icon: '▶️', label: 'Reinstated',      summary: m => `${m.business_name ?? 'Business'} was reinstated` },
+  'business.deleted':      { category: 'system',   icon: '🗑️', label: 'Deleted',         summary: m => { const p = m.profile as Record<string,unknown>|null; const n = p?.business_name ?? m.business_name ?? 'Business'; const mc = Array.isArray(m.matches) ? (m.matches as unknown[]).length : 0; return `${n} was deleted${m.email ? ` · ${m.email}` : ''}${mc > 0 ? ` · ${mc} match${mc !== 1 ? 'es' : ''} removed` : ''}` } },
   'match.created':         { category: 'match',    icon: '🤝', label: 'Match created',   summary: m => `${m.creator_name ?? 'Creator'} claimed "${m.offer_title ?? 'a collab'}" from ${m.business_name ?? 'business'}${m.punt_code ? ` · ${m.punt_code}` : ''}` },
-  'match.status_changed':  { category: 'match',    icon: '🔄', label: 'Status updated',  summary: m => `Match ${m.punt_code ?? ''} moved ${m.old_status ?? '?'} → ${m.new_status ?? m.status ?? '?'}${m.creator_name ? ` · ${m.creator_name}` : ''}${m.business_name ? ` @ ${m.business_name}` : ''}` },
+  'match.status_changed':  { category: 'system',   icon: '🔄', label: 'Status updated',  summary: m => `Match ${m.punt_code ?? ''} moved ${m.old_status ?? '?'} → ${m.new_status ?? m.status ?? '?'}${m.creator_name ? ` · ${m.creator_name}` : ''}${m.business_name ? ` @ ${m.business_name}` : ''}` },
   'invite.created':        { category: 'invite',   icon: '✨', label: 'Collab created',  summary: m => `"${m.title ?? 'New collab'}" created by ${m.business_name ?? 'business'}${m.invite_type ? ` · ${m.invite_type === 'retainer' ? 'retainer' : 'one-off'}` : ''}${m.slots_total ? ` · ${m.slots_total} slot${Number(m.slots_total) !== 1 ? 's' : ''}` : ''}` },
-  'invite.deleted':        { category: 'invite',   icon: '🗑️', label: 'Collab deleted',  summary: m => `"${m.title ?? 'Collab'}" was deleted` },
+  'invite.deleted':        { category: 'system',   icon: '🗑️', label: 'Collab deleted',  summary: m => `"${m.title ?? 'Collab'}" was deleted` },
   'invite_code.created':   { category: 'system',   icon: '🔑', label: 'Code created',    summary: m => `Invite code ${m.code ?? ''} created${m.reusable ? ' (reusable)' : ''}` },
   'waitlist.signup':       { category: 'system',   icon: '📋', label: 'Waitlist',        summary: m => `${m.email ?? 'Someone'} joined the waitlist` },
 }
@@ -149,7 +149,7 @@ export default function AdminAuditLog() {
   }, [])
 
   const filtered = logs.filter(l => {
-    if (filter === 'all') return true
+    if (filter === 'all') return getMeta(l.event_type).category !== 'system'
     return getMeta(l.event_type).category === filter
   })
 
