@@ -53,7 +53,6 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
   if (!profile.bio) missing.push('bio')
   if (!profile.avatar_url) missing.push('photo')
   if (!profile.instagram_handle) missing.push('Instagram handle')
-  if (!profile.follower_count) missing.push('follower count')
 
   function handleSaved(data: ProfileFormData) {
     setProfile(data)
@@ -389,7 +388,6 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
                   { label: 'Profile photo',    done: !!profile.avatar_url },
                   { label: 'Bio',              done: !!profile.bio },
                   { label: 'Instagram handle', done: !!profile.instagram_handle },
-                  { label: 'Follower count',   done: (profile.follower_count ?? 0) > 0 },
                 ].map(item => (
                   <div key={item.label} className="flex items-center gap-2.5">
                     {item.done ? (
