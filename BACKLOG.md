@@ -38,6 +38,20 @@ Allow businesses to filter creators by content niche (food, lifestyle, fashion, 
 
 ---
 
+## Creator Mobile App
+
+### Native app for creators (Expo / React Native)
+A dedicated iOS/Android app for the creator side of the platform. The Supabase backend, auth, and all API routes would be reused as-is — only the creator-facing screens need building (Dashboard, Browse, Matches, Profile).
+
+Key benefits over the web app:
+- Push notifications ("you've been matched", "your post was verified")
+- Native camera/media picker for post proof uploads
+- App Store distribution and home screen presence
+
+**Suggested approach:** Ship a PWA first (add `manifest.json` + service worker — ~1 day) to validate the mobile workflow, then invest in Expo if App Store distribution or push notifications become a clear need. Main non-trivial effort: image/video picker for proof uploads, and Apple App Store review.
+
+---
+
 ## Misc
 
 ### Instagram bio verification (interim identity check)

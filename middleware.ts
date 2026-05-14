@@ -11,7 +11,7 @@ function needsPreviewAccess(path: string): boolean {
   return true
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
 
   // If Supabase redirects a magic-link code to / (happens when the callback URL
@@ -32,6 +32,7 @@ export async function proxy(request: NextRequest) {
     if (!hasAccess) {
       const url = request.nextUrl.clone()
       url.pathname = '/'
+      url.search = ''
       return NextResponse.redirect(url)
     }
   }
