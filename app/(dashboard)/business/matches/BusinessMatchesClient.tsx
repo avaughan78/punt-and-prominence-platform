@@ -83,7 +83,7 @@ export function BusinessMatchesClient({ currentUserId }: { currentUserId: string
           <p className="text-sm text-gray-400">No {tab === 'all' ? '' : tab + ' '}matches yet.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+        <div className="flex flex-col gap-4">
           {filtered.map(match => (
             <BusinessMatchCard key={match.id} match={match} currentUserId={currentUserId} onUpdated={handleUpdated} />
           ))}
