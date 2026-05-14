@@ -5,14 +5,14 @@ import { StatCard } from '@/components/ui/Card'
 import { StatusBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { formatDate, formatGBP } from '@/lib/utils'
-import { Plus, AlertCircle, MessageCircle } from 'lucide-react'
+import { Plus, AlertCircle, MessageCircle, FileCheck } from 'lucide-react'
 
 export default async function BusinessDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { data: offers }, { data: matches }, { data: unreadCount }] = await Promise.all([
+  const [{ data: profile }, { data: offers }, { data: matches }, { data: unreadCount }, { data: postedMatches }] = await Promise.all([
     supabase.from('profiles').select('business_name').eq('id', user!.id).single(),
     supabase.from('offers').select('id, is_active').eq('business_id', user!.id),
     supabase.from('matches')
@@ -21,6 +21,11 @@ export default async function BusinessDashboard() {
       .order('created_at', { ascending: false })
       .limit(5),
     supabase.rpc('get_unread_message_count'),
+    supabase.from('matches')
+      .select('id, post_url, created_at, offer:offers(title), creator:profiles!matches_creator_id_fkey(id,display_name,instagram_handle)')
+      .eq('business_id', user!.id)
+      .eq('status', 'posted')
+      .order('created_at', { ascending: false }),
   ])
 
   if (!profile?.business_name) redirect('/business/onboarding')
@@ -44,6 +49,38 @@ export default async function BusinessDashboard() {
           </Button>
         </Link>
       </div>
+
+      {/* Posts ready to verify */}
+      {(postedMatches?.length ?? 0) > 0 && (
+        <Link href="/business/matches">
+          <div
+            className="flex items-start gap-3 rounded-2xl px-4 py-3 mb-4 cursor-pointer hover:opacity-90 transition-opacity"
+            style={{ background: 'rgba(192,132,252,0.08)', border: '1.5px solid rgba(192,132,252,0.3)' }}
+          >
+            <FileCheck className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#9333ea' }} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                {postedMatches!.length} post{postedMatches!.length !== 1 ? 's' : ''} ready to verify
+              </p>
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                {postedMatches!.slice(0, 3).map(m => {
+                  const c = m.creator as unknown as { display_name: string; instagram_handle: string | null } | null
+                  const o = m.offer as unknown as { title: string } | null
+                  return (
+                    <span key={m.id} className="text-xs text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
+                      {c?.instagram_handle ? `@${c.instagram_handle}` : c?.display_name} · {o?.title}
+                    </span>
+                  )
+                })}
+                {postedMatches!.length > 3 && (
+                  <span className="text-xs text-gray-400">+{postedMatches!.length - 3} more</span>
+                )}
+              </div>
+            </div>
+            <span className="text-xs font-semibold shrink-0" style={{ color: '#9333ea' }}>Review →</span>
+          </div>
+        </Link>
+      )}
 
       {/* Unread messages banner */}
       {(unreadCount ?? 0) > 0 && (
