@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { MapPin, ExternalLink, Check, MessageCircle, ChevronDown, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
@@ -43,6 +43,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
   const [msgOpen, setMsgOpen]         = useState(false)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [unread, setUnread]           = useState(0)
+  const msgRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading]         = useState(false)
   const [showPostForm, setShowPostForm]   = useState(false)
   const [postUrl, setPostUrl]             = useState(match.post_url ?? '')
@@ -170,6 +171,12 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
     }
     setDeliverableLoading(null)
   }
+
+  useEffect(() => {
+    if (msgOpen) {
+      setTimeout(() => msgRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
+    }
+  }, [msgOpen])
 
   function toggleMsg() {
     setMsgOpen(o => !o)
@@ -560,6 +567,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
 
       {/* ── Messaging footer ── */}
       <div
+        ref={msgRef}
         className="px-5 py-3"
         style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}
       >

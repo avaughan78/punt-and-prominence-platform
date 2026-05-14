@@ -45,6 +45,7 @@ export function MatchMessages({ matchId, currentUserId }: Props) {
   const [unread, setUnread] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Fetch unread count on mount (without loading full thread)
   useEffect(() => {
@@ -71,6 +72,12 @@ export function MatchMessages({ matchId, currentUserId }: Props) {
     if (open) inputRef.current?.focus({ preventScroll: true })
   }, [open])
 
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
+    }
+  }, [open])
+
   async function send() {
     if (!draft.trim() || sending) return
     setSending(true)
@@ -91,7 +98,7 @@ export function MatchMessages({ matchId, currentUserId }: Props) {
   const lastOther = otherMessages[otherMessages.length - 1]
 
   return (
-    <div>
+    <div ref={containerRef}>
       {/* Toggle button */}
       <button
         type="button"

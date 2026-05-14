@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { MessageCircle, Pencil, Trash2, ExternalLink, Check } from 'lucide-react'
 import { toast } from 'sonner'
@@ -39,6 +39,7 @@ function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: Creat
   const [msgOpen, setMsgOpen] = useState(false)
   const [unread, setUnread] = useState(0)
   const [loading, setLoading] = useState(false)
+  const msgRef = useRef<HTMLDivElement>(null)
 
   const meta = STATUS_META[match.status] ?? STATUS_META.pending
   const creator = match.creator
@@ -66,6 +67,12 @@ function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: Creat
     else { toast.success('Updated'); onStatusUpdated(match.id, status) }
     setLoading(false)
   }
+
+  useEffect(() => {
+    if (msgOpen) {
+      setTimeout(() => msgRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
+    }
+  }, [msgOpen])
 
   function toggleMsg() {
     setMsgOpen(o => !o)
@@ -179,7 +186,7 @@ function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: Creat
 
       {/* Inline thread — expands below row */}
       {msgOpen && (
-        <div className="px-5 pb-4">
+        <div ref={msgRef} className="px-5 pb-4">
           <InlineMessageThread matchId={match.id} currentUserId={currentUserId} />
         </div>
       )}
