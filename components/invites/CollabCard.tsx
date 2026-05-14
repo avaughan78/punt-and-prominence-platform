@@ -133,22 +133,22 @@ function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: Creat
         </span>
 
         {/* Quick actions */}
+        {match.post_url && (
+          <a
+            href={match.post_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-600 transition-colors flex-shrink-0"
+            title="View post"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        )}
+
         {!isRetainer && match.status === 'posted' && (
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            {match.post_url && (
-              <a
-                href={match.post_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-600 transition-colors"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            )}
-            <Button size="sm" loading={loading} onClick={() => updateStatus('verified')}>
-              Verify
-            </Button>
-          </div>
+          <Button size="sm" loading={loading} onClick={() => updateStatus('verified')} className="flex-shrink-0">
+            Verify
+          </Button>
         )}
 
         {isRetainer && match.status === 'accepted' && (
