@@ -10,18 +10,13 @@ interface Props {
   creatorName: string
   collabTitle: string
   isRetainer: boolean
-  onVerified: (matchId: string) => void
   onDeliverableVerified: (matchId: string, deliverableId: string) => void
   onClose: () => void
 }
 
-export function PostsModal({ match, creatorName, collabTitle, isRetainer, onVerified, onDeliverableVerified, onClose }: Props) {
+export function PostsModal({ match, creatorName, collabTitle, isRetainer, onDeliverableVerified, onClose }: Props) {
   const [deliverables, setDeliverables] = useState<MatchDeliverable[]>(match.deliverables ?? [])
   const [verifyingDid, setVerifyingDid] = useState<string | null>(null)
-  const [verifyingMatch, setVerifyingMatch] = useState(false)
-
-  const allVerified = deliverables.length > 0 && deliverables.every(d => d.status === 'verified')
-  const canVerifyMatch = match.status === 'posted' && !isRetainer
 
   // Legacy: match had a post_url before deliverables existed
   const legacyUrl = match.post_url && deliverables.length === 0 ? match.post_url : null
@@ -42,24 +37,6 @@ export function PostsModal({ match, creatorName, collabTitle, isRetainer, onVeri
       toast.success('Post verified')
     }
     setVerifyingDid(null)
-  }
-
-  async function verifyMatch() {
-    setVerifyingMatch(true)
-    const res = await fetch(`/api/matches/${match.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'verified' }),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      toast.error(data.error ?? 'Failed to verify')
-    } else {
-      toast.success('Collab verified')
-      onVerified(match.id)
-      onClose()
-    }
-    setVerifyingMatch(false)
   }
 
   function fmt(dt: string) {
@@ -154,15 +131,10 @@ export function PostsModal({ match, creatorName, collabTitle, isRetainer, onVeri
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 flex items-center justify-between gap-3" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+        <div className="px-6 py-4 flex items-center justify-end" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
           <button onClick={onClose} className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
             Close
           </button>
-          {canVerifyMatch && (
-            <Button loading={verifyingMatch} onClick={verifyMatch}>
-              Mark collab verified
-            </Button>
-          )}
         </div>
       </div>
     </div>

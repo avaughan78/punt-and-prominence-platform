@@ -93,7 +93,6 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, onStatusUpd
           creatorName={creator?.instagram_handle ? `@${creator.instagram_handle}` : (creator?.display_name ?? 'Creator')}
           collabTitle={collabTitle}
           isRetainer={isRetainer}
-          onVerified={(matchId) => { onStatusUpdated(matchId, 'verified'); setPostsOpen(false) }}
           onDeliverableVerified={onDeliverableVerified}
           onClose={() => setPostsOpen(false)}
         />
@@ -271,7 +270,13 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
     (a, b) => (STATUS_PRIORITY[a.status] ?? 3) - (STATUS_PRIORITY[b.status] ?? 3)
   )
 
-  const verifyCount = matches.filter(m => m.status === 'posted').length
+  const verifyCount = matches
+    .filter(m => m.status === 'posted')
+    .reduce((sum, m) => {
+      const delivs = m.deliverables ?? []
+      if (delivs.length === 0 && m.post_url) return sum + 1
+      return sum + delivs.filter(d => d.status !== 'verified').length
+    }, 0)
 
   return (
     <>
