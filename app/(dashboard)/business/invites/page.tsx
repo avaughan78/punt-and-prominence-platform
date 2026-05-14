@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Plus, AlertCircle } from 'lucide-react'
 import { InviteCard } from '@/components/invites/InviteCard'
 import { Button } from '@/components/ui/Button'
 import type { Invite } from '@/lib/types'
@@ -22,12 +22,19 @@ export default function BusinessOffersPage() {
   const [offers, setOffers] = useState<Invite[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('open')
+  const [isProfileComplete, setIsProfileComplete] = useState<boolean>(true)
 
   useEffect(() => {
-    fetch('/api/invites')
-      .then(r => r.json())
-      .then(data => { setOffers(Array.isArray(data) ? data : []); setLoading(false) })
-      .catch(() => setLoading(false))
+    Promise.all([
+      fetch('/api/invites').then(r => r.json()),
+      fetch('/api/profile').then(r => r.json()),
+    ]).then(([offersData, profile]) => {
+      setOffers(Array.isArray(offersData) ? offersData : [])
+      if (profile && !profile.error) {
+        setIsProfileComplete(!!(profile.business_name && profile.category && profile.address_line))
+      }
+      setLoading(false)
+    }).catch(() => setLoading(false))
   }, [])
 
   function handleToggle(id: string, active: boolean) {
@@ -52,14 +59,37 @@ export default function BusinessOffersPage() {
           </p>
         </div>
         {tab === 'open' && (
-          <Link href="/business/invites/new">
-            <Button size="sm">
+          isProfileComplete ? (
+            <Link href="/business/invites/new">
+              <Button size="sm">
+                <Plus className="w-4 h-4" />
+                New collab
+              </Button>
+            </Link>
+          ) : (
+            <Button size="sm" disabled>
               <Plus className="w-4 h-4" />
               New collab
             </Button>
-          </Link>
+          )
         )}
       </div>
+
+      {!isProfileComplete && (
+        <div className="flex items-start gap-3 rounded-2xl px-4 py-4 mb-6" style={{ background: 'rgba(239,68,68,0.06)', border: '1.5px solid rgba(239,68,68,0.2)' }}>
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#ef4444' }} />
+          <div>
+            <p className="text-sm font-semibold text-[#1C2B3A] mb-0.5" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              Complete your profile to post collabs
+            </p>
+            <p className="text-xs text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
+              Add your business name, category, and address to your{' '}
+              <a href="/business/profile" className="underline text-[#1C2B3A] font-medium">profile</a>{' '}
+              before posting a collab.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6">

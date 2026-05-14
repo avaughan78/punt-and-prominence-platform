@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { InviteCard } from '@/components/invites/InviteCard'
 import { InstagramHandle } from '@/components/ui/InstagramHandle'
 import { Button } from '@/components/ui/Button'
-import { Clock } from 'lucide-react'
+import { Clock, AlertCircle } from 'lucide-react'
 import type { Invite } from '@/lib/types'
 
 interface ClaimedData { id: string; punt_code: string }
@@ -16,6 +16,7 @@ export default function BrowsePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState<string>('')
   const [isApproved, setIsApproved] = useState<boolean>(true)
+  const [isProfileComplete, setIsProfileComplete] = useState<boolean>(true)
 
   useEffect(() => {
     Promise.all([
@@ -28,6 +29,7 @@ export default function BrowsePage() {
         setAvatarUrl(profile.avatar_url ?? null)
         setDisplayName(profile.display_name ?? '')
         setIsApproved(profile.is_approved ?? true)
+        setIsProfileComplete(!!(profile.instagram_handle && profile.follower_count != null))
       }
       setLoading(false)
     }).catch(() => setLoading(false))
@@ -90,6 +92,22 @@ export default function BrowsePage() {
         </div>
       )}
 
+      {!isProfileComplete && (
+        <div className="flex items-start gap-3 rounded-2xl px-4 py-4 mb-4" style={{ background: 'rgba(239,68,68,0.06)', border: '1.5px solid rgba(239,68,68,0.2)' }}>
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#ef4444' }} />
+          <div>
+            <p className="text-sm font-semibold text-[#1C2B3A] mb-0.5" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              Complete your profile to claim collabs
+            </p>
+            <p className="text-xs text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
+              Add your Instagram handle and follower count to your{' '}
+              <a href="/creator/profile" className="underline text-[#1C2B3A] font-medium">profile</a>{' '}
+              before claiming a collab.
+            </p>
+          </div>
+        </div>
+      )}
+
       {!isApproved && (
         <div className="flex items-start gap-3 rounded-2xl px-4 py-4 mb-6" style={{ background: 'rgba(245,184,0,0.08)', border: '1.5px solid rgba(245,184,0,0.25)' }}>
           <Clock className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#F5B800' }} />
@@ -120,6 +138,7 @@ export default function BrowsePage() {
               invite={invite}
               mode="browse"
               isApproved={isApproved}
+              isProfileComplete={isProfileComplete}
               onClaimed={data => handleClaimed(data, invite.id)}
             />
           ))}

@@ -1,6 +1,23 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import { InviteForm } from '@/components/invites/InviteForm'
 
-export default function NewOfferPage() {
+export default async function NewOfferPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('business_name, category, address_line')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile?.business_name || !profile?.category || !profile?.address_line) {
+      redirect('/business/invites')
+    }
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">

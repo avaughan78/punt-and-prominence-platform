@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { writeAuditLog } from '@/lib/audit'
+import { isBusinessProfileComplete } from '@/lib/profileComplete'
 
 export async function GET() {
   const supabase = await createClient()
@@ -35,6 +36,15 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (user.user_metadata?.role !== 'business') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { data: bizCheck } = await supabase
+    .from('profiles')
+    .select('business_name, category, address_line')
+    .eq('id', user.id)
+    .single()
+  if (!isBusinessProfileComplete(bizCheck as Record<string, unknown>)) {
+    return NextResponse.json({ error: 'Complete your profile before posting collabs — add your business name, category, and address.' }, { status: 403 })
+  }
 
   const body = await req.json()
   const { data, error } = await supabase
