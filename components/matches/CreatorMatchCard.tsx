@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { MapPin, ExternalLink, Check, MessageCircle } from 'lucide-react'
+import { MapPin, ExternalLink, Check, MessageCircle, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -43,9 +43,10 @@ interface Props {
 }
 
 export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
-  const [msgOpen, setMsgOpen]     = useState(false)
-  const [unread, setUnread]       = useState(0)
-  const [loading, setLoading]     = useState(false)
+  const [msgOpen, setMsgOpen]         = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [unread, setUnread]           = useState(0)
+  const [loading, setLoading]         = useState(false)
   const [showPostForm, setShowPostForm] = useState(false)
   const [postUrl, setPostUrl]     = useState(match.post_url ?? '')
   const [deliverableLoading, setDeliverableLoading] = useState<string | null>(null)
@@ -185,27 +186,6 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
         )}
       </div>
 
-      {/* ── One-off: collab context (pending only) ── */}
-      {!isRetainer && match.status === 'pending' && (invite?.description || invite?.requirements) && (
-        <div className="px-5 py-3 flex flex-col gap-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-          {invite?.description && (
-            <p className="text-xs text-gray-600 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
-              {invite.description}
-            </p>
-          )}
-          {invite?.requirements && (
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                Requirements
-              </p>
-              <p className="text-xs text-gray-600" style={{ fontFamily: "'Inter', sans-serif" }}>
-                {invite.requirements}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* ── One-off: submit post ── */}
       {!isRetainer && (match.status === 'pending' || match.status === 'visited') && (
         <div className="px-5 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
@@ -323,6 +303,97 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
           )}
         </div>
       )}
+
+      {/* ── Collab details toggle ── */}
+      <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+        <button
+          onClick={() => setDetailsOpen(o => !o)}
+          className="w-full flex items-center justify-between px-5 py-3 transition-colors hover:bg-gray-50"
+        >
+          <span className="text-xs font-semibold text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
+            Collab details
+          </span>
+          <ChevronDown
+            className="w-3.5 h-3.5 text-gray-400 transition-transform duration-200"
+            style={{ transform: detailsOpen ? 'rotate(180deg)' : 'none' }}
+          />
+        </button>
+
+        {detailsOpen && (
+          <div
+            className="px-5 pb-5 flex flex-col gap-4"
+            style={{ background: 'linear-gradient(180deg, #f8f9fb 0%, #ffffff 100%)' }}
+          >
+            {/* Punt code */}
+            <div
+              className="flex items-center justify-between rounded-xl px-4 py-3"
+              style={{ background: '#1C2B3A' }}
+            >
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  Punt code
+                </p>
+                <p className="font-bold text-white tracking-widest" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '18px', letterSpacing: '0.12em' }}>
+                  {match.punt_code}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  {isRetainer ? 'Retainer' : 'One-off'}
+                </p>
+                <p className="font-bold" style={{ color: isRetainer ? '#6BE6B0' : '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: '15px' }}>
+                  {isRetainer ? formatGBP(invite?.fee_gbp ?? 0) : formatGBP(invite?.value_gbp ?? 0)}
+                </p>
+                <p className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  {isRetainer ? '/month' : 'value'}
+                </p>
+              </div>
+            </div>
+
+            {/* Description */}
+            {invite?.description && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  About this collab
+                </p>
+                <p className="text-sm text-gray-600 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  {invite.description}
+                </p>
+              </div>
+            )}
+
+            {/* Requirements */}
+            {invite?.requirements && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  Requirements
+                </p>
+                <p className="text-sm text-gray-600 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  {invite.requirements}
+                </p>
+              </div>
+            )}
+
+            {/* Retainer terms */}
+            {isRetainer && (invite?.posts_per_month != null || invite?.duration_months != null) && (
+              <div className="flex items-center gap-4">
+                {invite?.posts_per_month != null && (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Posts / month</p>
+                    <p className="text-sm font-bold text-[#1C2B3A]">{invite.posts_per_month}</p>
+                  </div>
+                )}
+                {invite?.duration_months != null && (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Duration</p>
+                    <p className="text-sm font-bold text-[#1C2B3A]">{invite.duration_months} month{invite.duration_months !== 1 ? 's' : ''}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ── Messaging footer ── */}
       <div
