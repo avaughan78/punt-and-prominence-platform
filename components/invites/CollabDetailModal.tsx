@@ -5,7 +5,7 @@ import { formatGBP, formatDate } from '@/lib/utils'
 import type { Invite } from '@/lib/types'
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  accepted:  { label: 'Accepted',       color: '#F5B800' },
+  accepted:  { label: 'Awaiting content', color: '#F5B800' },
   posted:    { label: 'Post submitted', color: '#C084FC' },
   verified:  { label: 'Verified',       color: '#22c55e' },
   active:    { label: 'Active',         color: '#6BE6B0' },

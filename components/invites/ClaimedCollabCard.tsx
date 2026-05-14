@@ -8,7 +8,7 @@ import { formatGBP } from '@/lib/utils'
 import type { Invite, MatchPreview } from '@/lib/types'
 
 const STATUS_COLOUR: Record<string, { border: string; bg: string; text: string; label: string }> = {
-  accepted:  { border: '#F5B800', bg: 'rgba(245,184,0,0.15)',    text: '#b45309', label: 'Accepted' },
+  accepted:  { border: '#F5B800', bg: 'rgba(245,184,0,0.15)',    text: '#b45309', label: 'Awaiting content' },
   posted:    { border: '#C084FC', bg: 'rgba(192,132,252,0.15)',  text: '#9333ea', label: 'Posted' },
   verified:  { border: '#22c55e', bg: 'rgba(34,197,94,0.12)',    text: '#16a34a', label: 'Verified' },
   active:    { border: '#6BE6B0', bg: 'rgba(107,230,176,0.15)',  text: '#059669', label: 'Active' },

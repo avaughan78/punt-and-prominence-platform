@@ -21,7 +21,7 @@ export function formatDate(iso: string): string {
 
 export function statusLabel(status: string): string {
   const labels: Record<string, string> = {
-    accepted: 'Accepted',
+    accepted: 'Awaiting content',
     posted: 'Post submitted',
     verified: 'Verified',
     active: 'Active',

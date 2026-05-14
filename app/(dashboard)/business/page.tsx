@@ -118,10 +118,10 @@ export default async function BusinessDashboard() {
         <StatCard label="Verified" value={verifiedMatches} accent="#22c55e" href="/business/matches" />
       </div>
 
-      {/* Recent matches */}
+      {/* Recent activity */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Recent matches</h2>
+          <h2 className="font-semibold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Recent activity</h2>
           <Link href="/business/matches" className="text-xs text-gray-400 hover:text-gray-600">View all →</Link>
         </div>
 
