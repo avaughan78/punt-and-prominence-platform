@@ -43,7 +43,7 @@ export function MatchMessages({ matchId, currentUserId }: Props) {
   const [open, setOpen] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [unread, setUnread] = useState(0)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Fetch unread count on mount (without loading full thread)
@@ -62,11 +62,14 @@ export function MatchMessages({ matchId, currentUserId }: Props) {
   }, [open, matchId, loaded])
 
   useEffect(() => {
-    if (open) {
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
-      inputRef.current?.focus()
+    if (open && scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages, open])
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus({ preventScroll: true })
+  }, [open])
 
   async function send() {
     if (!draft.trim() || sending) return
@@ -159,6 +162,7 @@ export function MatchMessages({ matchId, currentUserId }: Props) {
         <div className="mt-2 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(28,43,58,0.1)' }}>
           {/* Thread */}
           <div
+            ref={scrollRef}
             className="flex flex-col gap-3 p-3 max-h-64 overflow-y-auto"
             style={{ background: '#fafafa' }}
           >
@@ -208,7 +212,6 @@ export function MatchMessages({ matchId, currentUserId }: Props) {
                     </div>
                   )
                 })}
-                <div ref={bottomRef} />
               </>
             )}
           </div>

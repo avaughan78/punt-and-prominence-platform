@@ -74,26 +74,13 @@ interface Props {
 export function CreatorPublicProfileView({ creator, matches, backHref, backLabel, isSelf = false, makeOfferHref }: Props) {
   const [postsVisible, setPostsVisible] = useState(POSTS_PAGE)
 
-  // Collect all submitted/verified posts across one-offs and retainer deliverables
   const allPosts: { url: string; title: string; date: string; verified: boolean; matchId: string }[] = []
   for (const m of matches) {
     if (m.post_url && (m.status === 'posted' || m.status === 'verified')) {
-      allPosts.push({
-        url: m.post_url,
-        title: m.offer?.title ?? 'Collab',
-        date: m.created_at,
-        verified: m.status === 'verified',
-        matchId: m.id,
-      })
+      allPosts.push({ url: m.post_url, title: m.offer?.title ?? 'Collab', date: m.created_at, verified: m.status === 'verified', matchId: m.id })
     }
     for (const d of m.deliverables ?? []) {
-      allPosts.push({
-        url: d.post_url,
-        title: `${m.offer?.title ?? 'Retainer'} · Month ${d.month_number}`,
-        date: m.created_at,
-        verified: d.status === 'verified',
-        matchId: m.id,
-      })
+      allPosts.push({ url: d.post_url, title: `${m.offer?.title ?? 'Retainer'} · Month ${d.month_number}`, date: m.created_at, verified: d.status === 'verified', matchId: m.id })
     }
   }
   allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -102,10 +89,13 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
   const totalMatches = matches.length
   const verifiedMatches = matches.filter(m => m.status === 'verified' || m.status === 'completed').length
   const activeMatches = matches.filter(m => !['verified', 'completed'].includes(m.status)).length
-  const totalFollowers = (creator.follower_count ?? 0) + (creator.tiktok_follower_count ?? 0)
 
   const initials = creator.display_name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
   const igUrl = creator.instagram_handle ? `https://instagram.com/${creator.instagram_handle}` : null
+  const ttUrl = creator.tiktok_handle ? `https://tiktok.com/@${creator.tiktok_handle}` : null
+  const hasIg = !!creator.instagram_handle && (creator.follower_count ?? 0) > 0
+  const hasTt = !!creator.tiktok_handle && (creator.tiktok_follower_count ?? 0) > 0
+  const websiteDomain = creator.website_url ? creator.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '') : null
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -134,120 +124,197 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
 
       {/* Profile card */}
       <div
-        className="bg-white rounded-2xl overflow-hidden mb-5"
-        style={{ border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}
+        className="bg-white rounded-3xl overflow-hidden mb-5"
+        style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 8px 40px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.06)' }}
       >
-        {/* Header band */}
-        <div
-          className="h-24"
-          style={{
-            background: creator.instagram_handle
-              ? 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)'
-              : 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)',
-          }}
-        />
+        {/* Hero band */}
+        <div className="relative" style={{ height: '80px' }}>
+          <div
+            className="absolute inset-0"
+            style={{
+              background: igUrl
+                ? 'linear-gradient(135deg, #833ab4 0%, #c2185b 50%, #f57c00 100%)'
+                : 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)',
+            }}
+          />
+          {/* Subtle grid texture */}
+          <div
+            className="absolute inset-0 opacity-[0.07]"
+            style={{
+              backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(255,255,255,0.5) 20px, rgba(255,255,255,0.5) 21px), repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(255,255,255,0.5) 20px, rgba(255,255,255,0.5) 21px)',
+            }}
+          />
+          {/* Mint accent line */}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-[2px]"
+            style={{ background: 'linear-gradient(90deg, transparent 5%, #6BE6B0 30%, #6BE6B0 70%, transparent 95%)', opacity: 0.7 }}
+          />
 
-        <div className="px-6 pb-6">
-          {/* Avatar + IG link */}
-          <div className="-mt-10 mb-4 flex items-end justify-between">
+          {/* Avatar — positioned to overlap */}
+          <div className="absolute left-6" style={{ bottom: 0, transform: 'translateY(50%)' }}>
             <div
               className="p-[3px] rounded-full"
-              style={{ background: creator.instagram_handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(0,0,0,0.12)' }}
+              style={{
+                background: igUrl ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(255,255,255,0.25)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+              }}
             >
               <div className="p-[2.5px] bg-white rounded-full">
                 {creator.avatar_url ? (
                   <img src={creator.avatar_url} alt={creator.display_name} className="w-20 h-20 rounded-full object-cover block" />
                 ) : (
-                  <div className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-bold text-white" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}>
+                  <div
+                    className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-bold text-white"
+                    style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}
+                  >
                     {initials}
                   </div>
                 )}
               </div>
             </div>
-
-            {igUrl && (
-              <a
-                href={igUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)' }}
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Instagram
-              </a>
-            )}
           </div>
 
-          {/* Name + handles */}
-          <div className="mb-4">
-            <div className="flex items-center gap-2 mb-0.5">
-              <h1 className="text-xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+          {/* Verified badge — top right of band */}
+          {verifiedMatches > 0 && (
+            <div
+              className="absolute right-4 top-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+              style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)' }}
+            >
+              <BadgeCheck className="w-3 h-3 text-[#6BE6B0]" />
+              <span className="text-[10px] font-bold text-white" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                Verified creator
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Body */}
+        <div className="px-6 pt-12 pb-6 flex flex-col gap-5">
+
+          {/* Name + category */}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1
+                className="text-2xl font-bold text-[#1C2B3A] leading-tight"
+                style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+              >
                 {creator.display_name}
               </h1>
-              {verifiedMatches > 0 && <BadgeCheck className="w-5 h-5 shrink-0" style={{ color: '#6BE6B0' }} />}
+              {creator.instagram_handle && (
+                <p className="text-sm mt-0.5" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
+                  @{creator.instagram_handle}
+                  {creator.tiktok_handle && (
+                    <span className="ml-2 opacity-60">· @{creator.tiktok_handle}</span>
+                  )}
+                </p>
+              )}
             </div>
-            {creator.instagram_handle && (
-              <p className="text-sm" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
-                @{creator.instagram_handle}
-              </p>
-            )}
-            {creator.tiktok_handle && (
-              <p className="text-xs mt-0.5" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
-                TikTok: @{creator.tiktok_handle}
-              </p>
+            {/* Category badge pulled from first match if available */}
+            {matches[0]?.offer?.category && (
+              <div className="shrink-0 mt-0.5">
+                <CategoryBadge category={matches[0].offer.category} />
+              </div>
             )}
           </div>
+
+          {/* Platform reach pills */}
+          {(hasIg || hasTt) && (
+            <div className="flex items-center gap-3 flex-wrap">
+              {hasIg && (
+                <a
+                  href={igUrl!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.08), rgba(253,29,29,0.06), rgba(252,176,69,0.06))', border: '1.5px solid rgba(131,58,180,0.18)' }}
+                >
+                  <span className="text-[11px] font-black" style={{ color: '#833ab4', fontFamily: "'JetBrains Mono', monospace" }}>IG</span>
+                  <div>
+                    <p className="text-xl font-extrabold text-[#1C2B3A] leading-none" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                      {fmt(creator.follower_count!)}
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>followers</p>
+                  </div>
+                  <ExternalLink className="w-3 h-3 ml-1 opacity-30" />
+                </a>
+              )}
+              {hasTt && (
+                <a
+                  href={ttUrl!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all hover:opacity-90"
+                  style={{ background: 'rgba(1,1,1,0.04)', border: '1.5px solid rgba(0,0,0,0.1)' }}
+                >
+                  <span className="text-[11px] font-black text-[#1C2B3A]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>TT</span>
+                  <div>
+                    <p className="text-xl font-extrabold text-[#1C2B3A] leading-none" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                      {fmt(creator.tiktok_follower_count!)}
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>followers</p>
+                  </div>
+                  <ExternalLink className="w-3 h-3 ml-1 opacity-30" />
+                </a>
+              )}
+              {websiteDomain && (
+                <a
+                  href={creator.website_url!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-blue-600 transition-all hover:opacity-80"
+                  style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.18)', fontFamily: "'Inter', sans-serif" }}
+                >
+                  <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                  {websiteDomain}
+                </a>
+              )}
+            </div>
+          )}
 
           {/* Bio */}
           {creator.bio && (
-            <p className="text-sm text-gray-600 leading-relaxed mb-4" style={{ fontFamily: "'Inter', sans-serif" }}>
-              {creator.bio}
-            </p>
-          )}
-
-          {/* Website */}
-          {creator.website_url && (
-            <a
-              href={creator.website_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-medium hover:underline mb-4"
-              style={{ color: '#3b82f6' }}
+            <div
+              className="rounded-2xl px-4 py-3.5"
+              style={{ background: 'rgba(28,43,58,0.03)', borderLeft: '3px solid rgba(107,230,176,0.5)' }}
             >
-              <ExternalLink className="w-3.5 h-3.5" />
-              {creator.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-            </a>
+              <p className="text-sm text-gray-600 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+                {creator.bio}
+              </p>
+            </div>
           )}
 
-          {/* Stats row */}
-          <div
-            className="grid grid-cols-2 sm:grid-cols-4 rounded-xl overflow-hidden"
-            style={{ border: '1px solid rgba(0,0,0,0.08)' }}
-          >
-            {[
-              { label: 'Followers', value: totalFollowers > 0 ? fmt(totalFollowers) : '—' },
-              { label: 'Collabs',   value: totalMatches },
-              { label: 'Verified',  value: verifiedMatches },
-              { label: 'Active',    value: activeMatches },
-            ].map((s, i) => (
-              <div
-                key={s.label}
-                className="flex flex-col items-center py-3"
-                style={{
-                  borderLeft: i % 2 !== 0 ? '1px solid rgba(0,0,0,0.06)' : undefined,
-                  borderTop: i >= 2 ? '1px solid rgba(0,0,0,0.06)' : undefined,
-                }}
-              >
-                <span className="font-bold text-base text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                  {s.value}
-                </span>
-                <span className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {s.label}
-                </span>
-              </div>
-            ))}
-          </div>
+          {/* Collab activity strip */}
+          {totalMatches > 0 && (
+            <div
+              className="grid grid-cols-3 rounded-2xl overflow-hidden"
+              style={{ border: '1px solid rgba(0,0,0,0.07)', background: '#fafafa' }}
+            >
+              {[
+                { label: 'Collabs', value: totalMatches,   color: '#1C2B3A' },
+                { label: 'Verified', value: verifiedMatches, color: '#22c55e' },
+                { label: 'Active',   value: activeMatches,   color: '#6BE6B0' },
+              ].map((s, i) => (
+                <div
+                  key={s.label}
+                  className="flex flex-col items-center py-3.5"
+                  style={{ borderLeft: i > 0 ? '1px solid rgba(0,0,0,0.06)' : undefined }}
+                >
+                  <span
+                    className="font-extrabold text-2xl leading-none"
+                    style={{ color: s.color, fontFamily: "'Bricolage Grotesque', sans-serif" }}
+                  >
+                    {s.value}
+                  </span>
+                  <span
+                    className="text-[10px] text-gray-400 mt-1 uppercase tracking-widest"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {s.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -266,24 +333,26 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
               return (
                 <div
                   key={i}
-                  className="flex flex-col rounded-2xl overflow-hidden"
+                  className="flex flex-col rounded-2xl overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md"
                   style={{ border: '1px solid rgba(0,0,0,0.08)' }}
                 >
-                  {/* Platform header — clicks to view the post */}
                   <a
                     href={post.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group relative flex items-end justify-between px-3 pb-2.5 transition-opacity hover:opacity-90"
-                    style={{ background: platform.bg, height: '80px' }}
+                    className="group relative flex flex-col justify-between px-3 py-3 transition-opacity hover:opacity-90"
+                    style={{ background: platform.bg, height: '88px' }}
                   >
-                    <span
-                      className="text-[11px] font-black tracking-wider text-white/90"
-                      style={{ fontFamily: "'JetBrains Mono', monospace", textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}
-                    >
-                      {platform.label}
-                    </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between">
+                      <span
+                        className="text-[11px] font-black tracking-wider text-white/90"
+                        style={{ fontFamily: "'JetBrains Mono', monospace", textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}
+                      >
+                        {platform.label}
+                      </span>
+                      <ExternalLink className="w-3 h-3 text-white/50 group-hover:text-white transition-colors" />
+                    </div>
+                    <div className="flex items-end justify-end">
                       {post.verified ? (
                         <div
                           className="flex items-center gap-1 px-2 py-0.5 rounded-full"
@@ -295,18 +364,14 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
                       ) : (
                         <div
                           className="flex items-center gap-1 px-2 py-0.5 rounded-full"
-                          style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }}
+                          style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }}
                         >
-                          <span className="text-[9px] font-semibold text-white/70 uppercase tracking-wide">Unverified</span>
+                          <span className="text-[9px] font-semibold text-white/70 uppercase tracking-wide">Pending</span>
                         </div>
                       )}
-                      <ExternalLink className="w-3 h-3 text-white/60 group-hover:text-white transition-colors" />
                     </div>
                   </a>
-
-                  {/* Card body */}
-                  <div className="bg-white px-3 py-3 flex flex-col gap-1">
-                    {/* Title — anchors to the collab history row below */}
+                  <div className="bg-white px-3 py-2.5 flex flex-col gap-0.5">
                     <a
                       href={`#match-${post.matchId}`}
                       className="text-xs font-semibold text-[#1C2B3A] leading-snug line-clamp-2 hover:underline underline-offset-2 decoration-gray-300"
@@ -361,6 +426,11 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
                     className="flex items-center gap-3 px-4 py-3 bg-white scroll-mt-4"
                     style={{ borderBottom: i < matches.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}
                   >
+                    {/* Status dot */}
+                    <div
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ background: meta.text }}
+                    />
                     <div className="flex-1 min-w-0">
                       {makeOfferHref && m.offer_id ? (
                         <Link
@@ -375,10 +445,7 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
                           {m.offer?.title ?? 'Unknown collab'}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {m.offer?.category && <CategoryBadge category={m.offer.category} className="py-0 px-1.5 text-[10px]" />}
-                        <span className="text-xs text-gray-400">{formatDate(m.created_at)}</span>
-                      </div>
+                      <span className="text-xs text-gray-400">{formatDate(m.created_at)}</span>
                     </div>
                     <div className="flex items-center gap-2.5 shrink-0">
                       <span className="text-xs font-semibold" style={{ color: isRetainer ? '#059669' : '#b45309' }}>
