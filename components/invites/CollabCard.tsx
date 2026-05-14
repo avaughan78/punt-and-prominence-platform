@@ -190,9 +190,10 @@ interface Props {
   onToggle: (id: string, active: boolean) => void
   onDelete: (id: string) => void
   onUpdated: (updated: Invite) => void
+  onViewDetail?: (invite: Invite) => void
 }
 
-export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdated }: Props) {
+export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdated, onViewDetail }: Props) {
   const [editing, setEditing] = useState(false)
   const [toggling, setToggling] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -253,12 +254,13 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
         <div className="px-5 pt-4 pb-3.5">
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
-              <p
-                className="font-bold text-[#1C2B3A] leading-snug"
+              <button
+                onClick={() => onViewDetail?.(invite)}
+                className="font-bold text-[#1C2B3A] leading-snug text-left hover:underline decoration-[#1C2B3A]/30 underline-offset-2 transition-colors"
                 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: '16px' }}
               >
                 {invite.title}
-              </p>
+              </button>
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                 <span
                   className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md"

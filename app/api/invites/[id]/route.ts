@@ -15,6 +15,20 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   // Toggle-only (pause/activate) — fast path
   if (Object.keys(body).length === 1 && 'is_active' in body) {
+    // Block pausing when active creators are mid-collab
+    if (!body.is_active) {
+      const { data: activeMatches } = await supabase
+        .from('matches')
+        .select('id')
+        .eq('offer_id', id)
+        .not('status', 'in', '("verified","completed")')
+      if (activeMatches && activeMatches.length > 0) {
+        return NextResponse.json(
+          { error: `Cannot pause — ${activeMatches.length} creator${activeMatches.length !== 1 ? 's' : ''} still in progress. Verify or complete all matches first.` },
+          { status: 400 }
+        )
+      }
+    }
     const { data, error } = await supabase
       .from('offers')
       .update({ is_active: body.is_active })

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { ExternalLink, Search, BadgeCheck, Bell } from 'lucide-react'
+import { ExternalLink, Search, BadgeCheck, Bell, User } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
 interface Creator {
@@ -23,6 +24,7 @@ function formatFollowers(n: number): string {
 }
 
 function CreatorCard({ creator }: { creator: Creator }) {
+  const router = useRouter()
   const [nudging, setNudging] = useState(false)
   const [nudged, setNudged] = useState(creator.nudged)
 
@@ -52,10 +54,22 @@ function CreatorCard({ creator }: { creator: Creator }) {
   return (
     <div
       className="bg-white rounded-2xl flex flex-col items-center overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg"
-      style={{ border: '1px solid rgba(0,0,0,0.07)' }}
+      style={{
+        border: creator.instagram_handle ? '1.5px solid transparent' : '1px solid rgba(0,0,0,0.07)',
+        background: creator.instagram_handle
+          ? 'linear-gradient(white, white) padding-box, linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045) border-box'
+          : 'white',
+      }}
     >
-      {/* Top gradient band */}
-      <div className="w-full h-14 shrink-0" style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)' }} />
+      {/* Top gradient band — Instagram gradient if creator has a handle */}
+      <div
+        className="w-full h-14 shrink-0"
+        style={{
+          background: creator.instagram_handle
+            ? 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)'
+            : 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)',
+        }}
+      />
 
       {/* Avatar — overlapping the band */}
       <div className="-mt-8 mb-3 shrink-0">
@@ -131,7 +145,7 @@ function CreatorCard({ creator }: { creator: Creator }) {
       {/* Bio + website */}
       <div className="px-4 pt-3 pb-4 flex flex-col items-center gap-1.5 w-full flex-1">
         {creator.bio && (
-          <p className="text-xs text-gray-500 leading-relaxed text-center line-clamp-2 w-full" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <p className="text-xs text-gray-500 leading-relaxed text-center line-clamp-4 w-full" style={{ fontFamily: "'Inter', sans-serif" }}>
             {creator.bio}
           </p>
         )}
@@ -153,6 +167,15 @@ function CreatorCard({ creator }: { creator: Creator }) {
 
       {/* Actions */}
       <div className="px-4 pb-4 w-full flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={() => router.push(`/business/creators/${creator.id}`)}
+          className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold text-center transition-all"
+          style={{ background: 'rgba(28,43,58,0.06)', color: '#1C2B3A' }}
+        >
+          <User className="w-3 h-3" />
+          View profile
+        </button>
         <button
           type="button"
           onClick={handleNudge}

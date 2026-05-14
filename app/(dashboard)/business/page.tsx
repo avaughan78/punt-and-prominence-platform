@@ -16,7 +16,7 @@ export default async function BusinessDashboard() {
     supabase.from('profiles').select('business_name').eq('id', user!.id).single(),
     supabase.from('offers').select('id, is_active').eq('business_id', user!.id),
     supabase.from('matches')
-      .select('id, status, created_at, punt_code, offer:offers(title,value_gbp), creator:profiles!matches_creator_id_fkey(display_name,instagram_handle)')
+      .select('id, status, created_at, punt_code, offer_id, offer:offers(title,value_gbp), creator:profiles!matches_creator_id_fkey(id,display_name,instagram_handle)')
       .eq('business_id', user!.id)
       .order('created_at', { ascending: false })
       .limit(5),
@@ -101,7 +101,8 @@ export default async function BusinessDashboard() {
           <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
             {matches.map((match, i) => {
               const offer = (match.offer as unknown) as { title: string; value_gbp: number } | null
-              const creator = (match.creator as unknown) as { display_name: string; instagram_handle: string | null } | null
+              const creator = (match.creator as unknown) as { id: string; display_name: string; instagram_handle: string | null } | null
+              const offerId = (match as unknown as { offer_id: string }).offer_id
               return (
                 <div
                   key={match.id}
@@ -109,9 +110,21 @@ export default async function BusinessDashboard() {
                   style={{ borderBottom: i < matches.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1C2B3A] truncate">{offer?.title}</p>
+                    <Link
+                      href={`/business/invites?open=${offerId}`}
+                      className="text-sm font-medium text-[#1C2B3A] truncate block hover:underline"
+                    >
+                      {offer?.title}
+                    </Link>
                     <p className="text-xs text-gray-400">
-                      {creator?.instagram_handle ? `@${creator.instagram_handle}` : creator?.display_name} · {formatDate(match.created_at)}
+                      {creator && (
+                        <Link
+                          href={`/business/creators/${creator.id}`}
+                          className="hover:underline hover:text-[#1C2B3A] transition-colors"
+                        >
+                          {creator.instagram_handle ? `@${creator.instagram_handle}` : creator.display_name}
+                        </Link>
+                      )} · {formatDate(match.created_at)}
                     </p>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">

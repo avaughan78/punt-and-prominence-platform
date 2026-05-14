@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, AlertCircle } from 'lucide-react'
 import { CollabCard } from '@/components/invites/CollabCard'
+import { CollabDetailModal } from '@/components/invites/CollabDetailModal'
 import { Button } from '@/components/ui/Button'
 import type { Invite } from '@/lib/types'
 
@@ -49,19 +50,29 @@ const EMPTY_MESSAGES: Record<Filter, string> = {
 interface Props {
   currentUserId: string
   isProfileComplete: boolean
+  openCollabId?: string
 }
 
-export function CollabsClient({ currentUserId, isProfileComplete }: Props) {
+export function CollabsClient({ currentUserId, isProfileComplete, openCollabId }: Props) {
   const [collabs, setCollabs] = useState<Invite[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
+  const [detailCollab, setDetailCollab] = useState<Invite | null>(null)
 
   useEffect(() => {
     fetch('/api/invites')
       .then(r => r.json())
-      .then(data => { setCollabs(Array.isArray(data) ? data : []); setLoading(false) })
+      .then(data => {
+        const arr: Invite[] = Array.isArray(data) ? data : []
+        setCollabs(arr)
+        setLoading(false)
+        if (openCollabId) {
+          const match = arr.find(c => c.id === openCollabId)
+          if (match) setDetailCollab(match)
+        }
+      })
       .catch(() => setLoading(false))
-  }, [])
+  }, [openCollabId])
 
   function handleToggle(id: string, active: boolean) {
     setCollabs(prev => prev.map(o => o.id === id ? { ...o, is_active: active } : o))
@@ -86,6 +97,9 @@ export function CollabsClient({ currentUserId, isProfileComplete }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto">
+      {detailCollab && (
+        <CollabDetailModal invite={detailCollab} onClose={() => setDetailCollab(null)} />
+      )}
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -177,6 +191,7 @@ export function CollabsClient({ currentUserId, isProfileComplete }: Props) {
                   onToggle={handleToggle}
                   onDelete={handleDelete}
                   onUpdated={handleUpdated}
+                  onViewDetail={setDetailCollab}
                 />
               ))}
             </div>

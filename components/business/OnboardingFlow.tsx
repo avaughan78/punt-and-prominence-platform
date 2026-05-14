@@ -49,7 +49,7 @@ export function OnboardingFlow({ contactName }: { contactName: string }) {
     address_line: '',
     latitude: null,
     longitude: null,
-    category: 'other',
+    category: 'dining',
     bio: '',
     instagram_handle: '',
     website_url: '',
