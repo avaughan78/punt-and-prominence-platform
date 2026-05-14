@@ -17,7 +17,7 @@ export default async function CreatorProfileRoute() {
     display_name: '', business_name: null, bio: null,
     instagram_handle: null, website_url: null, address_line: null, category: null,
     latitude: null, longitude: null, avatar_url: null, follower_count: null,
-    tiktok_handle: null, tiktok_follower_count: null,
+    tiktok_handle: null, tiktok_follower_count: null, media_count: null,
   }
 
   return (
