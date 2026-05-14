@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import { MapPin, Clock, Users, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Card } from '@/components/ui/Card'
 import { CategoryBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { formatGBP, formatDate } from '@/lib/utils'
@@ -22,6 +21,10 @@ export function InviteCard({ invite, mode, isApproved = true, onClaimed, onToggl
   const [toggling, setToggling] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const slotsLeft = invite.slots_total - invite.slots_claimed
+  const biz = invite.business
+  const bizName = biz?.business_name ?? biz?.display_name ?? ''
+  const initials = bizName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
+  const isRetainer = invite.invite_type === 'retainer'
 
   async function handleClaim() {
     setClaiming(true)
@@ -67,122 +70,156 @@ export function InviteCard({ invite, mode, isApproved = true, onClaimed, onToggl
   }
 
   return (
-    <Card className="flex flex-col gap-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-[#1C2B3A] mb-1 leading-snug" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {invite.title}
-          </h3>
-          {invite.business && (
-            <div className="flex items-center gap-1 mb-2">
+    <div
+      className="bg-white rounded-2xl overflow-hidden flex flex-col"
+      style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+    >
+      {/* ── Header band ── */}
+      <div className="relative shrink-0">
+        <div className="w-full h-16" style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)' }} />
+
+        {/* Value — top right of band */}
+        <div className="absolute top-3 right-4 text-right">
+          <p className="font-bold text-xl leading-none" style={{ color: isRetainer ? '#6BE6B0' : '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+            {formatGBP(isRetainer ? (invite.fee_gbp ?? 0) : invite.value_gbp)}
+          </p>
+          <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'JetBrains Mono', monospace" }}>
+            {isRetainer ? 'per month' : 'value'}
+          </p>
+        </div>
+
+        {/* Business avatar — overlaps band/body boundary */}
+        <div className="absolute left-4" style={{ bottom: 0, transform: 'translateY(50%)' }}>
+          <div
+            className="p-[2.5px] rounded-full"
+            style={{ background: biz?.instagram_handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(255,255,255,0.25)' }}
+          >
+            <div className="p-[2px] bg-white rounded-full">
+              {biz?.avatar_url ? (
+                <img src={biz.avatar_url} alt={bizName} className="w-12 h-12 rounded-full object-cover block" />
+              ) : (
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                  style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}
+                >
+                  {initials}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Body ── */}
+      <div className="flex flex-col gap-3 px-4 pt-9 pb-4">
+
+        {/* Business name + address */}
+        <div>
+          <p className="font-semibold text-sm text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+            {bizName}
+          </p>
+          {biz && (
+            <div className="flex items-center gap-1 mt-0.5">
               <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
-              {invite.business.latitude && invite.business.longitude ? (
+              {biz.latitude && biz.longitude ? (
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${invite.business.latitude},${invite.business.longitude}`}
+                  href={`https://www.google.com/maps/search/?api=1&query=${biz.latitude},${biz.longitude}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-blue-500 hover:underline truncate"
                   onClick={e => e.stopPropagation()}
                 >
-                  {invite.business.business_name ?? invite.business.display_name}
-                  {invite.business.address_line && ` · ${invite.business.address_line}`}
+                  {biz.address_line ?? bizName}
                 </a>
               ) : (
-                <span className="text-xs text-gray-500 truncate">
-                  {invite.business.business_name ?? invite.business.display_name}
-                  {invite.business.address_line && ` · ${invite.business.address_line}`}
-                </span>
+                <span className="text-xs text-gray-400 truncate">{biz.address_line ?? ''}</span>
               )}
             </div>
           )}
+        </div>
+
+        {/* Title + badges */}
+        <div>
+          <h3 className="font-bold text-[#1C2B3A] text-base leading-snug mb-2" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+            {invite.title}
+          </h3>
           <div className="flex items-center gap-2 flex-wrap">
             <CategoryBadge category={invite.category} />
-            {invite.invite_type === 'retainer' && (
+            {isRetainer && (
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: 'rgba(107,230,176,0.15)', color: '#059669' }}>
                 Retainer
               </span>
             )}
+            {!invite.is_active && mode === 'manage' && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: 'rgba(0,0,0,0.06)', color: '#9ca3af' }}>
+                Paused
+              </span>
+            )}
           </div>
         </div>
-        <div className="text-right shrink-0">
-          {invite.invite_type === 'retainer' ? (
-            <>
-              <p className="font-bold text-lg" style={{ color: '#6BE6B0', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                {formatGBP(invite.fee_gbp ?? 0)}
-              </p>
-              <p className="text-xs text-gray-400">per month</p>
-            </>
-          ) : (
-            <>
-              <p className="font-bold text-lg" style={{ color: '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                {formatGBP(invite.value_gbp)}
-              </p>
-              <p className="text-xs text-gray-400">value</p>
-            </>
-          )}
-        </div>
-      </div>
 
-      <p className="text-sm text-gray-600 leading-relaxed">{invite.description}</p>
+        <p className="text-sm text-gray-600 leading-relaxed">{invite.description}</p>
 
-      {invite.invite_type === 'retainer' && (
-        <div className="flex items-center gap-4 text-xs rounded-xl px-3 py-2" style={{ background: 'rgba(107,230,176,0.08)', border: '1px solid rgba(107,230,176,0.2)' }}>
-          <span className="text-gray-600"><span className="font-semibold text-[#1C2B3A]">{invite.posts_per_month}</span> post{invite.posts_per_month !== 1 ? 's' : ''}/month</span>
-          {invite.duration_months
-            ? <span className="text-gray-600"><span className="font-semibold text-[#1C2B3A]">{invite.duration_months}</span> month{invite.duration_months !== 1 ? 's' : ''}</span>
-            : <span className="text-gray-600">Open-ended</span>
-          }
-        </div>
-      )}
+        {isRetainer && (
+          <div className="flex items-center gap-4 text-xs rounded-xl px-3 py-2" style={{ background: 'rgba(107,230,176,0.08)', border: '1px solid rgba(107,230,176,0.2)' }}>
+            <span className="text-gray-600"><span className="font-semibold text-[#1C2B3A]">{invite.posts_per_month}</span> post{invite.posts_per_month !== 1 ? 's' : ''}/month</span>
+            {invite.duration_months
+              ? <span className="text-gray-600"><span className="font-semibold text-[#1C2B3A]">{invite.duration_months}</span> month{invite.duration_months !== 1 ? 's' : ''}</span>
+              : <span className="text-gray-600">Open-ended</span>
+            }
+          </div>
+        )}
 
-      {invite.requirements && (
-        <div className="rounded-xl p-3" style={{ background: 'rgba(28,43,58,0.04)' }}>
-          <p className="text-xs font-semibold text-[#1C2B3A] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>REQUIREMENTS</p>
-          <p className="text-xs text-gray-600">{invite.requirements}</p>
-        </div>
-      )}
+        {invite.requirements && (
+          <div className="rounded-xl p-3" style={{ background: 'rgba(28,43,58,0.04)' }}>
+            <p className="text-xs font-semibold text-[#1C2B3A] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>REQUIREMENTS</p>
+            <p className="text-xs text-gray-600">{invite.requirements}</p>
+          </div>
+        )}
 
-      <div className="flex items-center justify-between pt-1 border-t border-black/5">
-        <div className="flex items-center gap-3 text-xs text-gray-400">
-          <span className="flex items-center gap-1">
-            <Users className="w-3.5 h-3.5" />
-            {slotsLeft} slot{slotsLeft !== 1 ? 's' : ''} left
-          </span>
-          {invite.expires_at && (
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-1 border-t border-black/5">
+          <div className="flex items-center gap-3 text-xs text-gray-400">
             <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
-              Expires {formatDate(invite.expires_at)}
+              <Users className="w-3.5 h-3.5" />
+              {slotsLeft} slot{slotsLeft !== 1 ? 's' : ''} left
             </span>
+            {invite.expires_at && (
+              <span className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" />
+                Expires {formatDate(invite.expires_at)}
+              </span>
+            )}
+          </div>
+
+          {mode === 'browse' && (
+            <Button size="sm" onClick={handleClaim} loading={claiming} disabled={slotsLeft === 0 || !isApproved}>
+              {slotsLeft === 0 ? 'Full' : 'Claim collab'}
+            </Button>
+          )}
+
+          {mode === 'manage' && (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant={invite.is_active ? 'ghost' : 'secondary'}
+                loading={toggling}
+                onClick={handleToggle}
+              >
+                {invite.is_active ? 'Pause' : 'Activate'}
+              </Button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
+                title="Delete offer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           )}
         </div>
-
-        {mode === 'browse' && (
-          <Button size="sm" onClick={handleClaim} loading={claiming} disabled={slotsLeft === 0 || !isApproved}>
-            {slotsLeft === 0 ? 'Full' : 'Claim collab'}
-          </Button>
-        )}
-
-        {mode === 'manage' && (
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant={invite.is_active ? 'ghost' : 'secondary'}
-              loading={toggling}
-              onClick={handleToggle}
-            >
-              {invite.is_active ? 'Pause' : 'Activate'}
-            </Button>
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
-              title="Delete offer"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
       </div>
-    </Card>
+    </div>
   )
 }

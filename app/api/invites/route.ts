@@ -10,7 +10,7 @@ export async function GET() {
 
   let query = supabase
     .from('offers')
-    .select('*, business:profiles!offers_business_id_fkey(id, display_name, business_name, address_line, category, latitude, longitude)')
+    .select('*, business:profiles!offers_business_id_fkey(id, display_name, business_name, address_line, category, latitude, longitude, avatar_url, instagram_handle)')
     .order('created_at', { ascending: false })
 
   if (role === 'business') {

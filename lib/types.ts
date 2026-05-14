@@ -59,7 +59,7 @@ export interface Invite {
   created_at: string
   updated_at: string
   // Joined
-  business?: Pick<Profile, 'id' | 'display_name' | 'business_name' | 'address_line' | 'category' | 'latitude' | 'longitude'>
+  business?: Pick<Profile, 'id' | 'display_name' | 'business_name' | 'address_line' | 'category' | 'latitude' | 'longitude' | 'avatar_url' | 'instagram_handle'>
 }
 
 export interface Match {
