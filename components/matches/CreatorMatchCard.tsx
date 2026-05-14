@@ -327,24 +327,24 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
             {/* Punt code */}
             <div
               className="flex items-center justify-between rounded-xl px-4 py-3"
-              style={{ background: '#1C2B3A' }}
+              style={{ background: 'white', border: '1.5px solid #1C2B3A' }}
             >
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'JetBrains Mono', monospace" }}>
+                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
                   Punt code
                 </p>
-                <p className="font-bold text-white tracking-widest" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '18px', letterSpacing: '0.12em' }}>
+                <p className="font-bold tracking-widest" style={{ color: '#1C2B3A', fontFamily: "'JetBrains Mono', monospace", fontSize: '18px', letterSpacing: '0.12em' }}>
                   {match.punt_code}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'JetBrains Mono', monospace" }}>
+                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
                   {isRetainer ? 'Retainer' : 'One-off'}
                 </p>
-                <p className="font-bold" style={{ color: isRetainer ? '#6BE6B0' : '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: '15px' }}>
+                <p className="font-bold" style={{ color: isRetainer ? '#059669' : '#b45309', fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: '15px' }}>
                   {isRetainer ? formatGBP(invite?.fee_gbp ?? 0) : formatGBP(invite?.value_gbp ?? 0)}
                 </p>
-                <p className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: "'JetBrains Mono', monospace" }}>
+                <p className="text-[9px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                   {isRetainer ? '/month' : 'value'}
                 </p>
               </div>
