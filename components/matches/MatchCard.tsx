@@ -227,7 +227,7 @@ export function MatchCard({ match, role, currentUserId, onUpdated }: Props) {
             <p className="text-xs text-gray-400 italic">No posts submitted yet.</p>
           )}
 
-          {(match.deliverables ?? []).sort((a, b) => a.month_number - b.month_number).map((d: MatchDeliverable) => (
+          {(match.deliverables ?? []).sort((a, b) => (a.month_number ?? 0) - (b.month_number ?? 0)).map((d: MatchDeliverable) => (
             <div key={d.id} className="flex items-center gap-3 rounded-xl px-3 py-2" style={{ background: d.status === 'verified' ? 'rgba(107,230,176,0.08)' : 'rgba(0,0,0,0.03)', border: `1px solid ${d.status === 'verified' ? 'rgba(107,230,176,0.25)' : 'rgba(0,0,0,0.07)'}` }}>
               <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold" style={{ background: d.status === 'verified' ? '#6BE6B0' : '#F5B800', color: '#1C2B3A' }}>
                 {d.month_number}
@@ -241,7 +241,7 @@ export function MatchCard({ match, role, currentUserId, onUpdated }: Props) {
               {d.status === 'verified' ? (
                 <span className="text-xs font-semibold" style={{ color: '#22c55e' }}>✓ Verified</span>
               ) : role === 'business' ? (
-                <Button size="sm" loading={deliverableLoading === d.id} onClick={() => verifyDeliverable(d.id, d.month_number)}>
+                <Button size="sm" loading={deliverableLoading === d.id} onClick={() => verifyDeliverable(d.id, d.month_number ?? 0)}>
                   Verify
                 </Button>
               ) : (
