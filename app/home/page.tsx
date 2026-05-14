@@ -295,7 +295,7 @@ function ValuePostCard({ p, card }: { p: Post; card: { title: string; body: stri
 const RB_CARD_W   = 220   // natural card width — no extra CSS scale applied
 const RB_RADIUS_X = 420   // wider ellipse to give full-size cards room
 const RB_RADIUS_Z = 100
-const RB_H        = 340
+const RB_H        = 420
 const RB_SPEED    = 0.18  // auto-spin rad/s (~35s per rotation)
 
 function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
