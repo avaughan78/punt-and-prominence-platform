@@ -47,8 +47,10 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [unread, setUnread]           = useState(0)
   const [loading, setLoading]         = useState(false)
-  const [showPostForm, setShowPostForm] = useState(false)
-  const [postUrl, setPostUrl]     = useState(match.post_url ?? '')
+  const [showPostForm, setShowPostForm]   = useState(false)
+  const [postUrl, setPostUrl]             = useState(match.post_url ?? '')
+  const [editingPostUrl, setEditingPostUrl] = useState(false)
+  const [editPostUrl, setEditPostUrl]     = useState(match.post_url ?? '')
   const [deliverableLoading, setDeliverableLoading] = useState<string | null>(null)
   const [showSubmitMonth, setShowSubmitMonth] = useState<number | null>(null)
   const [submitUrl, setSubmitUrl] = useState('')
@@ -81,6 +83,19 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
     const data = await res.json()
     if (!res.ok) toast.error(data.error ?? 'Failed to update')
     else { toast.success('Updated'); onUpdated(data); setShowPostForm(false) }
+    setLoading(false)
+  }
+
+  async function updatePostUrl(url: string) {
+    setLoading(true)
+    const res = await fetch(`/api/matches/${match.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ post_url: url }),
+    })
+    const data = await res.json()
+    if (!res.ok) toast.error(data.error ?? 'Failed to update')
+    else { toast.success('Post link updated'); onUpdated(data); setEditingPostUrl(false) }
     setLoading(false)
   }
 
@@ -218,19 +233,51 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       )}
 
       {/* ── One-off: post submitted ── */}
-      {!isRetainer && match.status === 'posted' && match.post_url && (
-        <div className="px-5 py-3 flex items-center gap-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-          <a
-            href={match.post_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm font-medium hover:underline"
-            style={{ color: '#3b82f6' }}
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            View submitted post
-          </a>
-          <span className="text-xs text-gray-400">Waiting for business to verify</span>
+      {!isRetainer && match.status === 'posted' && (
+        <div className="px-5 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+          {!editingPostUrl ? (
+            <div className="flex items-center gap-3">
+              {match.post_url && (
+                <a
+                  href={match.post_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm font-medium hover:underline"
+                  style={{ color: '#3b82f6' }}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  View submitted post
+                </a>
+              )}
+              <span className="text-xs text-gray-400 flex-1">Waiting for verification</span>
+              <button
+                onClick={() => { setEditPostUrl(match.post_url ?? ''); setEditingPostUrl(true) }}
+                className="text-xs text-gray-400 hover:text-[#1C2B3A] transition-colors underline"
+              >
+                Edit link
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <Input
+                label="Update post URL"
+                placeholder="https://www.instagram.com/p/…"
+                value={editPostUrl}
+                onChange={e => setEditPostUrl(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <Button size="sm" variant="ghost" onClick={() => setEditingPostUrl(false)}>Cancel</Button>
+                <Button
+                  size="sm"
+                  loading={loading}
+                  disabled={!editPostUrl.trim() || editPostUrl === match.post_url}
+                  onClick={() => updatePostUrl(editPostUrl)}
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
