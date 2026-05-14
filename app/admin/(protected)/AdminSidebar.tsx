@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, Mail, Users, Building2, GitMerge,
+  LayoutDashboard, Mail, Users, Building2,
   Sparkles, Key, ScrollText, Star,
 } from 'lucide-react'
 
@@ -11,8 +11,7 @@ const nav = [
   { href: '/admin/waitlist',     label: 'Waitlist',     icon: Mail },
   { href: '/admin/creators',     label: 'Creators',     icon: Users },
   { href: '/admin/businesses',   label: 'Businesses',   icon: Building2 },
-  { href: '/admin/matches',      label: 'Matches',      icon: GitMerge },
-  { href: '/admin/invites',      label: 'Collabs',      icon: Sparkles },
+  { href: '/admin/matches',      label: 'Collabs',      icon: Sparkles },
   { href: '/admin/invite-codes', label: 'Invite codes', icon: Key },
   { href: '/admin/audit-log',    label: 'Audit log',    icon: ScrollText },
 ]

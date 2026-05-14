@@ -15,10 +15,8 @@ export async function GET() {
       business:profiles!offers_business_id_fkey(id, business_name, display_name, category, address_line, instagram_handle, website_url, avatar_url),
       matches(id, status, post_url, created_at, punt_code, creator:profiles!matches_creator_id_fkey(id, display_name, instagram_handle, follower_count, avatar_url))
     `)
-    .gt('slots_claimed', 0)
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  const groups = (data ?? []).filter((o: { matches?: unknown[] }) => (o.matches as unknown[])?.length > 0)
-  return NextResponse.json(groups)
+  return NextResponse.json(data ?? [])
 }

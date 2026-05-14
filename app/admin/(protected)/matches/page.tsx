@@ -301,7 +301,7 @@ export default function AdminCollabs() {
       matches: filter === 'all' ? g.matches : g.matches.filter(m => m.status === filter),
     }))
     .filter(g => {
-      if (g.matches.length === 0) return false
+      if (filter !== 'all' && g.matches.length === 0) return false
       if (!searchLower) return true
       const biz = g.business?.business_name ?? g.business?.display_name ?? ''
       return (
@@ -353,7 +353,7 @@ export default function AdminCollabs() {
         <div>
           <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Collabs</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {totalCreators} creator{totalCreators !== 1 ? 's' : ''} across {groups.length} collab{groups.length !== 1 ? 's' : ''}
+            {groups.length} collab{groups.length !== 1 ? 's' : ''} · {totalCreators} creator{totalCreators !== 1 ? 's' : ''} matched
           </p>
         </div>
 
