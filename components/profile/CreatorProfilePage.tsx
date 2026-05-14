@@ -341,41 +341,95 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
             </button>
           )}
 
-          {/* Profile checklist */}
-          <div
-            className="rounded-2xl px-4 py-4"
-            style={{ background: '#fafafa', border: '1px solid rgba(0,0,0,0.06)' }}
-          >
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-3" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              Profile strength
-            </p>
-            <div className="flex flex-col gap-2">
-              {[
-                { label: 'Profile photo',      done: !!profile.avatar_url },
-                { label: 'Bio',                done: !!profile.bio },
-                { label: 'Instagram handle',   done: !!profile.instagram_handle },
-                { label: 'Follower count',     done: (profile.follower_count ?? 0) > 0 },
-              ].map(item => (
-                <div key={item.label} className="flex items-center gap-2.5">
-                  {item.done ? (
-                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" style={{ color: '#22c55e' }} />
-                  ) : (
-                    <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ border: '1.5px solid rgba(0,0,0,0.15)' }} />
-                  )}
-                  <span
-                    className="text-xs"
-                    style={{ color: item.done ? '#374151' : '#9ca3af', fontFamily: "'Inter', sans-serif" }}
-                  >
-                    {item.label}
+          {/* Reach stats strip */}
+          {(hasIg || hasTt) && (
+            <div
+              className={`grid rounded-2xl overflow-hidden`}
+              style={{
+                gridTemplateColumns: hasIg && hasTt ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
+                border: '1px solid rgba(0,0,0,0.07)',
+                background: '#fafafa',
+              }}
+            >
+              {hasIg && (
+                <a
+                  href={`https://instagram.com/${profile.instagram_handle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center py-4 transition-opacity hover:opacity-70"
+                  style={{ borderRight: '1px solid rgba(0,0,0,0.06)' }}
+                >
+                  <InstagramIcon className="w-4 h-4 mb-1.5" style={{ color: '#833ab4' }} />
+                  <span className="font-extrabold text-xl leading-none text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                    {fmt(profile.follower_count!)}
+                  </span>
+                  <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    followers
+                  </span>
+                </a>
+              )}
+              {hasTt && (
+                <a
+                  href={`https://tiktok.com/@${profile.tiktok_handle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center py-4 transition-opacity hover:opacity-70"
+                  style={{ borderRight: hasIg && hasTt ? '1px solid rgba(0,0,0,0.06)' : undefined }}
+                >
+                  <TikTokIcon className="w-4 h-4 mb-1.5 text-[#1C2B3A]" />
+                  <span className="font-extrabold text-xl leading-none text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                    {fmt(profile.tiktok_follower_count!)}
+                  </span>
+                  <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    TikTok
+                  </span>
+                </a>
+              )}
+              {hasIg && hasTt && (
+                <div className="flex flex-col items-center py-4">
+                  <span className="text-[10px] mb-1.5 text-gray-300" style={{ fontFamily: "'JetBrains Mono', monospace" }}>∑</span>
+                  <span className="font-extrabold text-xl leading-none" style={{ color: '#6BE6B0', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                    {fmt((profile.follower_count ?? 0) + (profile.tiktok_follower_count ?? 0))}
+                  </span>
+                  <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    total reach
                   </span>
                 </div>
-              ))}
+              )}
             </div>
-            {missing.length === 0 ? (
-              <p className="text-[10px] mt-3 font-semibold" style={{ color: '#22c55e', fontFamily: "'JetBrains Mono', monospace" }}>
-                ✓ Profile complete
+          )}
+
+          {/* Profile checklist — hidden once complete */}
+          {missing.length > 0 && (
+            <div
+              className="rounded-2xl px-4 py-4"
+              style={{ background: '#fafafa', border: '1px solid rgba(0,0,0,0.06)' }}
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-3" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                Profile strength
               </p>
-            ) : (
+              <div className="flex flex-col gap-2">
+                {[
+                  { label: 'Profile photo',    done: !!profile.avatar_url },
+                  { label: 'Bio',              done: !!profile.bio },
+                  { label: 'Instagram handle', done: !!profile.instagram_handle },
+                  { label: 'Follower count',   done: (profile.follower_count ?? 0) > 0 },
+                ].map(item => (
+                  <div key={item.label} className="flex items-center gap-2.5">
+                    {item.done ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" style={{ color: '#22c55e' }} />
+                    ) : (
+                      <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ border: '1.5px solid rgba(0,0,0,0.15)' }} />
+                    )}
+                    <span
+                      className="text-xs"
+                      style={{ color: item.done ? '#374151' : '#9ca3af', fontFamily: "'Inter', sans-serif" }}
+                    >
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
               <button
                 onClick={() => setEditing(true)}
                 className="mt-3 text-[10px] font-semibold hover:opacity-70 transition-opacity"
@@ -383,8 +437,8 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
               >
                 Complete your profile →
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
