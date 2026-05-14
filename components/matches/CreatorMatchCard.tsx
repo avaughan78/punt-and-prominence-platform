@@ -54,6 +54,8 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
   const [deliverableLoading, setDeliverableLoading] = useState<string | null>(null)
   const [showSubmitMonth, setShowSubmitMonth] = useState<number | null>(null)
   const [submitUrl, setSubmitUrl] = useState('')
+  const [editingDeliverable, setEditingDeliverable] = useState<string | null>(null)
+  const [editDeliverableUrl, setEditDeliverableUrl] = useState('')
 
   const isRetainer = match.invite?.invite_type === 'retainer'
   const isDone     = match.status === 'verified' || match.status === 'completed'
@@ -97,6 +99,23 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
     if (!res.ok) toast.error(data.error ?? 'Failed to update')
     else { toast.success('Post link updated'); onUpdated(data); setEditingPostUrl(false) }
     setLoading(false)
+  }
+
+  async function updateDeliverableUrl(did: string, url: string) {
+    setDeliverableLoading(`edit-${did}`)
+    const res = await fetch(`/api/matches/${match.id}/deliverables/${did}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ post_url: url }),
+    })
+    const data = await res.json()
+    if (!res.ok) toast.error(data.error ?? 'Failed to update')
+    else {
+      toast.success('Post link updated')
+      onUpdated({ ...match, deliverables: (match.deliverables ?? []).map(d => d.id === did ? data : d) })
+      setEditingDeliverable(null)
+    }
+    setDeliverableLoading(null)
   }
 
   async function submitDeliverable(month: number) {
@@ -290,27 +309,58 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
           {[...(match.deliverables ?? [])]
             .sort((a, b) => a.month_number - b.month_number)
             .map((d: MatchDeliverable) => (
-              <div
-                key={d.id}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5"
-                style={{
-                  background: d.status === 'verified' ? 'rgba(107,230,176,0.08)' : 'rgba(0,0,0,0.02)',
-                  border: `1px solid ${d.status === 'verified' ? 'rgba(107,230,176,0.25)' : 'rgba(0,0,0,0.07)'}`,
-                }}
-              >
+              <div key={d.id} className="flex flex-col gap-2">
                 <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
-                  style={{ background: d.status === 'verified' ? '#6BE6B0' : '#F5B800', color: '#1C2B3A' }}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5"
+                  style={{
+                    background: d.status === 'verified' ? 'rgba(107,230,176,0.08)' : 'rgba(0,0,0,0.02)',
+                    border: `1px solid ${d.status === 'verified' ? 'rgba(107,230,176,0.25)' : 'rgba(0,0,0,0.07)'}`,
+                  }}
                 >
-                  {d.month_number}
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
+                    style={{ background: d.status === 'verified' ? '#6BE6B0' : '#F5B800', color: '#1C2B3A' }}
+                  >
+                    {d.month_number}
+                  </div>
+                  <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="flex-1 text-sm text-blue-500 hover:underline truncate">
+                    Month {d.month_number} post
+                  </a>
+                  {d.status === 'verified' ? (
+                    <Check className="w-4 h-4 flex-shrink-0" style={{ color: '#22c55e' }} />
+                  ) : (
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-xs font-medium" style={{ color: '#F5B800' }}>Pending</span>
+                      <button
+                        onClick={() => { setEditingDeliverable(d.id); setEditDeliverableUrl(d.post_url) }}
+                        className="text-xs text-gray-400 hover:text-[#1C2B3A] transition-colors underline"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="flex-1 text-sm text-blue-500 hover:underline truncate">
-                  Month {d.month_number} post
-                </a>
-                {d.status === 'verified'
-                  ? <Check className="w-4 h-4 flex-shrink-0" style={{ color: '#22c55e' }} />
-                  : <span className="text-xs font-medium" style={{ color: '#F5B800' }}>Pending</span>
-                }
+                {editingDeliverable === d.id && (
+                  <div className="flex flex-col gap-2 pl-10">
+                    <Input
+                      label={`Month ${d.month_number} post URL`}
+                      placeholder="https://www.instagram.com/p/…"
+                      value={editDeliverableUrl}
+                      onChange={e => setEditDeliverableUrl(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => setEditingDeliverable(null)}>Cancel</Button>
+                      <Button
+                        size="sm"
+                        loading={deliverableLoading === `edit-${d.id}`}
+                        disabled={!editDeliverableUrl.trim() || editDeliverableUrl === d.post_url}
+                        onClick={() => updateDeliverableUrl(d.id, editDeliverableUrl)}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
 

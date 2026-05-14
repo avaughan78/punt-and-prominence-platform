@@ -5,29 +5,63 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  if (user.user_metadata?.role !== 'business') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id, did } = await params
+  const role = user.user_metadata?.role
+  const body = await req.json().catch(() => ({}))
 
-  // Verify the match belongs to this business
-  const { data: match } = await supabase
-    .from('matches')
-    .select('id')
-    .eq('id', id)
-    .eq('business_id', user.id)
-    .single()
+  if (role === 'creator') {
+    // Creator can update post_url on unverified deliverables they own
+    const { data: match } = await supabase
+      .from('matches')
+      .select('id')
+      .eq('id', id)
+      .eq('creator_id', user.id)
+      .single()
+    if (!match) return NextResponse.json({ error: 'Match not found' }, { status: 404 })
 
-  if (!match) return NextResponse.json({ error: 'Match not found' }, { status: 404 })
+    const { data: existing } = await supabase
+      .from('match_deliverables')
+      .select('status')
+      .eq('id', did)
+      .eq('match_id', id)
+      .single()
+    if (!existing) return NextResponse.json({ error: 'Deliverable not found' }, { status: 404 })
+    if (existing.status === 'verified') return NextResponse.json({ error: 'Cannot edit a verified deliverable' }, { status: 400 })
 
-  const { data, error } = await supabase
-    .from('match_deliverables')
-    .update({ status: 'verified', verified_at: new Date().toISOString() })
-    .eq('id', did)
-    .eq('match_id', id)
-    .select()
-    .single()
+    if (!body.post_url) return NextResponse.json({ error: 'post_url required' }, { status: 400 })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    const { data, error } = await supabase
+      .from('match_deliverables')
+      .update({ post_url: body.post_url })
+      .eq('id', did)
+      .eq('match_id', id)
+      .select()
+      .single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(data)
+  }
 
-  return NextResponse.json(data)
+  if (role === 'business') {
+    // Business verifies a deliverable
+    const { data: match } = await supabase
+      .from('matches')
+      .select('id')
+      .eq('id', id)
+      .eq('business_id', user.id)
+      .single()
+    if (!match) return NextResponse.json({ error: 'Match not found' }, { status: 404 })
+
+    const { data, error } = await supabase
+      .from('match_deliverables')
+      .update({ status: 'verified', verified_at: new Date().toISOString() })
+      .eq('id', did)
+      .eq('match_id', id)
+      .select()
+      .single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(data)
+  }
+
+  return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 }
