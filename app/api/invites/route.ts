@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { writeAuditLog } from '@/lib/audit'
 
 export async function GET() {
   const supabase = await createClient()
@@ -43,5 +44,22 @@ export async function POST(req: Request) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  const { data: bizProfile } = await supabase.from('profiles').select('business_name, display_name').eq('id', user.id).single()
+  await writeAuditLog({
+    event_type: 'invite.created',
+    actor: user.email ?? user.id,
+    subject_type: 'invite',
+    subject_id: data.id,
+    metadata: {
+      title: data.title,
+      invite_type: data.invite_type,
+      value_gbp: data.value_gbp,
+      fee_gbp: data.fee_gbp,
+      slots_total: data.slots_total,
+      business_name: bizProfile?.business_name ?? bizProfile?.display_name,
+    },
+  })
+
   return NextResponse.json(data, { status: 201 })
 }

@@ -1,9 +1,11 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 
 type AuditEvent =
+  | 'business.registered'
   | 'business.deleted'
   | 'business.suspended'
   | 'business.unsuspended'
+  | 'creator.registered'
   | 'creator.deleted'
   | 'creator.approved'
   | 'creator.rejected'
