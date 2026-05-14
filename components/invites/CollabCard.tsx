@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { MessageCircle, Pencil, Trash2, ExternalLink, Check } from 'lucide-react'
+import { MessageCircle, Pencil, Trash2, ExternalLink, Check, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { EditInviteModal } from '@/components/invites/EditInviteModal'
