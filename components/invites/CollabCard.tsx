@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { MessageCircle, Pencil, Trash2, ExternalLink, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
@@ -80,39 +81,42 @@ function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: Creat
         className="flex items-center gap-3 px-5 py-3"
         style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}
       >
-        {/* Avatar with IG ring */}
-        <div
-          className="p-[2px] rounded-full flex-shrink-0"
-          style={{ background: handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(0,0,0,0.1)' }}
+        {/* Avatar + identity — links to creator profile */}
+        <Link
+          href={`/business/creators/${creator?.id}`}
+          className="flex items-center gap-3 flex-1 min-w-0 group"
         >
-          {creator?.avatar_url ? (
-            <img
-              src={creator.avatar_url}
-              alt={name}
-              className="w-9 h-9 rounded-full object-cover block"
-              style={{ border: '2px solid white' }}
-            />
-          ) : (
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
-              style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)', border: '2px solid white' }}
-            >
-              {initials}
-            </div>
-          )}
-        </div>
-
-        {/* Identity */}
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-sm text-[#1C2B3A] truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {handle ? `@${handle}` : name}
-          </p>
-          {creator?.follower_count != null && (
-            <p className="text-[11px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {fmt(creator.follower_count)} followers
+          <div
+            className="p-[2px] rounded-full flex-shrink-0 transition-opacity group-hover:opacity-80"
+            style={{ background: handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(0,0,0,0.1)' }}
+          >
+            {creator?.avatar_url ? (
+              <img
+                src={creator.avatar_url}
+                alt={name}
+                className="w-9 h-9 rounded-full object-cover block"
+                style={{ border: '2px solid white' }}
+              />
+            ) : (
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)', border: '2px solid white' }}
+              >
+                {initials}
+              </div>
+            )}
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-sm text-[#1C2B3A] truncate group-hover:underline underline-offset-2" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              {handle ? `@${handle}` : name}
             </p>
-          )}
-        </div>
+            {creator?.follower_count != null && (
+              <p className="text-[11px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                {fmt(creator.follower_count)} followers
+              </p>
+            )}
+          </div>
+        </Link>
 
         {/* Status badge */}
         <span
@@ -218,8 +222,12 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_active: !invite.is_active }),
     })
-    if (res.ok) onToggle(invite.id, !invite.is_active)
-    else toast.error('Failed to update collab')
+    if (res.ok) {
+      onToggle(invite.id, !invite.is_active)
+    } else {
+      const body = await res.json().catch(() => ({}))
+      toast.error(body.error ?? 'Failed to update collab')
+    }
     setToggling(false)
   }
 

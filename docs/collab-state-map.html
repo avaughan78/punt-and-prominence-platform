@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Collab State Map — Punt & Prominence</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #f5f6f8;
+      color: #1C2B3A;
+      padding: 32px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      font-family: 'Bricolage Grotesque', -apple-system, sans-serif;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 32px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .panel {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+    .panel.full-width {
+      grid-column: 1 / -1;
+    }
+    .panel h2 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+      margin-bottom: 16px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .mermaid {
+      overflow-x: auto;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .gap-note {
+      font-size: 11px;
+      color: #ea580c;
+      background: rgba(251,146,60,0.1);
+      border: 1px solid rgba(251,146,60,0.3);
+      border-radius: 6px;
+      padding: 6px 10px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Punt & Prominence — Collab State Map</h1>
+<p class="subtitle">All paths a collab and its matches can take, from creation to completion.</p>
+
+<div class="grid">
+
+  <!-- Collab lifecycle -->
+  <div class="panel full-width">
+    <h2>1 · Collab (Offer) Lifecycle</h2>
+    <div class="mermaid">
+flowchart LR
+    CREATE([Business creates collab]) --> LIVE
+
+    LIVE["🟡 LIVE\nis_active: true\nslots available"]
+    PAUSED["⏸ PAUSED\nis_active: false"]
+    FULL["🟢 FULL\nslots_claimed = slots_total"]
+    EXPIRED["⌛ EXPIRED\nexpires_at passed\n(unenforced)"]
+    DELETED(["🗑 DELETED"])
+
+    LIVE -->|"Creator claims"| MATCH(["Match created →\nsee below"])
+    LIVE -->|"Last slot claimed"| FULL
+    LIVE -->|"Pause\n(no active matches)"| PAUSED
+    LIVE -->|"expires_at passes"| EXPIRED
+    LIVE -->|"Delete"| DELETED
+
+    PAUSED -->|"Activate"| LIVE
+    PAUSED -->|"Delete"| DELETED
+
+    FULL -->|"Delete"| DELETED
+
+    LIVE -.->|"Edit fields\n(fan-out message to\nactive matches)"| LIVE
+
+    style LIVE fill:#fef9c3,stroke:#ca8a04,color:#1C2B3A
+    style PAUSED fill:#f3f4f6,stroke:#9ca3af,color:#6b7280
+    style FULL fill:#dcfce7,stroke:#16a34a,color:#1C2B3A
+    style EXPIRED fill:#fff7ed,stroke:#ea580c,color:#ea580c
+    style DELETED fill:#fef2f2,stroke:#ef4444,color:#ef4444
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="dot" style="background:#ca8a04"></div> LIVE — accepting creators</div>
+      <div class="legend-item"><div class="dot" style="background:#9ca3af"></div> PAUSED — hidden, no new claims</div>
+      <div class="legend-item"><div class="dot" style="background:#16a34a"></div> FULL — all slots taken</div>
+      <div class="legend-item"><div class="dot" style="background:#ea580c"></div> EXPIRED — past expiry date</div>
+    </div>
+    <p class="gap-note">⚠️ Gap: EXPIRED is a conceptual state only — no server-side job enforces expires_at. A cron job is needed to auto-pause expired offers.</p>
+  </div>
+
+  <!-- One-off match path -->
+  <div class="panel">
+    <h2>2a · One-Off Match Path</h2>
+    <div class="mermaid">
+flowchart TD
+    CLAIM([Creator claims collab]) --> PENDING
+
+    PENDING["🟡 pending\nAwaiting venue visit"]
+    VISITED["🔵 visited\nVenue visit confirmed"]
+    POSTED["🟣 posted\nPost URL submitted"]
+    VERIFIED(["✅ verified\nComplete"])
+
+    PENDING -->|"Submit post URL"| POSTED
+    PENDING -->|"Admin advances\n(venue visit confirmed)"| VISITED
+    VISITED -->|"Submit post URL"| POSTED
+    POSTED -->|"Business verifies"| VERIFIED
+    POSTED -->|"Creator removes link"| PENDING
+
+    style PENDING fill:#fef9c3,stroke:#ca8a04,color:#1C2B3A
+    style VISITED fill:#ede9fe,stroke:#6d28d9,color:#4c1d95
+    style POSTED fill:#f5f3ff,stroke:#9333ea,color:#6b21a8
+    style VERIFIED fill:#dcfce7,stroke:#16a34a,color:#1C2B3A
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="dot" style="background:#ca8a04"></div> pending — waiting to visit &amp; post</div>
+      <div class="legend-item"><div class="dot" style="background:#6d28d9"></div> visited — venue confirmed by admin</div>
+      <div class="legend-item"><div class="dot" style="background:#9333ea"></div> posted — awaiting business verify</div>
+      <div class="legend-item"><div class="dot" style="background:#16a34a"></div> verified — done ✅</div>
+    </div>
+    <p class="gap-note">⚠️ Gap: No direct trigger for pending → visited on the creator side. Currently admin-only. Planned: punt code scan at venue sets visited automatically.</p>
+  </div>
+
+  <!-- Retainer match path -->
+  <div class="panel">
+    <h2>2b · Retainer Match Path</h2>
+    <div class="mermaid">
+flowchart TD
+    CLAIM([Creator claims collab]) --> PENDING
+
+    PENDING["🟡 pending\nAwaiting activation"]
+    ACTIVE["🟢 active\nMonthly posts running"]
+    COMPLETED(["⬜ completed\nArrangement ended"])
+
+    PENDING -->|"Business activates"| ACTIVE
+    ACTIVE -->|"Business marks complete"| COMPLETED
+    ACTIVE -->|"Each month\n↓"| DEL_FLOW
+
+    subgraph DEL_FLOW["Monthly deliverable loop"]
+      direction LR
+      D_NONE["No post yet"] -->|"Creator submits URL"| D_SUB
+      D_SUB["📝 submitted\nAwaiting verify"] -->|"Business verifies"| D_VER
+      D_VER(["✅ verified"])
+      D_SUB -->|"Creator edits URL"| D_SUB
+      D_SUB -->|"Creator deletes"| D_NONE
+    end
+
+    style PENDING fill:#fef9c3,stroke:#ca8a04,color:#1C2B3A
+    style ACTIVE fill:#dcfce7,stroke:#16a34a,color:#1C2B3A
+    style COMPLETED fill:#f3f4f6,stroke:#9ca3af,color:#6b7280
+    style D_SUB fill:#fef3c7,stroke:#d97706,color:#1C2B3A
+    style D_VER fill:#dcfce7,stroke:#16a34a,color:#1C2B3A
+    style D_NONE fill:#f9fafb,stroke:#e5e7eb,color:#9ca3af
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="dot" style="background:#ca8a04"></div> pending — waiting for business to activate</div>
+      <div class="legend-item"><div class="dot" style="background:#16a34a"></div> active — running; monthly posts in loop</div>
+      <div class="legend-item"><div class="dot" style="background:#9ca3af"></div> completed — ended by business</div>
+    </div>
+    <p class="gap-note">⚠️ Gap: No auto-completion after duration_months ends. Business must manually mark complete. No path if creator or business wants to exit early.</p>
+  </div>
+
+  <!-- Actor permissions -->
+  <div class="panel full-width">
+    <h2>3 · Who Can Do What</h2>
+    <div class="mermaid">
+flowchart LR
+    subgraph BIZ["Business"]
+      B1["Create / Edit / Delete collab"]
+      B2["Pause collab\n(no active matches)"]
+      B3["Activate collab"]
+      B4["Activate retainer match\npending → active"]
+      B5["Verify one-off post\nposted → verified"]
+      B6["Verify retainer deliverable"]
+      B7["Complete retainer\nactive → completed"]
+    end
+
+    subgraph CREATOR["Creator"]
+      C1["Claim collab\n(creates match in pending)"]
+      C2["Submit post URL\npending/visited → posted"]
+      C3["Edit submitted URL\n(before verified)"]
+      C4["Remove submitted URL\nposted → pending"]
+      C5["Submit monthly deliverable"]
+      C6["Edit deliverable URL\n(before verified)"]
+      C7["Delete deliverable\n(before verified)"]
+    end
+
+    subgraph ADMIN["Admin"]
+      A1["Advance match status\npending → visited → posted"]
+      A2["Override any status"]
+    end
+
+    style BIZ fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
+    style CREATOR fill:#fef9c3,stroke:#ca8a04,color:#713f12
+    style ADMIN fill:#fce7f3,stroke:#ec4899,color:#831843
+    </div>
+  </div>
+
+  <!-- Full end-to-end -->
+  <div class="panel full-width">
+    <h2>4 · Full End-to-End: One-Off Collab</h2>
+    <div class="mermaid">
+sequenceDiagram
+    participant B as Business
+    participant Platform
+    participant C as Creator
+    participant Admin
+
+    B->>Platform: Create collab (slots, value, description)
+    Platform-->>B: Collab LIVE
+
+    C->>Platform: Browse & claim collab
+    Platform-->>C: Match created (PENDING), punt code issued
+    Platform-->>B: Email: new match
+
+    Note over C,Admin: Creator visits venue
+
+    Admin->>Platform: Advance match → VISITED
+    C->>Platform: Submit Instagram post URL
+    Platform-->>C: Match → POSTED
+    Platform-->>B: Email: post ready to verify
+
+    B->>Platform: Review post, click Verify
+    Platform-->>B: Match → VERIFIED ✅
+    Platform-->>C: Email: verified, collab complete
+    </div>
+  </div>
+
+  <div class="panel full-width">
+    <h2>5 · Full End-to-End: Retainer Collab</h2>
+    <div class="mermaid">
+sequenceDiagram
+    participant B as Business
+    participant Platform
+    participant C as Creator
+
+    B->>Platform: Create retainer collab (fee/month, duration, posts/month)
+    Platform-->>B: Collab LIVE
+
+    C->>Platform: Browse & claim
+    Platform-->>C: Match PENDING, punt code issued
+
+    B->>Platform: Activate creator
+    Platform-->>C: Match → ACTIVE
+
+    loop Each month
+      C->>Platform: Submit month N post URL
+      Platform-->>C: Deliverable SUBMITTED
+      B->>Platform: Verify month N post
+      Platform-->>B: Deliverable → VERIFIED ✅
+    end
+
+    B->>Platform: Mark arrangement complete
+    Platform-->>C: Match → COMPLETED
+    </div>
+  </div>
+
+</div>
+
+<p style="font-size: 11px; color: #9ca3af; margin-top: 32px; text-align: center;">
+  Punt &amp; Prominence · Collab State Map · Generated 2026-05-14
+</p>
+
+<script>mermaid.initialize({ startOnLoad: true, theme: 'default', flowchart: { curve: 'basis' } })</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
-import { Pencil, ExternalLink, BadgeCheck, Star } from 'lucide-react'
+import Link from 'next/link'
+import { Pencil, ExternalLink, BadgeCheck, Star, Eye } from 'lucide-react'
 import { ProfileForm, type ProfileFormData } from './ProfileForm'
 import { CloseAccountSection } from '@/components/account/CloseAccountSection'
 
@@ -69,14 +70,24 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
           <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Profile</h1>
           <p className="text-sm text-gray-500 mt-0.5">Businesses see this when you claim their collabs.</p>
         </div>
-        <button
-          onClick={() => setEditing(true)}
-          className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl transition-all hover:bg-[#1C2B3A] hover:text-white group"
-          style={{ border: '1.5px solid rgba(28,43,58,0.15)', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
-        >
-          <Pencil className="w-3.5 h-3.5" />
-          Edit profile
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/creator/profile/preview"
+            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl transition-all hover:bg-gray-50"
+            style={{ border: '1.5px solid rgba(28,43,58,0.1)', color: '#6b7280', fontFamily: "'Inter', sans-serif" }}
+          >
+            <Eye className="w-3.5 h-3.5" />
+            Preview
+          </Link>
+          <button
+            onClick={() => setEditing(true)}
+            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl transition-all hover:bg-[#1C2B3A] hover:text-white group"
+            style={{ border: '1.5px solid rgba(28,43,58,0.15)', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            Edit
+          </button>
+        </div>
       </div>
 
       {/* Profile card */}
