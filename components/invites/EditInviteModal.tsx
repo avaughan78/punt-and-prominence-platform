@@ -30,7 +30,11 @@ export function EditInviteModal({ invite, onClose, onSaved }: Props) {
   })
 
   function addRequirement(chip: typeof REQUIREMENT_CHIPS[0]) {
-    setForm(f => ({ ...f, requirements: applyChip(f.requirements, chip) }))
+    const handle = invite.business?.instagram_handle
+    const resolved = chip.label === 'Tag us' && handle
+      ? { ...chip, text: `tag @${handle}` }
+      : chip
+    setForm(f => ({ ...f, requirements: applyChip(f.requirements, resolved) }))
   }
 
   function set(key: string, value: string) {

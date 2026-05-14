@@ -17,7 +17,7 @@ const CATEGORIES = [
   { value: 'other', label: 'Other' },
 ]
 
-export function InviteForm() {
+export function InviteForm({ instagramHandle }: { instagramHandle: string | null }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [inviteType, setInviteType] = useState<'one_off' | 'retainer'>('one_off')
@@ -42,7 +42,10 @@ export function InviteForm() {
   }
 
   function addRequirement(chip: typeof REQUIREMENT_CHIPS[0]) {
-    setForm(f => ({ ...f, requirements: applyChip(f.requirements, chip) }))
+    const resolved = chip.label === 'Tag us' && instagramHandle
+      ? { ...chip, text: `tag @${instagramHandle}` }
+      : chip
+    setForm(f => ({ ...f, requirements: applyChip(f.requirements, resolved) }))
   }
 
   async function handleSubmit(e: React.FormEvent) {

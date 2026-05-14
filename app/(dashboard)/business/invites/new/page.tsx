@@ -9,13 +9,23 @@ export default async function NewOfferPage() {
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('business_name, category, address_line')
+      .select('business_name, category, address_line, instagram_handle')
       .eq('id', user.id)
       .single()
 
     if (!profile?.business_name || !profile?.category || !profile?.address_line) {
       redirect('/business/invites')
     }
+
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Post a collab</h1>
+          <p className="text-sm text-gray-500 mt-1">Create a collab for Cambridge creators to claim and visit your business.</p>
+        </div>
+        <InviteForm instagramHandle={profile?.instagram_handle ?? null} />
+      </div>
+    )
   }
 
   return (
@@ -24,7 +34,7 @@ export default async function NewOfferPage() {
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Post a collab</h1>
         <p className="text-sm text-gray-500 mt-1">Create a collab for Cambridge creators to claim and visit your business.</p>
       </div>
-      <InviteForm />
+      <InviteForm instagramHandle={null} />
     </div>
   )
 }
