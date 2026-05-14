@@ -42,7 +42,7 @@ export default function BrowsePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Browse Collabs</h1>
         <p className="text-sm text-gray-500 mt-0.5">Claim a collab, visit the business, create content.</p>
@@ -113,7 +113,7 @@ export default function BrowsePage() {
           <p className="text-sm text-gray-400">No collabs available right now. Check back soon.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {offers.map(invite => (
             <InviteCard
               key={invite.id}
