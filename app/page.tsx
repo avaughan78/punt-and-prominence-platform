@@ -9,21 +9,31 @@ const mockCircles = [
   { handle: 'cambridgenights', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
   { handle: 'millroadfood',    avatar: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
   { handle: 'camcreates',      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
+  { handle: 'cam.eats',        avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
+  { handle: 'sundaycam',       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
+  { handle: 'cambridgelens',   avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
 ]
 
+// Spread across the full viewport, avoiding the central text column
 const circlePositions = [
-  { top: '38%', left: '27%', rotate: '-2deg'   },
-  { top: '10%', left: '46%', rotate:  '3deg'   },
-  { top: '62%', left: '43%', rotate: '-1.5deg' },
-  { top: '36%', left: '61%', rotate:  '2deg'   },
+  { top: '13%', left: '10%',  rotate: '-2deg'   },  // top-left
+  { top: '10%', left: '50%',  rotate:  '3deg'   },  // top-center
+  { top: '15%', left: '82%',  rotate: '-1.5deg' },  // top-right
+  { top: '53%', left:  '6%',  rotate:  '2deg'   },  // mid-left
+  { top: '48%', left: '86%',  rotate: '-2.5deg' },  // mid-right
+  { top: '78%', left: '21%',  rotate:  '1.5deg' },  // bottom-left
+  { top: '75%', left: '71%',  rotate: '-1deg'   },  // bottom-right
 ]
 
-// Float animation durations/delays — staggered so nothing bobs in sync
+// Staggered float durations/delays so nothing bobs in sync
 const floatConfig = [
   { duration: '6.0s', delay: '0.0s' },
   { duration: '7.2s', delay: '1.4s' },
   { duration: '6.6s', delay: '0.7s' },
   { duration: '7.8s', delay: '2.1s' },
+  { duration: '6.3s', delay: '0.3s' },
+  { duration: '7.5s', delay: '1.8s' },
+  { duration: '6.9s', delay: '2.5s' },
 ]
 
 // ─── Components ───────────────────────────────────────────────────────────────
@@ -89,56 +99,43 @@ export default function ComingSoon() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: '#1C2B3A' }}>
 
-      {/* ── Rectangular frame ── */}
-      <div
-        className="absolute pointer-events-none overflow-hidden"
-        style={{
-          width: 'min(1140px, 94vw)',
-          height: 'min(660px, 78vh)',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          borderRadius: '32px',
-          border: 'none',
-        }}
-      >
-        {/* Map */}
+      {/* ── Full-page map — fades into the background at all edges ── */}
+      <div className="absolute inset-0 pointer-events-none">
         <img
           src="/cambridge-map.png"
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
           style={{
-            opacity: 0.55,
+            opacity: 0.50,
             filter: 'grayscale(20%) brightness(1.4) contrast(0.95)',
-            maskImage: 'radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 78%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 78%)',
+            maskImage: 'radial-gradient(ellipse 82% 88% at 50% 50%, black 0%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 82% 88% at 50% 50%, black 0%, transparent 100%)',
           }}
         />
-
-        {/* Story circles — floating */}
-        {mockCircles.map((p, i) => (
-          <div
-            key={p.handle}
-            className="absolute splash-float"
-            style={{
-              top: circlePositions[i].top,
-              left: circlePositions[i].left,
-              animationDuration: floatConfig[i].duration,
-              animationDelay: `${parseFloat(floatConfig[i].delay) + 0.6}s`,
-            }}
-          >
-            <MockProfileCircle profile={p} style={{ transform: `rotate(${circlePositions[i].rotate})`, opacity: 0.78 }} />
-          </div>
-        ))}
-
-        {/* Centre vignette — softened so map breathes */}
+        {/* Centre vignette — darkens the text area for readability */}
         <div
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse 44% 70% at 50% 50%, rgba(28,43,58,0.82) 0%, rgba(28,43,58,0.45) 52%, rgba(28,43,58,0.0) 100%)',
+            background: 'radial-gradient(ellipse 48% 58% at 50% 50%, rgba(28,43,58,0.88) 0%, rgba(28,43,58,0.48) 52%, rgba(28,43,58,0.0) 100%)',
           }}
         />
       </div>
+
+      {/* ── Floating profile circles — scattered across the full viewport ── */}
+      {mockCircles.map((p, i) => (
+        <div
+          key={p.handle}
+          className="absolute splash-float pointer-events-none"
+          style={{
+            top: circlePositions[i].top,
+            left: circlePositions[i].left,
+            animationDuration: floatConfig[i].duration,
+            animationDelay: `${parseFloat(floatConfig[i].delay) + 0.6}s`,
+          }}
+        >
+          <MockProfileCircle profile={p} style={{ transform: `rotate(${circlePositions[i].rotate})`, opacity: 0.82 }} />
+        </div>
+      ))}
 
       {/* ── Top-left logo ── */}
       <div className="absolute top-5 left-6 z-20 flex items-center gap-2">
@@ -162,7 +159,7 @@ export default function ComingSoon() {
 
         {/* Heading */}
         <h1
-          className="text-5xl sm:text-6xl font-extrabold text-white mb-4 leading-tight"
+          className="text-5xl sm:text-6xl font-extrabold text-white mb-5 leading-tight"
           style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
         >
           Something<br />
@@ -170,9 +167,13 @@ export default function ComingSoon() {
           is coming.
         </h1>
 
-        {/* Subtitle */}
-        <p className="text-white/60 text-base leading-relaxed max-w-sm mb-8" style={{ fontFamily: "'Inter', sans-serif" }}>
-          Connecting Cambridge businesses with a community of verified micro-creators.
+        {/* Subtitle — brighter with a mint accent on the key phrase */}
+        <p
+          className="text-base sm:text-lg leading-relaxed max-w-sm mb-8"
+          style={{ fontFamily: "'Inter', sans-serif", color: 'rgba(255,255,255,0.82)' }}
+        >
+          Connecting Cambridge businesses with a community of{' '}
+          <span style={{ color: '#6BE6B0', fontWeight: 600 }}>verified micro-creators</span>.
         </p>
 
         {/* Email capture */}
