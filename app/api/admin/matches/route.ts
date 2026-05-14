@@ -8,7 +8,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('matches')
-    .select('id, status, created_at, punt_code, offer:offers(title, value_gbp, fee_gbp, invite_type), creator:profiles!matches_creator_id_fkey(display_name, instagram_handle), business:profiles!matches_business_id_fkey(business_name, display_name)')
+    .select('id, status, created_at, punt_code, offer:offers(title, value_gbp, fee_gbp, invite_type, posts_per_month, duration_months), creator:profiles!matches_creator_id_fkey(id, display_name, instagram_handle, follower_count, avatar_url), business:profiles!matches_business_id_fkey(id, business_name, display_name, category, address_line, instagram_handle, website_url, avatar_url)')
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
