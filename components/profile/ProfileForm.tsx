@@ -461,26 +461,26 @@ export function ProfileForm({ role, initial, userId, onSaved }: Props) {
             </div>
           )}
 
-          {/* Follower count — always editable, auto-filled from lookup */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              Instagram followers
-            </label>
-            <input
-              type="number"
-              min={0}
-              placeholder="e.g. 5000"
-              value={form.follower_count ?? ''}
-              onChange={e => setForm(f => ({ ...f, follower_count: e.target.value ? parseInt(e.target.value) : null }))}
-              className="w-full px-4 py-3 rounded-xl border text-sm bg-white text-[#1C2B3A] placeholder-[#9ca3af] transition-all outline-none border-black/10 focus:border-[#F5B800] focus:ring-2 focus:ring-[#F5B800]/20"
-              style={{ fontFamily: "'Inter', sans-serif" }}
-            />
-            {form.follower_count != null && form.follower_count < 1000 && (
-              <p className="text-xs font-medium" style={{ color: '#F5B800' }}>
-                We recommend creators with 1,000+ followers — your profile may be flagged for review.
-              </p>
-            )}
-          </div>
+          {/* Follower count — read-only, set via API sync only */}
+          {!lookupData && form.follower_count != null && (
+            <div
+              className="flex items-center justify-between rounded-xl px-4 py-3"
+              style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.08)' }}
+            >
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Instagram followers</p>
+                <p className="text-sm font-bold text-[#1C2B3A] mt-0.5" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                  {form.follower_count.toLocaleString()}
+                </p>
+              </div>
+              <p className="text-[10px] text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>Tap → above to re-sync</p>
+            </div>
+          )}
+          {form.follower_count != null && form.follower_count < 1000 && (
+            <p className="text-xs font-medium" style={{ color: '#F5B800' }}>
+              We recommend creators with 1,000+ followers — your profile may be flagged for review.
+            </p>
+          )}
 
           {/* TikTok handle with lookup */}
           <div className="flex flex-col gap-1.5">
