@@ -84,7 +84,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
     })
     const data = await res.json()
     if (!res.ok) toast.error(data.error ?? 'Failed to update')
-    else { toast.success('Updated'); onUpdated(data); setShowPostForm(false) }
+    else { toast.success('Updated'); onUpdated(data) }
     setLoading(false)
   }
 
