@@ -155,16 +155,66 @@ export async function emailWelcomeCreator(opts: { email: string; name: string })
 }
 
 export async function emailWaitlistConfirmation(opts: { email: string }) {
-  await send(
-    opts.email,
-    `You're on the list — Punt & Prominence`,
-    wrap(`
-      <h2 style="font-size:20px;font-weight:700;margin:0 0 8px;">You're on the list.</h2>
-      <p style="color:#6b7280;margin:0 0 16px;">Thanks for your interest in Punt & Prominence — Cambridge's local creator marketplace.</p>
-      <p style="color:#6b7280;margin:0 0 24px;">We're opening doors to a small group of Cambridge businesses and creators later this year. We'll be in touch when your spot is ready.</p>
-      <p style="color:#9ca3af;font-size:13px;">In the meantime, feel free to reply to this email with any questions.</p>
-    `)
-  )
+  const html = `
+    <div style="background:#f3f4f6;padding:40px 16px;font-family:Arial,Helvetica,sans-serif;">
+      <div style="max-width:520px;margin:0 auto;border-radius:16px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.10);">
+
+        <!-- Hero -->
+        <div style="background:#1C2B3A;padding:44px 36px 36px;text-align:center;">
+          <p style="font-family:'Courier New',Courier,monospace;font-size:11px;font-weight:700;color:#F5B800;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 20px;">★ &nbsp;Punt &amp; Prominence</p>
+          <h1 style="font-size:38px;font-weight:800;color:#ffffff;margin:0 0 10px;line-height:1.1;font-family:Georgia,'Times New Roman',serif;">You're on<br>the list.</h1>
+          <p style="font-size:13px;color:rgba(255,255,255,0.42);margin:0 0 24px;letter-spacing:0.05em;">Cambridge, UK &nbsp;·&nbsp; Launching 2026</p>
+          <div style="width:44px;height:3px;background:#F5B800;border-radius:2px;margin:0 auto;"></div>
+        </div>
+
+        <!-- Body -->
+        <div style="background:#ffffff;padding:36px 36px 28px;">
+          <div style="display:inline-block;background:rgba(107,230,176,0.12);border:1px solid rgba(107,230,176,0.35);border-radius:999px;padding:5px 14px;margin-bottom:22px;">
+            <span style="color:#059669;font-size:12px;font-weight:700;">✓ &nbsp;Confirmed</span>
+          </div>
+          <p style="font-size:16px;font-weight:700;color:#1C2B3A;margin:0 0 10px;">We'll be in touch.</p>
+          <p style="font-size:14px;color:#6b7280;margin:0;line-height:1.75;">
+            We're building Cambridge's most focused creator network — connecting local businesses with verified micro-creators who have real, engaged local audiences. You're among the first to hear about it.
+          </p>
+        </div>
+
+        <!-- Stats band -->
+        <div style="background:#f8f9fa;border-top:1px solid #efefef;border-bottom:1px solid #efefef;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="text-align:center;padding:20px 12px;">
+                <p style="font-size:26px;font-weight:800;color:#1C2B3A;margin:0;font-family:Georgia,serif;">30</p>
+                <p style="font-size:9px;color:#9ca3af;margin:5px 0 0;text-transform:uppercase;letter-spacing:0.12em;font-family:'Courier New',Courier,monospace;">Verified creators</p>
+              </td>
+              <td style="text-align:center;padding:20px 12px;border-left:1px solid #e5e7eb;">
+                <p style="font-size:26px;font-weight:800;color:#F5B800;margin:0;font-family:Georgia,serif;">30K+</p>
+                <p style="font-size:9px;color:#9ca3af;margin:5px 0 0;text-transform:uppercase;letter-spacing:0.12em;font-family:'Courier New',Courier,monospace;">Local followers</p>
+              </td>
+              <td style="text-align:center;padding:20px 12px;border-left:1px solid #e5e7eb;">
+                <p style="font-size:26px;font-weight:800;color:#1C2B3A;margin:0;font-family:Georgia,serif;">20</p>
+                <p style="font-size:9px;color:#9ca3af;margin:5px 0 0;text-transform:uppercase;letter-spacing:0.12em;font-family:'Courier New',Courier,monospace;">Founding spots</p>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Reply CTA -->
+        <div style="background:#ffffff;padding:24px 36px;text-align:center;">
+          <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.6;">
+            Questions? Just reply to this email or reach us at<br>
+            <a href="mailto:hello@puntandprominence.co.uk" style="color:#1C2B3A;font-weight:600;text-decoration:none;">hello@puntandprominence.co.uk</a>
+          </p>
+        </div>
+
+        <!-- Dark footer -->
+        <div style="background:#1C2B3A;padding:16px 36px;text-align:center;">
+          <p style="font-size:9px;color:rgba(255,255,255,0.25);margin:0;letter-spacing:0.14em;text-transform:uppercase;font-family:'Courier New',Courier,monospace;">★ &nbsp;Punt &amp; Prominence &nbsp;·&nbsp; Cambridge, UK</p>
+        </div>
+
+      </div>
+    </div>
+  `
+  await send(opts.email, `You're on the list — Punt & Prominence`, html)
 }
 
 export async function emailWaitlistNotify(opts: { email: string }) {
