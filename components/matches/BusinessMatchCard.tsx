@@ -14,8 +14,7 @@ const STATUS_META: Record<string, {
   text: string
   contextual: (isRetainer: boolean) => string
 }> = {
-  pending:   { border: '#F5B800', bg: 'rgba(245,184,0,0.12)',    text: '#b45309', contextual: r => r ? 'Awaiting your activation' : 'Awaiting visit' },
-  visited:   { border: '#818cf8', bg: 'rgba(99,102,241,0.1)',    text: '#4f46e5', contextual: () => 'Visited · awaiting post' },
+  accepted:  { border: '#F5B800', bg: 'rgba(245,184,0,0.12)',    text: '#b45309', contextual: r => r ? 'Awaiting your activation' : 'Awaiting post' },
   posted:    { border: '#C084FC', bg: 'rgba(192,132,252,0.12)',  text: '#9333ea', contextual: () => 'Post ready to verify' },
   verified:  { border: '#22c55e', bg: 'rgba(34,197,94,0.1)',     text: '#16a34a', contextual: () => 'Collab complete' },
   active:    { border: '#6BE6B0', bg: 'rgba(107,230,176,0.12)',  text: '#059669', contextual: () => 'Arrangement active' },
@@ -40,12 +39,12 @@ export function BusinessMatchCard({ match, currentUserId, onUpdated }: Props) {
   const [deliverableLoading, setDeliverableLoading] = useState<string | null>(null)
 
   const isRetainer = match.invite?.invite_type === 'retainer'
-  const meta = STATUS_META[match.status] ?? STATUS_META.pending
+  const meta = STATUS_META[match.status] ?? STATUS_META.accepted
   const isNew = Date.now() - new Date(match.created_at).getTime() < 48 * 3_600_000
   const isDone = match.status === 'verified' || match.status === 'completed'
   const isActionNeeded = (
     (!isRetainer && match.status === 'posted') ||
-    (isRetainer && match.status === 'pending') ||
+    (isRetainer && match.status === 'accepted') ||
     (isRetainer && match.status === 'active' && (match.deliverables ?? []).some(d => d.status !== 'verified'))
   )
 
@@ -237,7 +236,7 @@ export function BusinessMatchCard({ match, currentUserId, onUpdated }: Props) {
           </div>
         )}
 
-        {isRetainer && match.status === 'pending' && (
+        {isRetainer && match.status === 'accepted' && (
           <div className="flex flex-col gap-1.5 px-5 pb-4">
             <Button onClick={() => updateStatus('active')} loading={loading}>
               Activate arrangement
@@ -258,7 +257,7 @@ export function BusinessMatchCard({ match, currentUserId, onUpdated }: Props) {
         )}
 
         {/* Retainer deliverables — always visible */}
-        {isRetainer && match.status !== 'pending' && (
+        {isRetainer && match.status !== 'accepted' && (
           <div className="px-5 pb-4 flex flex-col gap-2">
             {(match.deliverables ?? []).length === 0 ? (
               <p className="text-sm text-gray-400 italic">No posts submitted yet.</p>

@@ -9,8 +9,7 @@ import { formatGBP, isValidUrl, normalizeUrl } from '@/lib/utils'
 import type { Match, MatchDeliverable } from '@/lib/types'
 
 const STRIP_COLOR: Record<string, string> = {
-  pending:   '#F5B800',
-  visited:   '#818cf8',
+  accepted:  '#F5B800',
   posted:    '#C084FC',
   verified:  '#22c55e',
   active:    '#6BE6B0',
@@ -18,8 +17,7 @@ const STRIP_COLOR: Record<string, string> = {
 }
 
 const STATUS_PILL: Record<string, { bg: string; text: string }> = {
-  pending:   { bg: 'rgba(245,184,0,0.1)',    text: '#b45309' },
-  visited:   { bg: 'rgba(99,102,241,0.1)',   text: '#4f46e5' },
+  accepted:  { bg: 'rgba(245,184,0,0.1)',    text: '#b45309' },
   posted:    { bg: 'rgba(192,132,252,0.12)', text: '#9333ea' },
   verified:  { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a' },
   active:    { bg: 'rgba(107,230,176,0.12)', text: '#059669' },
@@ -27,8 +25,7 @@ const STATUS_PILL: Record<string, { bg: string; text: string }> = {
 }
 
 function nextStepLabel(status: string, isRetainer: boolean): string {
-  if (status === 'pending')   return isRetainer ? 'Awaiting business activation' : 'Visit the venue, then submit your post link'
-  if (status === 'visited')   return 'Visit done — now submit your post link'
+  if (status === 'accepted')  return isRetainer ? 'Awaiting business activation' : 'Visit the venue, then submit your post link'
   if (status === 'posted')    return 'Post submitted · awaiting verification'
   if (status === 'verified')  return 'Verified and complete'
   if (status === 'active')    return 'Submit your monthly post'
@@ -64,7 +61,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
   const isRetainer = match.invite?.invite_type === 'retainer'
   const isDone     = match.status === 'verified' || match.status === 'completed'
   const strip      = STRIP_COLOR[match.status] ?? '#94a3b8'
-  const pill       = STATUS_PILL[match.status] ?? STATUS_PILL.pending
+  const pill       = STATUS_PILL[match.status] ?? STATUS_PILL.accepted
 
   const invite       = match.invite
   const business     = invite?.business ?? match.business
@@ -112,7 +109,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
     const res = await fetch(`/api/matches/${match.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'pending', post_url: null }),
+      body: JSON.stringify({ status: 'accepted', post_url: null }),
     })
     const data = await res.json()
     if (!res.ok) toast.error(data.error ?? 'Failed to remove link')
@@ -259,7 +256,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       </div>
 
       {/* ── One-off: submit post ── */}
-      {!isRetainer && (match.status === 'pending' || match.status === 'visited') && (
+      {!isRetainer && match.status === 'accepted' && (
         <div className="px-5 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
           {!showPostForm ? (
             <Button size="sm" onClick={() => setShowPostForm(true)}>
@@ -357,7 +354,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       )}
 
       {/* ── Retainer: deliverables ── */}
-      {isRetainer && match.status !== 'pending' && (
+      {isRetainer && match.status !== 'accepted' && (
         <div className="px-5 py-4 flex flex-col gap-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
           {(match.deliverables ?? []).length === 0 && match.status === 'active' && (
             <p className="text-xs text-gray-400 italic">No posts submitted yet for this month.</p>

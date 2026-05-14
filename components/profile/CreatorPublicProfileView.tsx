@@ -12,8 +12,7 @@ function fmt(n: number): string {
 }
 
 const STATUS_META: Record<string, { label: string; bg: string; text: string }> = {
-  pending:   { label: 'In progress', bg: 'rgba(245,184,0,0.12)',   text: '#b45309' },
-  visited:   { label: 'Visited',     bg: 'rgba(99,102,241,0.1)',   text: '#4f46e5' },
+  accepted:  { label: 'In progress', bg: 'rgba(245,184,0,0.12)',   text: '#b45309' },
   posted:    { label: 'Post ready',  bg: 'rgba(192,132,252,0.12)', text: '#9333ea' },
   verified:  { label: 'Verified',    bg: 'rgba(34,197,94,0.1)',    text: '#16a34a' },
   active:    { label: 'Active',      bg: 'rgba(107,230,176,0.12)', text: '#059669' },
@@ -312,7 +311,7 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
             {[...matches]
               .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
               .map((m, i) => {
-                const meta = STATUS_META[m.status] ?? STATUS_META.pending
+                const meta = STATUS_META[m.status] ?? STATUS_META.accepted
                 const isRetainer = m.offer?.invite_type === 'retainer'
                 const value = isRetainer ? (m.offer?.fee_gbp ?? 0) : (m.offer?.value_gbp ?? 0)
                 return (

@@ -4,7 +4,7 @@ import { formatGBP, formatDate } from '@/lib/utils'
 import { ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 
-type Status = 'pending' | 'visited' | 'posted' | 'verified'
+type Status = 'accepted' | 'posted' | 'verified'
 
 interface MatchEntry {
   id: string
@@ -46,19 +46,17 @@ interface CollabGroup {
 }
 
 const STATUS_COLOUR: Record<Status, string> = {
-  pending: '#F5B800',
-  visited: '#6BE6B0',
+  accepted: '#F5B800',
   posted: '#C084FC',
   verified: '#22c55e',
 }
 
 const STATUS_NEXT: Partial<Record<Status, Status>> = {
-  pending: 'visited',
-  visited: 'posted',
+  accepted: 'posted',
   posted: 'verified',
 }
 
-const FILTERS = ['all', 'pending', 'visited', 'posted', 'verified'] as const
+const FILTERS = ['all', 'accepted', 'posted', 'verified'] as const
 type Filter = typeof FILTERS[number]
 
 function SlotDots({ total, claimed }: { total: number; claimed: number }) {

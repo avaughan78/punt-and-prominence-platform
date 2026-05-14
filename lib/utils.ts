@@ -21,7 +21,7 @@ export function formatDate(iso: string): string {
 
 export function statusLabel(status: string): string {
   const labels: Record<string, string> = {
-    pending: 'Pending',
+    accepted: 'Accepted',
     posted: 'Post submitted',
     verified: 'Verified',
     active: 'Active',
@@ -32,8 +32,7 @@ export function statusLabel(status: string): string {
 
 export function statusColor(status: string): string {
   const colors: Record<string, string> = {
-    pending: '#F5B800',
-    visited: '#6BE6B0',
+    accepted: '#F5B800',
     posted: '#C084FC',
     verified: '#22c55e',
   }

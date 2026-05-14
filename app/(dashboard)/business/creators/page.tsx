@@ -1,8 +1,13 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { ExternalLink, Search, BadgeCheck, Bell, User } from 'lucide-react'
+import { Search, BadgeCheck, Bell, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+
+function ConditionalLink({ href, className, children }: { href: string | null; className?: string; children: React.ReactNode }) {
+  if (!href) return <>{children}</>
+  return <a href={href} target="_blank" rel="noopener noreferrer" className={className}>{children}</a>
+}
 
 interface Creator {
   id: string
@@ -71,30 +76,31 @@ function CreatorCard({ creator }: { creator: Creator }) {
         }}
       />
 
-      {/* Avatar — overlapping the band */}
+      {/* Avatar — overlapping the band, links to Instagram if available */}
       <div className="-mt-8 mb-3 shrink-0">
-        {/* Stories-style gradient ring */}
-        <div
-          className="p-[2.5px] rounded-full"
-          style={{ background: creator.instagram_handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(0,0,0,0.12)' }}
-        >
-          <div className="p-[2px] bg-white rounded-full">
-            {creator.avatar_url ? (
-              <img
-                src={creator.avatar_url}
-                alt={creator.display_name}
-                className="w-16 h-16 rounded-full object-cover block"
-              />
-            ) : (
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center text-base font-bold text-white"
-                style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}
-              >
-                {initials}
-              </div>
-            )}
+        <ConditionalLink href={igUrl} className="block">
+          <div
+            className="p-[2.5px] rounded-full"
+            style={{ background: creator.instagram_handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(0,0,0,0.12)' }}
+          >
+            <div className="p-[2px] bg-white rounded-full">
+              {creator.avatar_url ? (
+                <img
+                  src={creator.avatar_url}
+                  alt={creator.display_name}
+                  className="w-16 h-16 rounded-full object-cover block"
+                />
+              ) : (
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center text-base font-bold text-white"
+                  style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}
+                >
+                  {initials}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </ConditionalLink>
       </div>
 
       {/* Name + handle */}
@@ -157,7 +163,6 @@ function CreatorCard({ creator }: { creator: Creator }) {
             className="flex items-center gap-1 text-xs font-medium hover:underline"
             style={{ color: '#3b82f6', fontFamily: "'Inter', sans-serif" }}
           >
-            <ExternalLink className="w-3 h-3 shrink-0" />
             <span className="truncate max-w-[160px]">
               {creator.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
             </span>
@@ -186,17 +191,6 @@ function CreatorCard({ creator }: { creator: Creator }) {
           <Bell className="w-3 h-3" />
           {nudged ? 'Nudge sent' : nudging ? 'Sending…' : 'Nudge creator'}
         </button>
-        {igUrl && (
-          <a
-            href={igUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full py-2 rounded-lg text-xs font-semibold text-center text-white transition-all hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)' }}
-          >
-            View on Instagram
-          </a>
-        )}
       </div>
     </div>
   )

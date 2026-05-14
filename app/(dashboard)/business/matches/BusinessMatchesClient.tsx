@@ -5,7 +5,7 @@ import type { Match, MatchStatus } from '@/lib/types'
 
 const TABS: { label: string; value: MatchStatus | 'all' }[] = [
   { label: 'All', value: 'all' },
-  { label: 'Pending', value: 'pending' },
+  { label: 'Accepted', value: 'accepted' },
   { label: 'Posted', value: 'posted' },
   { label: 'Active', value: 'active' },
   { label: 'Verified', value: 'verified' },
@@ -32,7 +32,7 @@ export function BusinessMatchesClient({ currentUserId }: { currentUserId: string
   const actionCount = matches.filter(m => {
     const isRetainer = m.invite?.invite_type === 'retainer'
     if (!isRetainer && m.status === 'posted') return true
-    if (isRetainer && m.status === 'pending') return true
+    if (isRetainer && m.status === 'accepted') return true
     if (isRetainer && m.status === 'active' && (m.deliverables ?? []).some(d => d.status !== 'verified')) return true
     return false
   }).length

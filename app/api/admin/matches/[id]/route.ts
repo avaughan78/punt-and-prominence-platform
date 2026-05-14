@@ -3,7 +3,7 @@ import { writeAuditLog } from '@/lib/audit'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-const VALID_STATUSES = ['pending', 'visited', 'posted', 'verified'] as const
+const VALID_STATUSES = ['accepted', 'posted', 'verified'] as const
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const guard = await adminGuard()

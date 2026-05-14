@@ -30,12 +30,17 @@ export function InlineMessageThread({ matchId, currentUserId }: Props) {
   const [sending, setSending] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetch(`/api/matches/${matchId}/messages`)
       .then(r => r.json())
       .then(d => { setMessages(Array.isArray(d) ? d : []); setLoaded(true) })
   }, [matchId])
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   useEffect(() => { inputRef.current?.focus() }, [])
 
@@ -120,6 +125,7 @@ export function InlineMessageThread({ matchId, currentUserId }: Props) {
                 </div>
               )
             })}
+            <div ref={bottomRef} />
           </>
         )}
       </div>

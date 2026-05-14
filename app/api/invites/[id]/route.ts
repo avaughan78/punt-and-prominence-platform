@@ -89,7 +89,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       .from('matches')
       .select('id')
       .eq('offer_id', id)
-      .in('status', ['pending', 'visited', 'posted', 'active'])
+      .in('status', ['accepted', 'posted', 'active'])
 
     if (activeMatches && activeMatches.length > 0) {
       const admin = createAdminClient()

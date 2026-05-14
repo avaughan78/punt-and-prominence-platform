@@ -10,8 +10,7 @@ import { formatGBP } from '@/lib/utils'
 import type { Invite, MatchPreview } from '@/lib/types'
 
 const STATUS_META: Record<string, { bg: string; text: string; label: string }> = {
-  pending:   { bg: 'rgba(245,184,0,0.12)',   text: '#b45309', label: 'Awaiting visit' },
-  visited:   { bg: 'rgba(99,102,241,0.1)',   text: '#4f46e5', label: 'Visited' },
+  accepted:  { bg: 'rgba(245,184,0,0.12)',   text: '#b45309', label: 'Accepted' },
   posted:    { bg: 'rgba(192,132,252,0.12)', text: '#9333ea', label: 'Post ready' },
   verified:  { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a', label: 'Complete' },
   active:    { bg: 'rgba(107,230,176,0.12)', text: '#059669', label: 'Active' },
@@ -20,7 +19,7 @@ const STATUS_META: Record<string, { bg: string; text: string; label: string }> =
 
 // Most urgent first
 const STATUS_PRIORITY: Record<string, number> = {
-  posted: 0, pending: 1, visited: 2, active: 3, verified: 4, completed: 5,
+  posted: 0, accepted: 1, active: 2, verified: 3, completed: 4,
 }
 
 function fmt(n: number) {
@@ -73,7 +72,7 @@ function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: Creat
     if (!msgOpen) setUnread(0)
   }
 
-  const statusLabel = match.status === 'pending' && isRetainer ? 'Awaiting activation' : meta.label
+  const statusLabel = match.status === 'accepted' && isRetainer ? 'Awaiting activation' : meta.label
 
   return (
     <div>
@@ -145,7 +144,7 @@ function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: Creat
           </div>
         )}
 
-        {isRetainer && match.status === 'pending' && (
+        {isRetainer && match.status === 'accepted' && (
           <Button size="sm" loading={loading} onClick={() => updateStatus('active')} className="flex-shrink-0">
             Activate
           </Button>
@@ -208,6 +207,7 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
   const isRetainer = invite.invite_type === 'retainer'
   const isFull = invite.slots_claimed >= invite.slots_total
   const isActive = invite.is_active
+  const hasLiveMatches = matches.some(m => !['verified', 'completed'].includes(m.status))
 
   const stripColor = !isActive
     ? '#94a3b8'
@@ -351,6 +351,8 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
             size="sm"
             variant={isActive ? 'ghost' : 'secondary'}
             loading={toggling}
+            disabled={isActive && hasLiveMatches}
+            title={isActive && hasLiveMatches ? 'Cannot pause — creators still in progress' : undefined}
             onClick={handleToggle}
           >
             {isActive ? 'Pause' : 'Activate'}

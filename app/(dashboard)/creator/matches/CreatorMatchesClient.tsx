@@ -8,7 +8,7 @@ import type { Match } from '@/lib/types'
 type Filter = 'all' | 'todo' | 'submitted' | 'done' | 'one_off' | 'retainer'
 
 function isTodo(m: Match) {
-  if (m.status === 'pending' || m.status === 'visited') return true
+  if (m.status === 'accepted') return true
   if (m.invite?.invite_type === 'retainer' && m.status === 'active') {
     return (m.deliverables ?? []).some(d => d.status !== 'verified')
   }

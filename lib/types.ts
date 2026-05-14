@@ -1,6 +1,6 @@
 export type Role = 'business' | 'creator'
 
-export type MatchStatus = 'pending' | 'visited' | 'posted' | 'verified' | 'active' | 'completed'
+export type MatchStatus = 'accepted' | 'posted' | 'verified' | 'active' | 'completed'
 
 export type InviteCategory = 'dining' | 'retail' | 'experience' | 'fitness' | 'beauty' | 'other'
 

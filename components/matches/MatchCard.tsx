@@ -11,7 +11,7 @@ import { MatchMessages } from '@/components/matches/MatchMessages'
 import { formatDate, formatGBP } from '@/lib/utils'
 import type { Match, MatchDeliverable, Role } from '@/lib/types'
 
-const STEPS = ['pending', 'posted', 'verified'] as const
+const STEPS = ['accepted', 'posted', 'verified'] as const
 
 interface Props {
   match: Match
@@ -212,7 +212,7 @@ export function MatchCard({ match, role, currentUserId, onUpdated }: Props) {
       )}
 
       {/* Retainer: monthly deliverables */}
-      {isRetainer && match.status !== 'pending' && (
+      {isRetainer && match.status !== 'accepted' && (
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
@@ -293,10 +293,10 @@ export function MatchCard({ match, role, currentUserId, onUpdated }: Props) {
         {!isRetainer && role === 'business' && match.status === 'posted' && (
           <Button size="sm" onClick={() => updateStatus('verified')} loading={loading}>Verify post</Button>
         )}
-        {!isRetainer && role === 'creator' && match.status === 'pending' && !showPostUrl && (
+        {!isRetainer && role === 'creator' && match.status === 'accepted' && !showPostUrl && (
           <Button size="sm" onClick={() => setShowPostUrl(true)}>Submit post link</Button>
         )}
-        {!isRetainer && role === 'creator' && match.status === 'pending' && showPostUrl && (
+        {!isRetainer && role === 'creator' && match.status === 'accepted' && showPostUrl && (
           <div className="flex flex-col gap-2">
             <Input label="Post URL" placeholder="https://www.instagram.com/p/..." value={postUrl} onChange={e => setPostUrl(e.target.value)} />
             <div className="flex gap-2">
@@ -310,7 +310,7 @@ export function MatchCard({ match, role, currentUserId, onUpdated }: Props) {
         )}
 
         {/* Retainer actions */}
-        {isRetainer && role === 'business' && match.status === 'pending' && (
+        {isRetainer && role === 'business' && match.status === 'accepted' && (
           <div className="flex flex-col gap-1">
             <Button size="sm" onClick={() => updateStatus('active')} loading={loading}>Activate arrangement</Button>
             <p className="text-xs text-gray-400">Confirm you want to work with this creator.</p>

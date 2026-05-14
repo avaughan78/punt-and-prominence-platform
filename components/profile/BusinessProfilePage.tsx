@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { MapPin, Pencil, ExternalLink, Star } from 'lucide-react'
+import { MapPin, Pencil, ExternalLink } from 'lucide-react'
 import { ProfileForm, type ProfileFormData } from './ProfileForm'
 import { CloseAccountSection } from '@/components/account/CloseAccountSection'
 import { CategoryBadge } from '@/components/ui/Badge'
@@ -82,29 +82,25 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
         style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 8px 40px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.06)' }}
       >
         {/* Hero band */}
-        <div className="relative" style={{ height: '110px' }}>
+        <div className="relative" style={{ height: '72px' }}>
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 60%, #1a3a52 100%)' }}
+            style={{ background: 'linear-gradient(120deg, #1C2B3A 0%, #243d56 100%)' }}
           />
-          {/* Decorative star */}
-          <div className="absolute right-7 top-4 opacity-[0.06]">
-            <Star className="w-20 h-20" style={{ color: '#F5B800' }} />
-          </div>
-          {/* Gold accent line */}
-          <div className="absolute bottom-0 left-0 right-0 h-[2px]" style={{ background: 'linear-gradient(90deg, transparent, #F5B800 30%, #F5B800 70%, transparent)' }} />
+          {/* Subtle gold accent line */}
+          <div className="absolute bottom-0 left-0 right-0 h-[1.5px]" style={{ background: 'linear-gradient(90deg, transparent 10%, #F5B800 40%, #F5B800 60%, transparent 90%)', opacity: 0.5 }} />
 
           {/* Avatar */}
           <div className="absolute left-6" style={{ bottom: 0, transform: 'translateY(50%)' }}>
             <div
-              className="p-[3px] rounded-full"
-              style={{ background: profile.instagram_handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(255,255,255,0.25)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
+              className="p-[2.5px] rounded-full"
+              style={{ background: profile.instagram_handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(255,255,255,0.2)', boxShadow: '0 2px 12px rgba(0,0,0,0.25)' }}
             >
-              <div className="p-[2.5px] bg-white rounded-full">
+              <div className="p-[2px] bg-white rounded-full">
                 {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt={bizName} className="w-24 h-24 rounded-full object-cover block" />
+                  <img src={profile.avatar_url} alt={bizName} className="w-20 h-20 rounded-full object-cover block" />
                 ) : (
-                  <div className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold text-white" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}>
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-bold text-white" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}>
                     {initials}
                   </div>
                 )}
@@ -114,7 +110,7 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
         </div>
 
         {/* Body */}
-        <div className="px-6 pt-14 pb-6 flex flex-col gap-6">
+        <div className="px-6 pt-12 pb-6 flex flex-col gap-6">
 
           {/* Name + category row */}
           <div className="flex items-start justify-between gap-4">

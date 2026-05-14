@@ -8,8 +8,7 @@ import { formatGBP } from '@/lib/utils'
 import type { Invite, MatchPreview } from '@/lib/types'
 
 const STATUS_COLOUR: Record<string, { border: string; bg: string; text: string; label: string }> = {
-  pending:   { border: '#F5B800', bg: 'rgba(245,184,0,0.15)',    text: '#b45309', label: 'Pending' },
-  visited:   { border: '#818cf8', bg: 'rgba(99,102,241,0.12)',   text: '#4f46e5', label: 'Visited' },
+  accepted:  { border: '#F5B800', bg: 'rgba(245,184,0,0.15)',    text: '#b45309', label: 'Accepted' },
   posted:    { border: '#C084FC', bg: 'rgba(192,132,252,0.15)',  text: '#9333ea', label: 'Posted' },
   verified:  { border: '#22c55e', bg: 'rgba(34,197,94,0.12)',    text: '#16a34a', label: 'Verified' },
   active:    { border: '#6BE6B0', bg: 'rgba(107,230,176,0.15)',  text: '#059669', label: 'Active' },
@@ -176,7 +175,7 @@ export function ClaimedCollabCard({ invite, onToggle, onDelete, onUpdated }: Pro
     else { toast.error('Failed to delete collab'); setDeleting(false) }
   }
 
-  const statusOrder = ['pending', 'visited', 'active', 'posted', 'verified', 'completed']
+  const statusOrder = ['accepted', 'active', 'posted', 'verified', 'completed']
   const sortedMatches = [...matches].sort((a, b) => statusOrder.indexOf(b.status) - statusOrder.indexOf(a.status))
 
   return (
