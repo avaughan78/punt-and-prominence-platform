@@ -29,7 +29,6 @@ export function InlineMessageThread({ matchId, currentUserId }: Props) {
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const [loaded, setLoaded] = useState(false)
-  const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -37,14 +36,6 @@ export function InlineMessageThread({ matchId, currentUserId }: Props) {
       .then(r => r.json())
       .then(d => { setMessages(Array.isArray(d) ? d : []); setLoaded(true) })
   }, [matchId])
-
-  useEffect(() => {
-    if (loaded) setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
-  }, [loaded])
-
-  useEffect(() => {
-    if (messages.length > 0) setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
-  }, [messages])
 
   useEffect(() => { inputRef.current?.focus() }, [])
 
@@ -129,7 +120,6 @@ export function InlineMessageThread({ matchId, currentUserId }: Props) {
                 </div>
               )
             })}
-            <div ref={bottomRef} />
           </>
         )}
       </div>
