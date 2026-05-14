@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Star, MapPin, Lock, Loader2, BadgeCheck } from 'lucide-react'
+import { Star, MapPin, Lock, Loader2, BadgeCheck, ArrowRight, Check } from 'lucide-react'
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
@@ -40,25 +40,12 @@ const mockCards = [
 ]
 
 const mockCircles = [
-  {
-    handle: 'cambridgemarket',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
-  },
-  {
-    handle: 'cambridgenights',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
-  },
-  {
-    handle: 'millroadfood',
-    avatar: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
-  },
-  {
-    handle: 'camcreates',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
-  },
+  { handle: 'cambridgemarket', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
+  { handle: 'cambridgenights', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
+  { handle: 'millroadfood',    avatar: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
+  { handle: 'camcreates',      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
 ]
 
-// Cards scattered across the full rectangle
 const cardPositions = [
   { top: '7%',  left: '2%',  rotate: '-3.5deg' },
   { top: '5%',  left: '73%', rotate:  '2.5deg' },
@@ -66,12 +53,19 @@ const cardPositions = [
   { top: '53%', left: '71%', rotate: '-3deg'   },
 ]
 
-// Circles filling the middle gaps
 const circlePositions = [
-  { top: '38%', left: '27%', rotate: '-2deg' },
-  { top: '10%', left: '46%', rotate:  '3deg' },
+  { top: '38%', left: '27%', rotate: '-2deg'   },
+  { top: '10%', left: '46%', rotate:  '3deg'   },
   { top: '62%', left: '43%', rotate: '-1.5deg' },
-  { top: '36%', left: '61%', rotate:  '2deg' },
+  { top: '36%', left: '61%', rotate:  '2deg'   },
+]
+
+// Float animation durations/delays — staggered so nothing bobs in sync
+const floatConfig = [
+  { duration: '6.0s', delay: '0.0s' },
+  { duration: '7.2s', delay: '1.4s' },
+  { duration: '6.6s', delay: '0.7s' },
+  { duration: '7.8s', delay: '2.1s' },
 ]
 
 // ─── Components ───────────────────────────────────────────────────────────────
@@ -79,7 +73,7 @@ const circlePositions = [
 function MockProfileCard({ profile, style }: { profile: typeof mockCards[0]; style?: React.CSSProperties }) {
   return (
     <div
-      className="absolute bg-white rounded-2xl overflow-hidden shadow-2xl"
+      className="bg-white rounded-2xl overflow-hidden shadow-2xl"
       style={{ width: '168px', ...style }}
     >
       <div className="w-full h-10 shrink-0" style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)' }} />
@@ -123,7 +117,7 @@ function MockProfileCard({ profile, style }: { profile: typeof mockCards[0]; sty
 
 function MockProfileCircle({ profile, style }: { profile: typeof mockCircles[0]; style?: React.CSSProperties }) {
   return (
-    <div className="absolute flex flex-col items-center gap-1.5" style={style}>
+    <div className="flex flex-col items-center gap-1.5" style={style}>
       <div className="p-[3px] rounded-full shadow-xl" style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}>
         <div className="p-[2.5px] bg-white rounded-full">
           <img src={profile.avatar} alt={profile.handle} className="w-12 h-12 rounded-full object-cover block" />
@@ -147,7 +141,10 @@ export default function ComingSoon() {
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  const [email, setEmail] = useState('')
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+
+  async function handlePreview(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(false)
@@ -164,6 +161,18 @@ export default function ComingSoon() {
     }
   }
 
+  async function handleWaitlist(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email || emailStatus === 'loading') return
+    setEmailStatus('loading')
+    const res = await fetch('/api/waitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+    setEmailStatus(res.ok ? 'success' : 'error')
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: '#1C2B3A' }}>
 
@@ -177,55 +186,60 @@ export default function ComingSoon() {
           left: '50%',
           transform: 'translate(-50%, -50%)',
           borderRadius: '32px',
-          border: '1px solid rgba(255,255,255,0.07)',
+          border: '1.5px solid rgba(255,255,255,0.18)',
+          boxShadow: '0 0 0 1px rgba(255,255,255,0.04), inset 0 0 80px rgba(255,255,255,0.02)',
         }}
       >
-        {/* Full map background */}
+        {/* Map */}
         <img
           src="/cambridge-map.png"
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
           style={{
-            opacity: 0.4,
-            filter: 'grayscale(25%) brightness(1.5) contrast(0.9)',
+            opacity: 0.55,
+            filter: 'grayscale(20%) brightness(1.4) contrast(0.95)',
             maskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)',
             WebkitMaskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)',
           }}
         />
 
-        {/* Profile cards — corners */}
+        {/* Profile cards — corners, floating */}
         {mockCards.map((p, i) => (
-          <MockProfileCard
+          <div
             key={p.handle}
-            profile={p}
+            className="absolute splash-float"
             style={{
               top: cardPositions[i].top,
               left: cardPositions[i].left,
-              transform: `rotate(${cardPositions[i].rotate})`,
-              opacity: 0.55,
+              animationDuration: floatConfig[i].duration,
+              animationDelay: floatConfig[i].delay,
             }}
-          />
+          >
+            <MockProfileCard profile={p} style={{ transform: `rotate(${cardPositions[i].rotate})`, opacity: 0.82 }} />
+          </div>
         ))}
 
-        {/* Story circles — middle gaps */}
+        {/* Story circles — middle, floating */}
         {mockCircles.map((p, i) => (
-          <MockProfileCircle
+          <div
             key={p.handle}
-            profile={p}
+            className="absolute splash-float"
             style={{
               top: circlePositions[i].top,
               left: circlePositions[i].left,
-              transform: `rotate(${circlePositions[i].rotate})`,
-              opacity: 0.6,
+              animationDuration: floatConfig[i].duration,
+              animationDelay: `${parseFloat(floatConfig[i].delay) + 0.6}s`,
             }}
-          />
+          >
+            <MockProfileCircle profile={p} style={{ transform: `rotate(${circlePositions[i].rotate})`, opacity: 0.78 }} />
+          </div>
         ))}
 
-        {/* Centre vignette — keeps text readable */}
+        {/* Centre vignette — softened so map breathes */}
         <div
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse 42% 68% at 50% 50%, rgba(28,43,58,0.92) 0%, rgba(28,43,58,0.62) 48%, rgba(28,43,58,0.08) 100%)',
+            background: 'radial-gradient(ellipse 44% 70% at 50% 50%, rgba(28,43,58,0.82) 0%, rgba(28,43,58,0.45) 52%, rgba(28,43,58,0.0) 100%)',
           }}
         />
       </div>
@@ -241,6 +255,7 @@ export default function ComingSoon() {
       {/* ── Main content ── */}
       <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-lg">
 
+        {/* Location badge */}
         <div
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mb-6 text-xs font-medium"
           style={{ background: 'rgba(245,184,0,0.12)', color: '#F5B800', border: '1px solid rgba(245,184,0,0.35)', fontFamily: "'JetBrains Mono', monospace" }}
@@ -249,8 +264,9 @@ export default function ComingSoon() {
           Cambridge, UK
         </div>
 
+        {/* Heading */}
         <h1
-          className="text-5xl sm:text-6xl font-extrabold text-white mb-5 leading-tight"
+          className="text-5xl sm:text-6xl font-extrabold text-white mb-4 leading-tight"
           style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
         >
           Something<br />
@@ -258,14 +274,75 @@ export default function ComingSoon() {
           is coming.
         </h1>
 
-        <p className="text-white/65 text-base leading-relaxed max-w-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
+        {/* Subtitle */}
+        <p className="text-white/60 text-base leading-relaxed max-w-sm mb-8" style={{ fontFamily: "'Inter', sans-serif" }}>
           Connecting Cambridge businesses with a community of verified micro-creators.
         </p>
 
-        <div className="flex items-center gap-3 mt-10 w-full max-w-xs">
-          <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.12)' }} />
-          <span className="text-xs" style={{ color: 'rgba(107,230,176,0.8)', fontFamily: "'JetBrains Mono', monospace" }}>PILOT 2026</span>
-          <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.12)' }} />
+        {/* Email capture */}
+        {emailStatus === 'success' ? (
+          <div
+            className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium"
+            style={{ background: 'rgba(107,230,176,0.12)', border: '1px solid rgba(107,230,176,0.3)', color: '#6BE6B0', fontFamily: "'Inter', sans-serif" }}
+          >
+            <Check className="w-4 h-4 shrink-0" />
+            You&apos;re on the list — we&apos;ll be in touch.
+          </div>
+        ) : (
+          <form onSubmit={handleWaitlist} className="flex items-center gap-2 w-full max-w-sm">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={e => { setEmail(e.target.value); setEmailStatus('idle') }}
+              placeholder="your@email.com"
+              className="flex-1 px-4 py-3 rounded-xl text-sm outline-none transition-all"
+              style={{
+                background: 'rgba(255,255,255,0.07)',
+                border: `1px solid ${emailStatus === 'error' ? 'rgba(248,113,113,0.5)' : 'rgba(255,255,255,0.15)'}`,
+                color: 'white',
+                fontFamily: "'Inter', sans-serif",
+              }}
+            />
+            <button
+              type="submit"
+              disabled={emailStatus === 'loading' || !email}
+              className="shrink-0 flex items-center gap-1.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-50"
+              style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+            >
+              {emailStatus === 'loading'
+                ? <Loader2 className="w-4 h-4 animate-spin" />
+                : <><span>Notify me</span><ArrowRight className="w-3.5 h-3.5" /></>
+              }
+            </button>
+          </form>
+        )}
+
+        {emailStatus === 'error' && (
+          <p className="text-xs mt-2" style={{ color: 'rgba(248,113,113,0.8)', fontFamily: "'Inter', sans-serif" }}>
+            Something went wrong — try again.
+          </p>
+        )}
+
+        {/* Stats */}
+        <div className="flex items-center gap-8 mt-10">
+          {[
+            { num: '30',   label: 'Verified creators' },
+            { num: '30K+', label: 'Local followers'   },
+            { num: '20',   label: 'Founding spots'    },
+          ].map((stat, i) => (
+            <div key={stat.label} className="flex items-center gap-8">
+              {i > 0 && <div className="w-px h-8 self-center" style={{ background: 'rgba(255,255,255,0.1)' }} />}
+              <div className="flex flex-col items-center">
+                <span className="text-2xl font-extrabold text-white leading-none" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                  {stat.num}
+                </span>
+                <span className="text-[10px] mt-1 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  {stat.label}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -282,7 +359,7 @@ export default function ComingSoon() {
           </button>
         ) : (
           <form
-            onSubmit={handleSubmit}
+            onSubmit={handlePreview}
             className="flex items-center gap-2 rounded-xl px-3 py-2.5 shadow-xl"
             style={{ background: 'rgba(28,43,58,0.95)', border: `1px solid ${error ? 'rgba(245,184,0,0.4)' : 'rgba(255,255,255,0.1)'}`, backdropFilter: 'blur(12px)' }}
           >
