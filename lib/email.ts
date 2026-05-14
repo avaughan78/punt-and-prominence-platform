@@ -154,6 +154,30 @@ export async function emailWelcomeCreator(opts: { email: string; name: string })
   )
 }
 
+export async function emailWaitlistConfirmation(opts: { email: string }) {
+  await send(
+    opts.email,
+    `You're on the list — Punt & Prominence`,
+    wrap(`
+      <h2 style="font-size:20px;font-weight:700;margin:0 0 8px;">You're on the list.</h2>
+      <p style="color:#6b7280;margin:0 0 16px;">Thanks for your interest in Punt & Prominence — Cambridge's local creator marketplace.</p>
+      <p style="color:#6b7280;margin:0 0 24px;">We're opening doors to a small group of Cambridge businesses and creators later this year. We'll be in touch when your spot is ready.</p>
+      <p style="color:#9ca3af;font-size:13px;">In the meantime, feel free to reply to this email with any questions.</p>
+    `)
+  )
+}
+
+export async function emailWaitlistNotify(opts: { email: string }) {
+  await send(
+    'hello@puntandprominence.co.uk',
+    `New waitlist signup: ${opts.email}`,
+    wrap(`
+      <h2 style="font-size:20px;font-weight:700;margin:0 0 8px;">New waitlist signup</h2>
+      <p style="color:#6b7280;margin:0;"><strong>${opts.email}</strong> just joined the waitlist.</p>
+    `)
+  )
+}
+
 export async function emailMatchVerified(opts: {
   creatorEmail: string
   creatorName: string

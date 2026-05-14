@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { emailWaitlistConfirmation, emailWaitlistNotify } from '@/lib/email'
 
 const COOKIE = 'waitlist_done'
 const COOKIE_OPTS = {
@@ -26,11 +27,22 @@ export async function POST(req: Request) {
   const supabase = await createClient()
   const { error } = await supabase.from('waitlist').insert({ email: email.toLowerCase().trim() })
 
-  if (error && error.code !== '23505') {
+  if (error) {
+    if (error.code === '23505') {
+      // Duplicate email — set cookie, no emails (already sent first time)
+      const res = NextResponse.json({ ok: true })
+      res.cookies.set(COOKIE, '1', COOKIE_OPTS)
+      return res
+    }
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 
-  // Success (new or duplicate email) — set cookie so this browser can't resubmit
+  // New signup — send confirmation to submitter and notify admin
+  await Promise.all([
+    emailWaitlistConfirmation({ email }),
+    emailWaitlistNotify({ email }),
+  ])
+
   const res = NextResponse.json({ ok: true })
   res.cookies.set(COOKIE, '1', COOKIE_OPTS)
   return res
