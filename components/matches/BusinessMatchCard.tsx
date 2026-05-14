@@ -282,7 +282,7 @@ export function BusinessMatchCard({ match, currentUserId, onUpdated }: Props) {
                   {d.status === 'verified' ? (
                     <Check className="w-4 h-4 text-green-500" />
                   ) : (
-                    <Button size="sm" loading={deliverableLoading === d.id} onClick={() => verifyDeliverable(d.id, d.month_number)}>
+                    <Button size="sm" loading={deliverableLoading === d.id} onClick={() => verifyDeliverable(d.id, d.month_number ?? 0)}>
                       Verify
                     </Button>
                   )}
