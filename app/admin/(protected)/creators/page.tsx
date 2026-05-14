@@ -1,17 +1,23 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Creator {
   id: string
   display_name: string
+  email: string | null
   instagram_handle: string | null
+  tiktok_handle: string | null
   follower_count: number | null
+  tiktok_follower_count: number | null
   is_approved: boolean
   created_at: string
   bio: string | null
   website_url: string | null
   avatar_url: string | null
+  match_count: number
 }
 
 export default function AdminCreators() {
@@ -22,6 +28,7 @@ export default function AdminCreators() {
   const [rejectId, setRejectId] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -36,8 +43,11 @@ export default function AdminCreators() {
     setActionLoading(id)
     const res = await fetch(`/api/admin/creators/${id}`, { method: 'DELETE' })
     if (res.ok) {
+      toast.success('Creator deleted')
       setDeleteId(null)
       await load()
+    } else {
+      toast.error('Delete failed')
     }
     setActionLoading(null)
   }
@@ -60,6 +70,11 @@ export default function AdminCreators() {
     if (filter === 'approved') return c.is_approved
     return true
   })
+
+  function formatFollowers(n: number) {
+    if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`
+    return n.toString()
+  }
 
   return (
     <div>
@@ -92,76 +107,167 @@ export default function AdminCreators() {
         <p className="text-sm text-gray-400">No creators found.</p>
       ) : (
         <div className="rounded-2xl overflow-hidden bg-white" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
-          {filtered.map((creator, i) => (
-            <div key={creator.id} className="flex items-center gap-4 px-4 py-4" style={{ borderBottom: i < filtered.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}>
-              {creator.avatar_url ? (
-                <img src={creator.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-100 shrink-0 flex items-center justify-center text-sm font-bold text-gray-400">
-                  {creator.display_name?.[0]?.toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-[#1C2B3A]">{creator.display_name}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${creator.is_approved ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
-                    {creator.is_approved ? 'approved' : 'pending'}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-400">
-                  {creator.instagram_handle ? `@${creator.instagram_handle}` : 'no instagram'}
-                  {creator.follower_count != null ? ` · ${creator.follower_count.toLocaleString()} followers` : ''}
-                </p>
-                {creator.bio && <p className="text-xs text-gray-500 mt-0.5 truncate max-w-sm">{creator.bio}</p>}
-              </div>
-              <div className="flex gap-2 shrink-0">
-                {creator.instagram_handle && (
-                  <a
-                    href={`https://instagram.com/${creator.instagram_handle}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs px-3 py-1.5 rounded-lg font-semibold text-gray-500 hover:text-gray-700 transition-colors"
-                    style={{ border: '1px solid rgba(0,0,0,0.1)' }}
-                  >
-                    Instagram
-                  </a>
-                )}
-                {!creator.is_approved ? (
-                  <>
-                    <Button
-                      size="sm"
-                      loading={actionLoading === creator.id}
-                      onClick={() => handleAction(creator.id, 'approve')}
-                    >
-                      Approve
-                    </Button>
+          {filtered.map((creator, i) => {
+            const isExpanded = expanded === creator.id
+            const isLast = i === filtered.length - 1
+            const totalFollowers = (creator.follower_count ?? 0) + (creator.tiktok_follower_count ?? 0)
+
+            return (
+              <div
+                key={creator.id}
+                style={{ borderBottom: (!isLast || isExpanded) ? '1px solid rgba(0,0,0,0.06)' : 'none' }}
+              >
+                {/* Main row */}
+                <div className="flex items-center gap-4 px-4 py-4">
+                  {/* Avatar */}
+                  {creator.avatar_url ? (
+                    <img src={creator.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-100 shrink-0 flex items-center justify-center text-sm font-bold text-gray-400">
+                      {creator.display_name?.[0]?.toUpperCase()}
+                    </div>
+                  )}
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold text-[#1C2B3A]">{creator.display_name}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${creator.is_approved ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
+                        {creator.is_approved ? 'approved' : 'pending'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {creator.instagram_handle ? `@${creator.instagram_handle}` : 'no instagram'}
+                      {totalFollowers > 0 ? ` · ${formatFollowers(totalFollowers)} followers` : ''}
+                      {creator.email ? (
+                        <> · <a href={`mailto:${creator.email}`} className="hover:text-[#1C2B3A] transition-colors">{creator.email}</a></>
+                      ) : null}
+                    </p>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 shrink-0 items-center">
+                    {creator.instagram_handle && (
+                      <a
+                        href={`https://instagram.com/${creator.instagram_handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs px-3 py-1.5 rounded-lg font-semibold text-gray-500 hover:text-gray-700 transition-colors"
+                        style={{ border: '1px solid rgba(0,0,0,0.1)' }}
+                      >
+                        Instagram
+                      </a>
+                    )}
+                    {!creator.is_approved ? (
+                      <>
+                        <Button size="sm" loading={actionLoading === creator.id} onClick={() => handleAction(creator.id, 'approve')}>
+                          Approve
+                        </Button>
+                        <button
+                          onClick={() => { setRejectId(creator.id); setRejectReason('') }}
+                          className="text-xs px-3 py-1.5 rounded-lg font-semibold text-red-500 hover:bg-red-50 transition-colors"
+                          style={{ border: '1px solid rgba(239,68,68,0.2)' }}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => { setRejectId(creator.id); setRejectReason('') }}
+                        className="text-xs px-3 py-1.5 rounded-lg font-semibold text-red-400 hover:bg-red-50 transition-colors"
+                        style={{ border: '1px solid rgba(0,0,0,0.08)' }}
+                      >
+                        Revoke
+                      </button>
+                    )}
                     <button
-                      onClick={() => { setRejectId(creator.id); setRejectReason('') }}
-                      className="text-xs px-3 py-1.5 rounded-lg font-semibold text-red-500 hover:bg-red-50 transition-colors"
-                      style={{ border: '1px solid rgba(239,68,68,0.2)' }}
+                      onClick={() => setDeleteId(creator.id)}
+                      className="text-xs px-3 py-1.5 rounded-lg font-semibold text-red-400 hover:bg-red-50 transition-colors"
+                      style={{ border: '1px solid rgba(239,68,68,0.15)' }}
                     >
-                      Reject
+                      Delete
                     </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => { setRejectId(creator.id); setRejectReason('') }}
-                    className="text-xs px-3 py-1.5 rounded-lg font-semibold text-red-400 hover:bg-red-50 transition-colors"
-                    style={{ border: '1px solid rgba(0,0,0,0.08)' }}
-                  >
-                    Revoke access
-                  </button>
+                    <button
+                      onClick={() => setExpanded(prev => prev === creator.id ? null : creator.id)}
+                      className="p-1 rounded-lg text-gray-300 hover:text-gray-500 transition-colors"
+                    >
+                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Expanded drawer */}
+                {isExpanded && (
+                  <div className="px-4 pb-4 pt-1" style={{ background: 'rgba(0,0,0,0.015)' }}>
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+
+                      {/* Profile details */}
+                      <div className="rounded-xl bg-white p-3 flex flex-col gap-2" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Profile</p>
+                        {creator.email && (
+                          <div>
+                            <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Email</p>
+                            <a href={`mailto:${creator.email}`} className="text-xs text-[#1C2B3A] hover:underline font-medium">{creator.email}</a>
+                          </div>
+                        )}
+                        {creator.bio && (
+                          <div>
+                            <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Bio</p>
+                            <p className="text-xs text-gray-600 leading-relaxed">{creator.bio}</p>
+                          </div>
+                        )}
+                        {creator.website_url && (
+                          <div>
+                            <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Website</p>
+                            <a href={creator.website_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline truncate block">{creator.website_url}</a>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Joined</p>
+                          <p className="text-xs text-gray-600">{new Date(creator.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                        </div>
+                      </div>
+
+                      {/* Reach */}
+                      <div className="rounded-xl bg-white p-3 flex flex-col gap-2" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Reach</p>
+                        {creator.instagram_handle && (
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Instagram</p>
+                              <a href={`https://instagram.com/${creator.instagram_handle}`} target="_blank" rel="noopener noreferrer"
+                                className="text-xs text-[#1C2B3A] hover:underline font-medium">@{creator.instagram_handle}</a>
+                            </div>
+                            {creator.follower_count != null && (
+                              <p className="text-sm font-bold text-[#1C2B3A]">{formatFollowers(creator.follower_count)}</p>
+                            )}
+                          </div>
+                        )}
+                        {creator.tiktok_handle && (
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">TikTok</p>
+                              <a href={`https://tiktok.com/@${creator.tiktok_handle}`} target="_blank" rel="noopener noreferrer"
+                                className="text-xs text-[#1C2B3A] hover:underline font-medium">@{creator.tiktok_handle}</a>
+                            </div>
+                            {creator.tiktok_follower_count != null && (
+                              <p className="text-sm font-bold text-[#1C2B3A]">{formatFollowers(creator.tiktok_follower_count)}</p>
+                            )}
+                          </div>
+                        )}
+                        <div className="mt-auto pt-1 border-t border-black/5">
+                          <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Matches</p>
+                          <p className="text-sm font-bold text-[#1C2B3A]">
+                            {creator.match_count} {creator.match_count === 1 ? 'match' : 'matches'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
-                <button
-                  onClick={() => setDeleteId(creator.id)}
-                  className="text-xs px-3 py-1.5 rounded-lg font-semibold text-red-400 hover:bg-red-50 transition-colors"
-                  style={{ border: '1px solid rgba(239,68,68,0.15)' }}
-                >
-                  Delete
-                </button>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
