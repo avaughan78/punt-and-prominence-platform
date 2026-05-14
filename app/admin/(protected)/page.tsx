@@ -86,7 +86,10 @@ export default async function AdminOverview() {
       </div>
 
       <div>
-        <h2 className="font-semibold text-[#1C2B3A] mb-3" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Recent matches</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Recent matches</h2>
+          <Link href="/admin/matches" className="text-xs font-semibold text-gray-400 hover:text-[#1C2B3A] transition-colors">View all →</Link>
+        </div>
         {!recentMatches.length ? (
           <p className="text-sm text-gray-400">No matches yet.</p>
         ) : (
@@ -96,7 +99,12 @@ export default async function AdminOverview() {
               const creator = (match.creator as unknown) as { display_name: string; instagram_handle: string | null } | null
               const business = (match.business as unknown) as { business_name: string | null } | null
               return (
-                <div key={match.id} className="flex items-center gap-4 px-4 py-3" style={{ borderBottom: i < recentMatches.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}>
+                <Link
+                  key={match.id}
+                  href="/admin/matches"
+                  className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 transition-colors"
+                  style={{ borderBottom: i < recentMatches.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}
+                >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[#1C2B3A] truncate">{offer?.title}</p>
                     <p className="text-xs text-gray-400">
@@ -110,7 +118,7 @@ export default async function AdminOverview() {
                       {match.status}
                     </span>
                   </div>
-                </div>
+                </Link>
               )
             })}
           </div>
