@@ -9,6 +9,7 @@ async function getStats(supabase: ReturnType<typeof createAdminClient>) {
     { count: totalMatches },
     { count: activeInvites },
     { count: unusedCodes },
+    { count: waitlistCount },
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'creator'),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'creator').eq('is_approved', false),
@@ -16,6 +17,7 @@ async function getStats(supabase: ReturnType<typeof createAdminClient>) {
     supabase.from('matches').select('*', { count: 'exact', head: true }),
     supabase.from('offers').select('*', { count: 'exact', head: true }).eq('is_active', true),
     supabase.from('invite_codes').select('*', { count: 'exact', head: true }).eq('used', false),
+    supabase.from('waitlist').select('*', { count: 'exact', head: true }),
   ])
   return {
     totalCreators: totalCreators ?? 0,
@@ -24,6 +26,7 @@ async function getStats(supabase: ReturnType<typeof createAdminClient>) {
     totalMatches: totalMatches ?? 0,
     activeInvites: activeInvites ?? 0,
     unusedCodes: unusedCodes ?? 0,
+    waitlistCount: waitlistCount ?? 0,
   }
 }
 
@@ -67,6 +70,7 @@ export default async function AdminOverview() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
         {[
+          { label: 'Waitlist', value: stats.waitlistCount, href: '/admin/waitlist' },
           { label: 'Creators', value: stats.totalCreators, sub: stats.pendingCreators > 0 ? `${stats.pendingCreators} pending` : 'all approved', href: '/admin/creators' },
           { label: 'Businesses', value: stats.totalBusinesses, href: '/admin/businesses' },
           { label: 'Total matches', value: stats.totalMatches, href: '/admin/matches' },

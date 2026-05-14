@@ -20,6 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </span>
           <div className="flex items-center gap-4">
             <Link href="/admin" className="text-xs text-white/60 hover:text-white transition-colors">Overview</Link>
+            <Link href="/admin/waitlist" className="text-xs text-white/60 hover:text-white transition-colors">Waitlist</Link>
             <Link href="/admin/creators" className="text-xs text-white/60 hover:text-white transition-colors">Creators</Link>
             <Link href="/admin/businesses" className="text-xs text-white/60 hover:text-white transition-colors">Businesses</Link>
             <Link href="/admin/matches" className="text-xs text-white/60 hover:text-white transition-colors">Matches</Link>
