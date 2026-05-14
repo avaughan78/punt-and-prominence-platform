@@ -261,7 +261,7 @@ export function BusinessMatchCard({ match, currentUserId, onUpdated }: Props) {
             {(match.deliverables ?? []).length === 0 ? (
               <p className="text-sm text-gray-400 italic">No posts submitted yet.</p>
             ) : (
-              [...(match.deliverables ?? [])].sort((a, b) => a.month_number - b.month_number).map((d: MatchDeliverable) => (
+              [...(match.deliverables ?? [])].sort((a, b) => (a.month_number ?? 0) - (b.month_number ?? 0)).map((d: MatchDeliverable) => (
                 <div
                   key={d.id}
                   className="flex items-center gap-3 rounded-xl px-3 py-2.5"
