@@ -48,6 +48,7 @@ export interface ProfileFormData {
   follower_count: number | null
   tiktok_handle: string | null
   tiktok_follower_count: number | null
+  media_count: number | null
 }
 
 interface Props {
@@ -72,6 +73,7 @@ export function ProfileForm({ role, initial, userId, onSaved }: Props) {
     follower_count: initial.follower_count ?? null as number | null,
     tiktok_handle: initial.tiktok_handle ?? '',
     tiktok_follower_count: initial.tiktok_follower_count ?? null as number | null,
+    media_count: initial.media_count ?? null as number | null,
   })
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -174,6 +176,7 @@ export function ProfileForm({ role, initial, userId, onSaved }: Props) {
       setForm(f => ({
         ...f,
         follower_count: data.followers ?? f.follower_count,
+        media_count: data.posts ?? f.media_count,
         bio: data.bio || f.bio,
         website_url: data.website || f.website_url,
         avatar_url: data.image || f.avatar_url,

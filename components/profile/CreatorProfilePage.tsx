@@ -41,8 +41,9 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
   const [profile, setProfile] = useState(initial)
 
   const initials = profile.display_name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
-  const hasIg = !!profile.instagram_handle && (profile.follower_count ?? 0) > 0
-  const hasTt = !!profile.tiktok_handle && (profile.tiktok_follower_count ?? 0) > 0
+  const hasIg       = !!profile.instagram_handle && (profile.follower_count ?? 0) > 0
+  const hasTt       = !!profile.tiktok_handle && (profile.tiktok_follower_count ?? 0) > 0
+  const hasPosts    = (profile.media_count ?? 0) > 0
   const websiteDomain = profile.website_url
     ? profile.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '')
     : null
@@ -255,62 +256,79 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
           )}
 
           {/* Reach stats strip */}
-          {(hasIg || hasTt) && (
-            <div
-              className="grid rounded-2xl overflow-hidden"
-              style={{
-                gridTemplateColumns: hasIg && hasTt ? 'repeat(3, 1fr)' : '1fr',
-                border: '1px solid rgba(0,0,0,0.07)',
-                background: '#fafafa',
-              }}
-            >
-              {hasIg && (
-                <a
-                  href={`https://instagram.com/${profile.instagram_handle}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col items-center py-4 transition-opacity hover:opacity-70"
-                  style={{ borderRight: hasIg && hasTt ? '1px solid rgba(0,0,0,0.06)' : undefined }}
-                >
-                  <InstagramIcon className="w-4 h-4 mb-1.5" style={{ color: '#833ab4' }} />
-                  <span className="font-extrabold text-xl leading-none text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                    {fmt(profile.follower_count!)}
-                  </span>
-                  <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    followers
-                  </span>
-                </a>
-              )}
-              {hasTt && (
-                <a
-                  href={`https://tiktok.com/@${profile.tiktok_handle}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col items-center py-4 transition-opacity hover:opacity-70"
-                  style={{ borderRight: hasIg && hasTt ? '1px solid rgba(0,0,0,0.06)' : undefined }}
-                >
-                  <TikTokIcon className="w-4 h-4 mb-1.5 text-[#1C2B3A]" />
-                  <span className="font-extrabold text-xl leading-none text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                    {fmt(profile.tiktok_follower_count!)}
-                  </span>
-                  <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    TikTok
-                  </span>
-                </a>
-              )}
-              {hasIg && hasTt && (
-                <div className="flex flex-col items-center py-4">
-                  <span className="text-[10px] mb-1.5 text-gray-300" style={{ fontFamily: "'JetBrains Mono', monospace" }}>∑</span>
-                  <span className="font-extrabold text-xl leading-none" style={{ color: '#6BE6B0', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                    {fmt((profile.follower_count ?? 0) + (profile.tiktok_follower_count ?? 0))}
-                  </span>
-                  <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    total reach
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
+          {(hasIg || hasTt) && (() => {
+            // Column count drives both grid layout and width
+            const cols = hasIg && hasTt ? 3 : (hasIg && hasPosts ? 2 : 1)
+            const widthClass = cols === 3 ? 'w-full' : cols === 2 ? 'w-2/3' : 'w-1/3'
+            return (
+              <div
+                className={`grid rounded-2xl overflow-hidden ${widthClass}`}
+                style={{
+                  gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                  border: '1px solid rgba(0,0,0,0.07)',
+                  background: '#fafafa',
+                }}
+              >
+                {hasIg && (
+                  <a
+                    href={`https://instagram.com/${profile.instagram_handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center py-4 transition-opacity hover:opacity-70"
+                    style={{ borderRight: cols > 1 ? '1px solid rgba(0,0,0,0.06)' : undefined }}
+                  >
+                    <InstagramIcon className="w-4 h-4 mb-1.5" style={{ color: '#833ab4' }} />
+                    <span className="font-extrabold text-xl leading-none text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                      {fmt(profile.follower_count!)}
+                    </span>
+                    <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      followers
+                    </span>
+                  </a>
+                )}
+                {/* Posts — shown for IG-only creators as the second stat */}
+                {hasIg && !hasTt && hasPosts && (
+                  <div className="flex flex-col items-center py-4">
+                    <span className="text-[10px] mb-1.5 text-gray-300" style={{ fontFamily: "'JetBrains Mono', monospace" }}>📸</span>
+                    <span className="font-extrabold text-xl leading-none text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                      {fmt(profile.media_count!)}
+                    </span>
+                    <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      posts
+                    </span>
+                  </div>
+                )}
+                {hasTt && (
+                  <a
+                    href={`https://tiktok.com/@${profile.tiktok_handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center py-4 transition-opacity hover:opacity-70"
+                    style={{ borderRight: hasIg && hasTt ? '1px solid rgba(0,0,0,0.06)' : undefined }}
+                  >
+                    <TikTokIcon className="w-4 h-4 mb-1.5 text-[#1C2B3A]" />
+                    <span className="font-extrabold text-xl leading-none text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                      {fmt(profile.tiktok_follower_count!)}
+                    </span>
+                    <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      TikTok
+                    </span>
+                  </a>
+                )}
+                {hasIg && hasTt && (
+                  <div className="flex flex-col items-center py-4">
+                    <span className="text-[10px] mb-1.5 text-gray-300" style={{ fontFamily: "'JetBrains Mono', monospace" }}>∑</span>
+                    <span className="font-extrabold text-xl leading-none" style={{ color: '#6BE6B0', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                      {fmt((profile.follower_count ?? 0) + (profile.tiktok_follower_count ?? 0))}
+                    </span>
+                    <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      total reach
+                    </span>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
 
           {/* Links */}
           {(profile.instagram_handle || profile.tiktok_handle || profile.website_url) && (

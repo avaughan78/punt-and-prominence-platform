@@ -9,7 +9,7 @@ export default async function CreatorProfileRoute() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name, business_name, bio, instagram_handle, website_url, address_line, category, latitude, longitude, avatar_url, follower_count, tiktok_handle, tiktok_follower_count, is_approved')
+    .select('display_name, business_name, bio, instagram_handle, website_url, address_line, category, latitude, longitude, avatar_url, follower_count, tiktok_handle, tiktok_follower_count, media_count, is_approved')
     .eq('id', user.id)
     .single()
 
