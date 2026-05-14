@@ -58,7 +58,7 @@ export function DashboardShell({ children, role, displayName }: Props) {
   }
 
   return (
-    <div className="flex h-full min-h-screen bg-[#f8f9fa]">
+    <div className="flex min-h-screen bg-[#f8f9fa]">
       {/* Sidebar — desktop */}
       <aside
         className="hidden md:flex flex-col w-60 shrink-0 fixed top-0 left-0 h-full z-40"

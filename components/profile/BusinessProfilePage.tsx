@@ -68,8 +68,8 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
         </div>
         <button
           onClick={() => setEditing(true)}
-          className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl transition-all hover:bg-[#1C2B3A] hover:text-white group"
-          style={{ border: '1.5px solid rgba(28,43,58,0.15)', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+          className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl transition-all hover:bg-[#1C2B3A] hover:text-white text-[#1C2B3A]"
+          style={{ border: '1.5px solid rgba(28,43,58,0.15)', fontFamily: "'Inter', sans-serif" }}
         >
           <Pencil className="w-3.5 h-3.5" />
           Edit profile
