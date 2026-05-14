@@ -171,8 +171,8 @@ export function DashboardShell({ children, role, displayName }: Props) {
       >
         {navItems.map(item => {
           const active = pathname === item.href || (item.href !== '/business' && item.href !== '/creator' && pathname.startsWith(item.href))
-          const isMatches = item.href.endsWith('/matches')
-          const showBadge = isMatches && unread > 0 && !active
+          const isCollabsOrMatches = item.href.endsWith('/matches') || item.href === '/business/invites'
+          const showBadge = isCollabsOrMatches && unread > 0 && !active
           return (
             <Link
               key={item.href}

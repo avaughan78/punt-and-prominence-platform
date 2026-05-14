@@ -52,7 +52,7 @@ export default async function BusinessDashboard() {
 
       {/* Posts ready to verify */}
       {(postedMatches?.length ?? 0) > 0 && (
-        <Link href="/business/matches">
+        <Link href="/business/invites">
           <div
             className="flex items-start gap-3 rounded-2xl px-4 py-3 mb-4 cursor-pointer hover:opacity-90 transition-opacity"
             style={{ background: 'rgba(192,132,252,0.08)', border: '1.5px solid rgba(192,132,252,0.3)' }}
@@ -84,7 +84,7 @@ export default async function BusinessDashboard() {
 
       {/* Unread messages banner */}
       {(unreadCount ?? 0) > 0 && (
-        <Link href="/business/matches">
+        <Link href="/business/invites">
           <div className="flex items-center gap-3 rounded-2xl px-4 py-3 mb-4 cursor-pointer hover:opacity-90 transition-opacity" style={{ background: 'rgba(245,184,0,0.1)', border: '1.5px solid rgba(245,184,0,0.3)' }}>
             <MessageCircle className="w-4 h-4 shrink-0" style={{ color: '#F5B800' }} />
             <p className="text-sm text-[#1C2B3A] flex-1" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -113,16 +113,16 @@ export default async function BusinessDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <StatCard label="Active collabs" value={activeOffers} href="/business/invites" />
-        <StatCard label="Total matches" value={totalMatches} accent="#6BE6B0" href="/business/matches" />
-        <StatCard label="In progress" value={pendingMatches} accent="#C084FC" href="/business/matches" />
-        <StatCard label="Verified" value={verifiedMatches} accent="#22c55e" href="/business/matches" />
+        <StatCard label="Total matches" value={totalMatches} accent="#6BE6B0" href="/business/invites" />
+        <StatCard label="In progress" value={pendingMatches} accent="#C084FC" href="/business/invites" />
+        <StatCard label="Verified" value={verifiedMatches} accent="#22c55e" href="/business/invites" />
       </div>
 
       {/* Recent activity */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Recent activity</h2>
-          <Link href="/business/matches" className="text-xs text-gray-400 hover:text-gray-600">View all →</Link>
+          <Link href="/business/invites" className="text-xs text-gray-400 hover:text-gray-600">View all →</Link>
         </div>
 
         {!matches?.length ? (
