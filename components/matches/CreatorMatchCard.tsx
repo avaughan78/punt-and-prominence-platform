@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { MapPin, ExternalLink, Check, MessageCircle, ChevronDown, Trash2 } from 'lucide-react'
+import { MapPin, Check, MessageCircle, ChevronDown, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -25,8 +25,8 @@ const STATUS_PILL: Record<string, { bg: string; text: string; label: string }> =
 }
 
 function nextStepLabel(status: string, isRetainer: boolean): string {
-  if (status === 'accepted')  return isRetainer ? 'Awaiting business activation' : 'Visit the venue, then submit your post link'
-  if (status === 'posted')    return 'Post submitted · awaiting verification'
+  if (status === 'accepted')  return isRetainer ? 'Awaiting business activation' : 'Visit the venue, then add your post links below'
+  if (status === 'posted')    return 'Posts submitted · awaiting verification'
   if (status === 'verified')  return 'Verified and complete'
   if (status === 'active')    return 'Submit your monthly post'
   if (status === 'completed') return 'Arrangement complete'
@@ -45,12 +45,6 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
   const [unread, setUnread]                 = useState(0)
   const msgRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading]               = useState(false)
-  const [showPostForm, setShowPostForm]     = useState(false)
-  const [postUrl, setPostUrl]               = useState(match.post_url ?? '')
-  const [editingPostUrl, setEditingPostUrl] = useState(false)
-  const [editPostUrl, setEditPostUrl]       = useState(match.post_url ?? '')
-  const [postUrlError, setPostUrlError]     = useState('')
-  const [editPostUrlError, setEditPostUrlError] = useState('')
   const [deliverableLoading, setDeliverableLoading] = useState<string | null>(null)
   const [showSubmitMonth, setShowSubmitMonth]       = useState<number | null>(null)
   const [submitUrl, setSubmitUrl]                   = useState('')
@@ -58,6 +52,10 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
   const [editingDeliverable, setEditingDeliverable] = useState<string | null>(null)
   const [editDeliverableUrl, setEditDeliverableUrl] = useState('')
   const [editDeliverableUrlError, setEditDeliverableUrlError] = useState('')
+  const [showAddPost, setShowAddPost]               = useState(false)
+  const [addPostUrl, setAddPostUrl]                 = useState('')
+  const [addPostUrlError, setAddPostUrlError]       = useState('')
+  const [addPostLoading, setAddPostLoading]         = useState(false)
 
   const isRetainer = match.invite?.invite_type === 'retainer'
   const isDone     = match.status === 'verified' || match.status === 'completed'
@@ -90,32 +88,29 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
     setLoading(false)
   }
 
-  async function updatePostUrl(url: string) {
-    const normalized = normalizeUrl(url)
-    if (!normalized) { setEditPostUrlError('Enter a valid URL'); return }
-    setLoading(true)
-    const res = await fetch(`/api/matches/${match.id}`, {
-      method: 'PATCH',
+  async function submitOneOffPost() {
+    const normalized = normalizeUrl(addPostUrl)
+    if (!normalized) { setAddPostUrlError('Enter a valid URL (e.g. www.instagram.com/p/…)'); return }
+    setAddPostLoading(true)
+    const res = await fetch(`/api/matches/${match.id}/deliverables`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ post_url: normalized }),
     })
     const data = await res.json()
-    if (!res.ok) toast.error(data.error ?? 'Failed to update')
-    else { toast.success('Post link updated'); onUpdated(data); setEditingPostUrl(false); setEditPostUrlError('') }
-    setLoading(false)
-  }
-
-  async function removePostLink() {
-    setLoading(true)
-    const res = await fetch(`/api/matches/${match.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'accepted', post_url: null }),
-    })
-    const data = await res.json()
-    if (!res.ok) toast.error(data.error ?? 'Failed to remove link')
-    else { toast.success('Post link removed'); onUpdated(data) }
-    setLoading(false)
+    if (!res.ok) toast.error(data.error ?? 'Failed to submit')
+    else {
+      toast.success('Post submitted')
+      onUpdated({
+        ...match,
+        status: (data.matchStatus ?? match.status) as Match['status'],
+        deliverables: [...(match.deliverables ?? []), data.deliverable],
+      })
+      setShowAddPost(false)
+      setAddPostUrl('')
+      setAddPostUrlError('')
+    }
+    setAddPostLoading(false)
   }
 
   async function updateDeliverableUrl(did: string, url: string) {
@@ -284,91 +279,99 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
             </div>
           )}
 
-          {/* One-off: submit post */}
-          {!isRetainer && match.status === 'accepted' && (
-            <div className="px-5 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-              {!showPostForm ? (
-                <Button size="sm" onClick={() => setShowPostForm(true)}>Submit post link</Button>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <div>
-                    <Input
-                      label="Instagram post URL"
-                      placeholder="https://www.instagram.com/p/…"
-                      value={postUrl}
-                      onChange={e => { setPostUrl(e.target.value); setPostUrlError('') }}
-                    />
-                    {postUrlError && <p className="text-xs text-red-500 mt-1">{postUrlError}</p>}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => { setShowPostForm(false); setPostUrlError('') }}>Cancel</Button>
-                    <Button
-                      size="sm"
-                      loading={loading}
-                      disabled={!postUrl.trim()}
-                      onClick={() => {
-                        const normalized = normalizeUrl(postUrl)
-                        if (!normalized) { setPostUrlError('Enter a valid URL (e.g. www.instagram.com/p/…)'); return }
-                        updateStatus('posted', { post_url: normalized })
-                      }}
+          {/* One-off: deliverables */}
+          {!isRetainer && (match.status === 'accepted' || match.status === 'posted' || match.status === 'verified') && (
+            <div className="px-5 py-4 flex flex-col gap-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+              {(match.deliverables ?? []).map((d, idx) => (
+                <div key={d.id} className="flex flex-col gap-2">
+                  <div
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5"
+                    style={{
+                      background: d.status === 'verified' ? 'rgba(107,230,176,0.08)' : 'rgba(0,0,0,0.02)',
+                      border: `1px solid ${d.status === 'verified' ? 'rgba(107,230,176,0.25)' : 'rgba(0,0,0,0.07)'}`,
+                    }}
+                  >
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
+                      style={{ background: d.status === 'verified' ? '#6BE6B0' : '#C084FC', color: '#1C2B3A' }}
                     >
-                      Submit
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* One-off: post submitted */}
-          {!isRetainer && match.status === 'posted' && (
-            <div className="px-5 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-              {!editingPostUrl ? (
-                <div className="flex items-center gap-3 flex-wrap">
-                  {match.post_url && (
-                    <a
-                      href={match.post_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-sm font-medium hover:underline"
-                      style={{ color: '#3b82f6' }}
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                      View submitted post
+                      {idx + 1}
+                    </div>
+                    <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="flex-1 text-sm text-blue-500 hover:underline truncate">
+                      Post {idx + 1}
                     </a>
+                    {d.status === 'verified' ? (
+                      <Check className="w-4 h-4 flex-shrink-0" style={{ color: '#22c55e' }} />
+                    ) : (
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-xs font-medium" style={{ color: '#C084FC' }}>Pending</span>
+                        <button
+                          onClick={() => { setEditingDeliverable(d.id); setEditDeliverableUrl(d.post_url); setEditDeliverableUrlError('') }}
+                          className="text-xs text-gray-400 hover:text-[#1C2B3A] transition-colors underline"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteDeliverable(d.id)}
+                          disabled={deliverableLoading === `delete-${d.id}`}
+                          className="flex items-center gap-0.5 text-xs text-red-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {editingDeliverable === d.id && (
+                    <div className="flex flex-col gap-2 pl-10">
+                      <div>
+                        <Input
+                          label={`Post ${idx + 1} URL`}
+                          placeholder="https://www.instagram.com/p/…"
+                          value={editDeliverableUrl}
+                          onChange={e => { setEditDeliverableUrl(e.target.value); setEditDeliverableUrlError('') }}
+                        />
+                        {editDeliverableUrlError && <p className="text-xs text-red-500 mt-1">{editDeliverableUrlError}</p>}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="ghost" onClick={() => { setEditingDeliverable(null); setEditDeliverableUrlError('') }}>Cancel</Button>
+                        <Button
+                          size="sm"
+                          loading={deliverableLoading === `edit-${d.id}`}
+                          disabled={!editDeliverableUrl.trim()}
+                          onClick={() => updateDeliverableUrl(d.id, editDeliverableUrl)}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </div>
                   )}
-                  <span className="text-xs text-gray-400 flex-1">Waiting for verification</span>
-                  <button
-                    onClick={() => { setEditPostUrl(match.post_url ?? ''); setEditingPostUrl(true); setEditPostUrlError('') }}
-                    className="text-xs text-gray-400 hover:text-[#1C2B3A] transition-colors underline"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={removePostLink}
-                    disabled={loading}
-                    className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600 transition-colors"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    Remove
-                  </button>
                 </div>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <div>
-                    <Input
-                      label="Update post URL"
-                      placeholder="https://www.instagram.com/p/…"
-                      value={editPostUrl}
-                      onChange={e => { setEditPostUrl(e.target.value); setEditPostUrlError('') }}
-                    />
-                    {editPostUrlError && <p className="text-xs text-red-500 mt-1">{editPostUrlError}</p>}
+              ))}
+
+              {(match.status === 'accepted' || match.status === 'posted') && (
+                showAddPost ? (
+                  <div className="flex flex-col gap-2 mt-1">
+                    <div>
+                      <Input
+                        label="Post URL"
+                        placeholder="https://www.instagram.com/p/…"
+                        value={addPostUrl}
+                        onChange={e => { setAddPostUrl(e.target.value); setAddPostUrlError('') }}
+                      />
+                      {addPostUrlError && <p className="text-xs text-red-500 mt-1">{addPostUrlError}</p>}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => { setShowAddPost(false); setAddPostUrlError('') }}>Cancel</Button>
+                      <Button size="sm" loading={addPostLoading} disabled={!addPostUrl.trim()} onClick={submitOneOffPost}>
+                        Submit
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => { setEditingPostUrl(false); setEditPostUrlError('') }}>Cancel</Button>
-                    <Button size="sm" loading={loading} disabled={!editPostUrl.trim()} onClick={() => updatePostUrl(editPostUrl)}>Save</Button>
-                  </div>
-                </div>
+                ) : (
+                  <Button size="sm" variant="secondary" onClick={() => { setShowAddPost(true); setAddPostUrl('') }}>
+                    {(match.deliverables ?? []).length === 0 ? 'Add post link' : 'Add another post link'}
+                  </Button>
+                )
               )}
             </div>
           )}
@@ -380,7 +383,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
                 <p className="text-xs text-gray-400 italic">No posts submitted yet for this month.</p>
               )}
               {[...(match.deliverables ?? [])]
-                .sort((a, b) => a.month_number - b.month_number)
+                .sort((a, b) => (a.month_number ?? 0) - (b.month_number ?? 0))
                 .map((d: MatchDeliverable) => (
                   <div key={d.id} className="flex flex-col gap-2">
                     <div

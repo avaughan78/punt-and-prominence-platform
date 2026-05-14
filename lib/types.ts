@@ -9,7 +9,7 @@ export type InviteType = 'one_off' | 'retainer'
 export interface MatchDeliverable {
   id: string
   match_id: string
-  month_number: number
+  month_number: number | null
   post_url: string
   status: 'submitted' | 'verified'
   verified_at: string | null
@@ -70,6 +70,7 @@ export interface MatchPreview {
   created_at: string
   post_url: string | null
   creator: Pick<Profile, 'id' | 'display_name' | 'instagram_handle' | 'avatar_url' | 'follower_count'>
+  deliverables?: MatchDeliverable[]
 }
 
 export interface Match {

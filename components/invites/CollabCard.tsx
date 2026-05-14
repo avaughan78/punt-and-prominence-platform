@@ -1,10 +1,11 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { MessageCircle, Pencil, Trash2, ExternalLink, Check, ChevronDown } from 'lucide-react'
+import { MessageCircle, Pencil, Trash2, Check, ChevronDown, ImageIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { EditInviteModal } from '@/components/invites/EditInviteModal'
+import { PostsModal } from '@/components/invites/PostsModal'
 import { InlineMessageThread } from '@/components/matches/InlineMessageThread'
 import { formatGBP } from '@/lib/utils'
 import type { Invite, MatchPreview } from '@/lib/types'
@@ -31,12 +32,15 @@ function fmt(n: number) {
 interface CreatorRowProps {
   match: MatchPreview
   isRetainer: boolean
+  collabTitle: string
   currentUserId: string
   onStatusUpdated: (matchId: string, status: string) => void
+  onDeliverableVerified: (matchId: string, deliverableId: string) => void
 }
 
-function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: CreatorRowProps) {
+function CreatorRow({ match, isRetainer, collabTitle, currentUserId, onStatusUpdated, onDeliverableVerified }: CreatorRowProps) {
   const [msgOpen, setMsgOpen] = useState(false)
+  const [postsOpen, setPostsOpen] = useState(false)
   const [unread, setUnread] = useState(0)
   const [loading, setLoading] = useState(false)
   const msgRef = useRef<HTMLDivElement>(null)
@@ -83,6 +87,17 @@ function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: Creat
 
   return (
     <div ref={msgRef}>
+      {postsOpen && (
+        <PostsModal
+          match={match}
+          creatorName={creator?.instagram_handle ? `@${creator.instagram_handle}` : (creator?.display_name ?? 'Creator')}
+          collabTitle={collabTitle}
+          isRetainer={isRetainer}
+          onVerified={(matchId) => { onStatusUpdated(matchId, 'verified'); setPostsOpen(false) }}
+          onDeliverableVerified={onDeliverableVerified}
+          onClose={() => setPostsOpen(false)}
+        />
+      )}
       <div
         className="flex items-center gap-3 px-5 py-3"
         style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}
@@ -133,22 +148,16 @@ function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: Creat
         </span>
 
         {/* Quick actions */}
-        {match.post_url && (
-          <a
-            href={match.post_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-600 transition-colors flex-shrink-0"
-            title="View post"
+        {/* Posts button — shows when there are deliverables or a legacy post_url */}
+        {((match.deliverables?.length ?? 0) > 0 || match.post_url) && (
+          <button
+            onClick={() => setPostsOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold transition-all flex-shrink-0"
+            style={{ background: 'rgba(192,132,252,0.12)', color: '#9333ea', fontFamily: "'JetBrains Mono', monospace" }}
           >
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        )}
-
-        {!isRetainer && match.status === 'posted' && (
-          <Button size="sm" loading={loading} onClick={() => updateStatus('verified')} className="flex-shrink-0">
-            Verify
-          </Button>
+            <ImageIcon className="w-3.5 h-3.5" />
+            {(match.deliverables?.length ?? 0) > 0 ? `${match.deliverables!.length} post${match.deliverables!.length !== 1 ? 's' : ''}` : 'Post'}
+          </button>
         )}
 
         {isRetainer && match.status === 'accepted' && (
@@ -249,6 +258,13 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
 
   function handleStatusUpdated(matchId: string, status: string) {
     setMatches(prev => prev.map(m => m.id === matchId ? { ...m, status: status as MatchPreview['status'] } : m))
+  }
+
+  function handleDeliverableVerified(matchId: string, deliverableId: string) {
+    setMatches(prev => prev.map(m => m.id === matchId ? {
+      ...m,
+      deliverables: (m.deliverables ?? []).map(d => d.id === deliverableId ? { ...d, status: 'verified' as const, verified_at: new Date().toISOString() } : d),
+    } : m))
   }
 
   const sortedMatches = [...matches].sort(
@@ -356,8 +372,10 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
                   key={m.id}
                   match={m}
                   isRetainer={isRetainer}
+                  collabTitle={invite.title}
                   currentUserId={currentUserId}
                   onStatusUpdated={handleStatusUpdated}
+                  onDeliverableVerified={handleDeliverableVerified}
                 />
               ))
             )}
