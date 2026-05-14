@@ -27,7 +27,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // Status transition validation (one_off and retainer)
   const validTransitions: Record<string, Record<string, string[]>> = {
     business: { pending: ['active'], posted: ['verified'], active: ['completed'] },
-    creator: { pending: ['posted'], active: ['completed'] },
+    creator: { pending: ['posted'], visited: ['posted'], posted: ['pending'], active: ['completed'] },
   }
 
   const { data: match } = await supabase

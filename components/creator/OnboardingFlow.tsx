@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { SocialHandleInput } from '@/components/ui/SocialHandleInput'
+import { normalizeUrl } from '@/lib/utils'
 
 const FOLLOWER_MIN = 1000
 const STEPS = ['Your Instagram', 'About you', 'All set!']
@@ -96,6 +97,7 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl: _
   // Bio / website — auto-filled from lookups, editable as fallback
   const [bio, setBio] = useState('')
   const [website, setWebsite] = useState('')
+  const [websiteUrlError, setWebsiteUrlError] = useState<string | null>(null)
 
   const igFollowers = parseInt(followerCount.replace(/,/g, ''), 10)
   const belowThreshold = followerCount !== '' && !isNaN(igFollowers) && igFollowers < FOLLOWER_MIN
@@ -163,6 +165,12 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl: _
   }
 
   async function saveStep2() {
+    if (website) {
+      const normalized = normalizeUrl(website)
+      if (!normalized) { setWebsiteUrlError('Enter a valid URL (e.g. www.yoursite.com)'); return }
+      setWebsite(normalized)
+      setWebsiteUrlError(null)
+    }
     setSaving(true)
     const res = await fetch('/api/profile', {
       method: 'PATCH',
@@ -318,13 +326,15 @@ export function CreatorOnboardingFlow({ userId, contactName, initialAvatarUrl: _
 
           {/* Website — only show if not already populated */}
           {!website && (
-            <Input
-              label="Website or link in bio"
-              type="url"
-              placeholder="https://yoursite.com"
-              value={website}
-              onChange={e => setWebsite(e.target.value)}
-            />
+            <div>
+              <Input
+                label="Website or link in bio"
+                placeholder="https://yoursite.com"
+                value={website}
+                onChange={e => { setWebsite(e.target.value); setWebsiteUrlError(null) }}
+              />
+              {websiteUrlError && <p className="text-xs text-red-500 mt-1">{websiteUrlError}</p>}
+            </div>
           )}
 
           {/* Show a compact summary if bio/website were auto-filled */}

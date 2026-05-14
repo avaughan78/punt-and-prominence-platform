@@ -39,3 +39,22 @@ export function statusColor(status: string): string {
   }
   return colors[status] ?? '#6b7280'
 }
+
+export function normalizeUrl(value: string): string | null {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  if (/^www\./i.test(trimmed)) return `https://${trimmed}`
+  return null
+}
+
+export function isValidUrl(value: string): boolean {
+  const normalized = normalizeUrl(value)
+  if (!normalized) return false
+  try {
+    new URL(normalized)
+    return true
+  } catch {
+    return false
+  }
+}

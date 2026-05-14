@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { MapPickerModal } from './MapPickerModal'
 import { loadGoogleMaps } from '@/lib/googleMaps'
 import { createClient } from '@/lib/supabase/client'
+import { normalizeUrl } from '@/lib/utils'
 import type { Role } from '@/lib/types'
 
 const CAMBRIDGE_BOUNDS = { sw: { lat: 52.15, lng: 0.03 }, ne: { lat: 52.27, lng: 0.22 } }
@@ -86,6 +87,7 @@ export function ProfileForm({ role, initial, userId, onSaved }: Props) {
   const [tiktokLooking, setTiktokLooking] = useState(false)
   const [tiktokLookupData, setTiktokLookupData] = useState<LookupData | null>(null)
   const [tiktokLookupError, setTiktokLookupError] = useState<string | null>(null)
+  const [websiteUrlError, setWebsiteUrlError] = useState<string | null>(null)
 
   useEffect(() => {
     if (role !== 'business' || acLoadedRef.current) return
@@ -215,6 +217,12 @@ export function ProfileForm({ role, initial, userId, onSaved }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (form.website_url) {
+      const normalized = normalizeUrl(form.website_url)
+      if (!normalized) { setWebsiteUrlError('Enter a valid URL (e.g. www.yoursite.com)'); return }
+      setForm(f => ({ ...f, website_url: normalized }))
+      setWebsiteUrlError(null)
+    }
     setLoading(true)
     const res = await fetch('/api/profile', {
       method: 'PATCH',
@@ -612,13 +620,15 @@ export function ProfileForm({ role, initial, userId, onSaved }: Props) {
         </div>
       )}
 
-      <Input
-        label="Website"
-        type="url"
-        placeholder="https://yoursite.com"
-        value={form.website_url}
-        onChange={e => set('website_url', e.target.value)}
-      />
+      <div>
+        <Input
+          label="Website"
+          placeholder="https://yoursite.com"
+          value={form.website_url}
+          onChange={e => { set('website_url', e.target.value); setWebsiteUrlError(null) }}
+        />
+        {websiteUrlError && <p className="text-xs text-red-500 mt-1">{websiteUrlError}</p>}
+      </div>
 
       <Textarea
         label="Bio"

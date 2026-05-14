@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
 import { MapPickerModal } from '@/components/profile/MapPickerModal'
 import { loadGoogleMaps } from '@/lib/googleMaps'
+import { normalizeUrl } from '@/lib/utils'
 
 const CAMBRIDGE_BOUNDS = { sw: { lat: 52.15, lng: 0.03 }, ne: { lat: 52.27, lng: 0.22 } }
 function stripCountry(s: string) { return s.replace(/, United Kingdom$/, '').replace(/, UK$/, '') }
@@ -40,6 +41,7 @@ export function OnboardingFlow({ contactName }: { contactName: string }) {
   const [step, setStep] = useState(0)
   const [saving, setSaving] = useState(false)
   const [showMap, setShowMap] = useState(false)
+  const [websiteUrlError, setWebsiteUrlError] = useState<string | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const acLoadedRef = useRef(false)
   const [form, setForm] = useState<FormState>({
@@ -114,6 +116,12 @@ export function OnboardingFlow({ contactName }: { contactName: string }) {
   }
 
   async function saveStep2() {
+    if (form.website_url) {
+      const normalized = normalizeUrl(form.website_url)
+      if (!normalized) { setWebsiteUrlError('Enter a valid URL (e.g. www.yoursite.com)'); return }
+      setForm(f => ({ ...f, website_url: normalized }))
+      setWebsiteUrlError(null)
+    }
     setSaving(true)
     const res = await fetch('/api/profile', {
       method: 'PATCH',
@@ -268,13 +276,15 @@ export function OnboardingFlow({ contactName }: { contactName: string }) {
               onChange={e => set('instagram_handle', e.target.value.replace(/^@/, ''))}
               hint="Without the @"
             />
-            <Input
-              label="Website"
-              type="url"
-              placeholder="https://yoursite.com"
-              value={form.website_url}
-              onChange={e => set('website_url', e.target.value)}
-            />
+            <div>
+              <Input
+                label="Website"
+                placeholder="https://yoursite.com"
+                value={form.website_url}
+                onChange={e => { set('website_url', e.target.value); setWebsiteUrlError(null) }}
+              />
+              {websiteUrlError && <p className="text-xs text-red-500 mt-1">{websiteUrlError}</p>}
+            </div>
 
             <div className="flex gap-3">
               <Button variant="ghost" onClick={() => setStep(0)}>Back</Button>
