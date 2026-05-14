@@ -10,28 +10,25 @@ export async function GET() {
 
   const role = user.user_metadata?.role
 
-  const businessSelect = `*, business:profiles!offers_business_id_fkey(id, display_name, business_name, address_line, category, latitude, longitude, avatar_url, instagram_handle), matches(id, status, punt_code, created_at, post_url, creator:profiles!matches_creator_id_fkey(id, display_name, instagram_handle, avatar_url, follower_count))`
-  const creatorSelect = `*, business:profiles!offers_business_id_fkey(id, display_name, business_name, address_line, category, latitude, longitude, avatar_url, instagram_handle)`
-
-  let query = supabase
-    .from('offers')
-    .select(role === 'business' ? businessSelect : creatorSelect)
-    .order('created_at', { ascending: false })
-
   if (role === 'business') {
-    query = query.eq('business_id', user.id)
-  } else {
-    query = query.eq('is_active', true)
+    const { data, error } = await supabase
+      .from('offers')
+      .select('*, business:profiles!offers_business_id_fkey(id, display_name, business_name, address_line, category, latitude, longitude, avatar_url, instagram_handle), matches(id, status, punt_code, created_at, post_url, creator:profiles!matches_creator_id_fkey(id, display_name, instagram_handle, avatar_url, follower_count))')
+      .eq('business_id', user.id)
+      .order('created_at', { ascending: false })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(data)
   }
 
-  const { data, error } = await query
+  // Creator: active offers with slots remaining
+  const { data, error } = await supabase
+    .from('offers')
+    .select('*, business:profiles!offers_business_id_fkey(id, display_name, business_name, address_line, category, latitude, longitude, avatar_url, instagram_handle)')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  // For creators, filter out full offers in JS (PostgREST can't compare two columns)
-  const result = role === 'creator'
-    ? (data ?? []).filter((o: { slots_claimed: number; slots_total: number }) => o.slots_claimed < o.slots_total)
-    : data
-  return NextResponse.json(result)
+  // Filter out full offers in JS (PostgREST can't compare two columns)
+  return NextResponse.json((data ?? []).filter(o => o.slots_claimed < o.slots_total))
 }
 
 export async function POST(req: Request) {
