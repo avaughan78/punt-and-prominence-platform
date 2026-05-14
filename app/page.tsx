@@ -185,7 +185,12 @@ export default function ComingSoon() {
           src="/cambridge-map.png"
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: 0.4, filter: 'grayscale(25%) brightness(1.5) contrast(0.9)' }}
+          style={{
+            opacity: 0.4,
+            filter: 'grayscale(25%) brightness(1.5) contrast(0.9)',
+            maskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)',
+          }}
         />
 
         {/* Profile cards — corners */}
