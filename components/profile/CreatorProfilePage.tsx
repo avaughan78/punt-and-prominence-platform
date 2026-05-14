@@ -1,7 +1,7 @@
 'use client'
 import { useState, type CSSProperties } from 'react'
 import Link from 'next/link'
-import { Pencil, ExternalLink, Globe, BadgeCheck, Eye, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Pencil, Globe, BadgeCheck, Eye, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { ProfileForm, type ProfileFormData } from './ProfileForm'
 import { CloseAccountSection } from '@/components/account/CloseAccountSection'
 
@@ -225,106 +225,19 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
               {profile.display_name}
             </h2>
             {profile.instagram_handle && (
-              <a
-                href={`https://instagram.com/${profile.instagram_handle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm mt-0.5 hover:underline inline-block"
-                style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}
-              >
+              <p className="text-sm mt-0.5" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
                 @{profile.instagram_handle}
                 {profile.tiktok_handle && (
                   <span className="ml-2 opacity-60">· @{profile.tiktok_handle}</span>
                 )}
-              </a>
+              </p>
             )}
           </div>
 
-          {/* Platform reach pills — combine reach + links */}
-          {(hasIg || hasTt || profile.instagram_handle || profile.tiktok_handle || profile.website_url) && (
-            <div className="flex items-center gap-3 flex-wrap">
-              {hasIg && (
-                <a
-                  href={`https://instagram.com/${profile.instagram_handle}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.08), rgba(253,29,29,0.06), rgba(252,176,69,0.06))', border: '1.5px solid rgba(131,58,180,0.18)' }}
-                >
-                  <InstagramIcon className="w-5 h-5 shrink-0" style={{ color: '#833ab4' }} />
-                  <div>
-                    <p className="text-xl font-extrabold text-[#1C2B3A] leading-none" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                      {fmt(profile.follower_count!)}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>followers</p>
-                  </div>
-                  <ExternalLink className="w-3 h-3 ml-1 opacity-30" />
-                </a>
-              )}
-              {!hasIg && profile.instagram_handle && (
-                <a
-                  href={`https://instagram.com/${profile.instagram_handle}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80"
-                  style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.08), rgba(253,29,29,0.06))', border: '1px solid rgba(131,58,180,0.2)', color: '#833ab4', fontFamily: "'Inter', sans-serif" }}
-                >
-                  <InstagramIcon className="w-4 h-4 shrink-0" style={{ color: '#833ab4' }} />
-                  @{profile.instagram_handle}
-                  <ExternalLink className="w-3 h-3 opacity-40" />
-                </a>
-              )}
-              {hasTt && (
-                <a
-                  href={`https://tiktok.com/@${profile.tiktok_handle}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all hover:opacity-90"
-                  style={{ background: 'rgba(1,1,1,0.04)', border: '1.5px solid rgba(0,0,0,0.1)' }}
-                >
-                  <TikTokIcon className="w-5 h-5 shrink-0 text-[#1C2B3A]" />
-                  <div>
-                    <p className="text-xl font-extrabold text-[#1C2B3A] leading-none" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                      {fmt(profile.tiktok_follower_count!)}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>TikTok</p>
-                  </div>
-                  <ExternalLink className="w-3 h-3 ml-1 opacity-30" />
-                </a>
-              )}
-              {!hasTt && profile.tiktok_handle && (
-                <a
-                  href={`https://tiktok.com/@${profile.tiktok_handle}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80"
-                  style={{ background: 'rgba(1,1,1,0.05)', border: '1px solid rgba(1,1,1,0.12)', color: '#010101', fontFamily: "'Inter', sans-serif" }}
-                >
-                  <TikTokIcon className="w-4 h-4 shrink-0 text-[#1C2B3A]" />
-                  @{profile.tiktok_handle}
-                </a>
-              )}
-              {websiteDomain && (
-                <a
-                  href={profile.website_url!}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-blue-600 transition-all hover:opacity-80"
-                  style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.18)', fontFamily: "'Inter', sans-serif" }}
-                >
-                  <Globe className="w-3.5 h-3.5 shrink-0" />
-                  {websiteDomain}
-                </a>
-              )}
-            </div>
-          )}
-
           {/* Bio */}
           {profile.bio ? (
-            <div
-              className="rounded-2xl px-4 py-3.5"
-              style={{ background: 'rgba(28,43,58,0.03)', borderLeft: '3px solid rgba(107,230,176,0.5)' }}
-            >
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2" style={{ fontFamily: "'JetBrains Mono', monospace" }}>About</p>
               <p className="text-sm text-gray-600 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
                 {profile.bio}
               </p>
@@ -344,9 +257,9 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
           {/* Reach stats strip */}
           {(hasIg || hasTt) && (
             <div
-              className={`grid rounded-2xl overflow-hidden`}
+              className="grid rounded-2xl overflow-hidden"
               style={{
-                gridTemplateColumns: hasIg && hasTt ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
+                gridTemplateColumns: hasIg && hasTt ? 'repeat(3, 1fr)' : '1fr',
                 border: '1px solid rgba(0,0,0,0.07)',
                 background: '#fafafa',
               }}
@@ -357,7 +270,7 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex flex-col items-center py-4 transition-opacity hover:opacity-70"
-                  style={{ borderRight: '1px solid rgba(0,0,0,0.06)' }}
+                  style={{ borderRight: hasIg && hasTt ? '1px solid rgba(0,0,0,0.06)' : undefined }}
                 >
                   <InstagramIcon className="w-4 h-4 mb-1.5" style={{ color: '#833ab4' }} />
                   <span className="font-extrabold text-xl leading-none text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
@@ -396,6 +309,51 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
                   </span>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Links */}
+          {(profile.instagram_handle || profile.tiktok_handle || profile.website_url) && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-3" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Links</p>
+              <div className="flex gap-3 flex-wrap">
+                {profile.instagram_handle && (
+                  <a
+                    href={`https://instagram.com/${profile.instagram_handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80 max-w-[200px]"
+                    style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.08), rgba(253,29,29,0.08), rgba(252,176,69,0.08))', border: '1px solid rgba(131,58,180,0.2)', color: '#833ab4', fontFamily: "'Inter', sans-serif" }}
+                  >
+                    <InstagramIcon className="w-4 h-4 shrink-0" style={{ color: '#833ab4' }} />
+                    <span className="truncate">@{profile.instagram_handle}</span>
+                  </a>
+                )}
+                {profile.tiktok_handle && (
+                  <a
+                    href={`https://tiktok.com/@${profile.tiktok_handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80 max-w-[200px]"
+                    style={{ background: 'rgba(1,1,1,0.05)', border: '1px solid rgba(0,0,0,0.12)', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
+                  >
+                    <TikTokIcon className="w-4 h-4 shrink-0 text-[#1C2B3A]" />
+                    <span className="truncate">@{profile.tiktok_handle}</span>
+                  </a>
+                )}
+                {profile.website_url && websiteDomain && (
+                  <a
+                    href={profile.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80 max-w-[200px] text-blue-600"
+                    style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.18)', fontFamily: "'Inter', sans-serif" }}
+                  >
+                    <Globe className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{websiteDomain}</span>
+                  </a>
+                )}
+              </div>
             </div>
           )}
 
