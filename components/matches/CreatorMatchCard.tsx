@@ -234,7 +234,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       {/* ── Status / next step ── */}
       <div
         className="px-5 py-3 flex items-center gap-2.5"
-        style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#fafafa' }}
+        style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}
       >
         <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: strip }} />
         <p className="text-sm font-medium" style={{ color: '#374151', fontFamily: "'Inter', sans-serif" }}>
@@ -485,7 +485,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
         {detailsOpen && (
           <div
             className="px-5 pb-5 flex flex-col gap-4"
-            style={{ background: 'linear-gradient(180deg, #f8f9fb 0%, #ffffff 100%)' }}
+            style={{ background: 'transparent' }}
           >
             {/* Punt code */}
             <div

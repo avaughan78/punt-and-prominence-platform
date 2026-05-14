@@ -338,7 +338,7 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
         {/* Footer */}
         <div
           className="flex items-center gap-2 px-5 py-3"
-          style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#fafafa' }}
+          style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}
         >
           <button
             onClick={() => setEditing(true)}

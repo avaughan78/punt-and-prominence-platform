@@ -164,7 +164,7 @@ export function MatchMessages({ matchId, currentUserId }: Props) {
           <div
             ref={scrollRef}
             className="flex flex-col gap-3 p-3 max-h-64 overflow-y-auto"
-            style={{ background: '#fafafa' }}
+            style={{ background: '#ffffff' }}
           >
             {!loaded ? (
               <div className="flex justify-center py-6">

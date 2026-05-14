@@ -70,7 +70,7 @@ export function InlineMessageThread({ matchId, currentUserId }: Props) {
       <div
         ref={scrollRef}
         className="flex flex-col p-3 overflow-y-auto"
-        style={{ background: '#f8f9fb', maxHeight: '280px', minHeight: '80px', gap: '2px' }}
+        style={{ background: '#ffffff', maxHeight: '280px', minHeight: '80px', gap: '2px' }}
       >
         {!loaded ? (
           <div className="flex justify-center py-8">
