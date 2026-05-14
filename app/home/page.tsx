@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Heart, MessageSquare, Star, Check, Building2, Sparkles } from 'lucide-react'
 import { CreatorCard, formatFollowers, type CreatorCardData } from '@/components/creators/CreatorCard'
 
-// ─── Data ────────────────────────────────────────────────────────────────────
+// ─── Static data ──────────────────────────────────────────────────────────────
 
 const posts = [
   {
@@ -72,18 +72,125 @@ const hoverCards = [
   },
 ]
 
-const stats = [
-  { num: '30+',  label: 'Verified creators',      sub: 'joining at launch' },
-  { num: '30K+', label: 'Combined local reach',    sub: 'Cambridge followers across the network' },
-  { num: '20',   label: 'Founding business spots', sub: 'available this year' },
-]
-
-
 const places = [
   'Mill Road', 'Newnham', 'Castle Hill', 'Romsey', 'Chesterton',
   'Coleridge', 'Cherry Hinton', 'Trumpington', 'Arbury', 'King Hedges',
   'Mill Road', 'Newnham', 'Castle Hill', 'Romsey', 'Chesterton',
   'Coleridge', 'Cherry Hinton', 'Trumpington', 'Arbury', 'King Hedges',
+]
+
+// Mock creators — real profiles slot in from the front as they join
+const MOCK_CREATORS: CreatorCardData[] = [
+  {
+    id: 'mock-1',
+    display_name: 'Priya Sharma',
+    instagram_handle: 'priya.eats.cam',
+    avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    follower_count: 4200,
+    tiktok_follower_count: null,
+    bio: 'Cambridge food lover & local dining guide. Sharing the best bites Mill Road has to offer.',
+    verified_matches: 3,
+    total_matches: 4,
+  },
+  {
+    id: 'mock-2',
+    display_name: 'Tom Bradley',
+    instagram_handle: 'tomincambridge',
+    avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    follower_count: 2800,
+    tiktok_follower_count: 1400,
+    bio: 'Lifestyle & culture in Cambridge. Always hunting for hidden gems worth talking about.',
+    verified_matches: 1,
+    total_matches: 2,
+  },
+  {
+    id: 'mock-3',
+    display_name: 'Aisha Osei',
+    instagram_handle: 'aisha.local',
+    avatar_url: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    follower_count: 6100,
+    tiktok_follower_count: 3800,
+    bio: 'Beauty, wellness & Cambridge life. Trusted by thousands of locals since 2021.',
+    verified_matches: 5,
+    total_matches: 7,
+  },
+  {
+    id: 'mock-4',
+    display_name: 'Jack Morrison',
+    instagram_handle: 'cambridgemarket',
+    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    follower_count: 3400,
+    tiktok_follower_count: null,
+    bio: 'Covering events, markets and local spots. Cambridge born and bred.',
+    verified_matches: 2,
+    total_matches: 3,
+  },
+  {
+    id: 'mock-5',
+    display_name: 'Sophie Chen',
+    instagram_handle: 'millroadfood',
+    avatar_url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    follower_count: 5200,
+    tiktok_follower_count: 2100,
+    bio: 'Food photography & restaurant reviews. Mill Road is my happy place.',
+    verified_matches: 4,
+    total_matches: 5,
+  },
+  {
+    id: 'mock-6',
+    display_name: 'Emma Davies',
+    instagram_handle: 'camcreates',
+    avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    follower_count: 3900,
+    tiktok_follower_count: null,
+    bio: 'Arts, crafts & creative Cambridge. Supporting independent businesses I love.',
+    verified_matches: 0,
+    total_matches: 1,
+  },
+  {
+    id: 'mock-7',
+    display_name: 'Marcus Williams',
+    instagram_handle: 'cambridgenights',
+    avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    follower_count: 2100,
+    tiktok_follower_count: 4600,
+    bio: 'Nightlife, bars & live music. Your guide to what\'s on in Cambridge after dark.',
+    verified_matches: 2,
+    total_matches: 3,
+  },
+  {
+    id: 'mock-8',
+    display_name: 'Lena Müller',
+    instagram_handle: 'cam.eats',
+    avatar_url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    follower_count: 7300,
+    tiktok_follower_count: null,
+    bio: 'Plant-based dining & café culture in Cambridge. Finding the best flat whites since 2020.',
+    verified_matches: 6,
+    total_matches: 8,
+  },
+  {
+    id: 'mock-9',
+    display_name: 'Olivia Nash',
+    instagram_handle: 'sundaycam',
+    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    follower_count: 1800,
+    tiktok_follower_count: 2900,
+    bio: 'Slow Sundays, brunch spots & weekend finds. Cambridge is full of surprises.',
+    verified_matches: 0,
+    total_matches: 1,
+  },
+  {
+    id: 'mock-10',
+    display_name: 'Isabelle Laurent',
+    instagram_handle: 'cambridgelens',
+    avatar_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100',
+    follower_count: 5500,
+    tiktok_follower_count: 1200,
+    bio: 'Photography & visual storytelling. Cambridge through my lens, one shot at a time.',
+    verified_matches: 3,
+    total_matches: 4,
+  },
 ]
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -139,7 +246,6 @@ function ValuePostCard({ p, card }: { p: Post; card: { title: string; body: stri
       <div className="relative w-full h-full overflow-hidden" style={{ borderRadius: '12px' }}>
         <img src={p.poster} alt="" className="w-full h-full object-cover" />
 
-        {/* Text overlay — hover on desktop, tap on mobile */}
         <div
           className={`absolute inset-0 flex flex-col justify-center px-4 py-4 transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
           style={{ background: 'rgba(28,43,58,0.92)' }}
@@ -152,7 +258,6 @@ function ValuePostCard({ p, card }: { p: Post; card: { title: string; body: stri
           </p>
         </div>
 
-        {/* Handle bar — fades on hover/open */}
         <div
           className={`absolute top-0 left-0 right-0 flex items-center justify-end gap-1.5 px-2 py-2 transition-opacity duration-200 ${open ? 'opacity-0' : 'group-hover:opacity-0'}`}
           style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%)' }}
@@ -163,7 +268,6 @@ function ValuePostCard({ p, card }: { p: Post; card: { title: string; body: stri
           <img src={p.profilePic} alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" style={{ border: '2px solid rgba(255,255,255,0.95)', boxShadow: '0 2px 6px rgba(0,0,0,0.5)' }} />
         </div>
 
-        {/* Likes/comments bar — fades on hover/open */}
         <div
           className={`absolute bottom-0 left-0 right-0 flex items-center gap-3 px-2.5 py-2 transition-opacity duration-200 ${open ? 'opacity-0' : 'group-hover:opacity-0'}`}
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%)' }}
@@ -176,7 +280,6 @@ function ValuePostCard({ p, card }: { p: Post; card: { title: string; body: stri
           </span>
         </div>
 
-        {/* Mobile tap hint */}
         <div className={`md:hidden absolute bottom-2 right-2 transition-opacity duration-200 ${open ? 'opacity-0' : 'opacity-100'}`}>
           <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(245,184,0,0.9)' }}>
             <Star className="w-3 h-3" style={{ color: '#1C2B3A' }} />
@@ -188,22 +291,20 @@ function ValuePostCard({ p, card }: { p: Post; card: { title: string; body: stri
 }
 
 // ─── Roundabout carousel ──────────────────────────────────────────────────────
-// Items orbit on an ellipse. Drag left/right to spin; auto-spins slowly.
 
-const RB_CARD_W   = 224   // layout width of slot; card renders at this size
-const CARD_SCALE  = 0.75  // CSS scale applied to inner card → apparent width ~168px
-const RB_RADIUS_X = 300   // horizontal radius of ellipse
-const RB_RADIUS_Z = 88    // depth radius (how far items recede into background)
-const RB_H        = 360   // container height px
-const RB_SPEED    = 0.20 // auto-spin radians/second (~31s per full rotation)
+const RB_CARD_W   = 220   // natural card width — no extra CSS scale applied
+const RB_RADIUS_X = 420   // wider ellipse to give full-size cards room
+const RB_RADIUS_Z = 100
+const RB_H        = 340
+const RB_SPEED    = 0.18  // auto-spin rad/s (~35s per rotation)
 
 function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
-  const angleRef   = useRef(Math.PI / 2)  // start with first item at front (sin=1)
-  const velRef     = useRef(0)            // spin momentum after drag
-  const dragging   = useRef(false)
-  const lastX      = useRef(0)
-  const cardRefs   = useRef<(HTMLDivElement | null)[]>([])
-  const wrapRef    = useRef<HTMLDivElement>(null)
+  const angleRef  = useRef(Math.PI / 2)
+  const velRef    = useRef(0)
+  const dragging  = useRef(false)
+  const lastX     = useRef(0)
+  const cardRefs  = useRef<(HTMLDivElement | null)[]>([])
+  const wrapRef   = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const n = creators.length
@@ -219,13 +320,11 @@ function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
         const theta = base + (TAU * i / n)
         const sinT  = Math.sin(theta)
         const cosT  = Math.cos(theta)
-
         const x  = cosT * RB_RADIUS_X
         const z  = sinT * RB_RADIUS_Z
-        // sinT ranges [-1, 1]; map to front=1 / back=0
         const t  = (sinT + 1) / 2
-        const sc = 0.52 + t * 0.48          // [0.52 … 1.0]
-        const op = 0.30 + t * 0.70          // [0.30 … 1.0]
+        const sc = 0.55 + t * 0.45
+        const op = 0.28 + t * 0.72
         const zi = Math.round(t * 100)
 
         el.style.opacity  = String(op)
@@ -238,9 +337,7 @@ function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
     function tick(now: number) {
       const dt = now - last
       last = now
-
       if (!dragging.current) {
-        // Apply and decay drag momentum, then resume auto-spin
         if (Math.abs(velRef.current) > 0.0005) {
           angleRef.current += velRef.current * dt / 1000
           velRef.current   *= Math.pow(0.88, dt / 16.67)
@@ -249,7 +346,6 @@ function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
           angleRef.current += RB_SPEED * dt / 1000
         }
       }
-
       paint()
       raf = requestAnimationFrame(tick)
     }
@@ -258,8 +354,7 @@ function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
     return () => cancelAnimationFrame(raf)
   }, [creators.length])
 
-  // Drag to spin — content follows cursor (drag right → items move right)
-  const SENSITIVITY = 0.005  // radians per pixel
+  const SENSITIVITY = 0.004
 
   function onDown(x: number) {
     dragging.current = true
@@ -272,8 +367,8 @@ function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
     if (!dragging.current) return
     const dx         = x - lastX.current
     lastX.current    = x
-    angleRef.current -= dx * SENSITIVITY          // negative: drag right = items go right
-    velRef.current   = -dx * SENSITIVITY * 60     // momentum in rad/s
+    angleRef.current -= dx * SENSITIVITY
+    velRef.current   = -dx * SENSITIVITY * 60
   }
 
   function onUp() {
@@ -284,12 +379,7 @@ function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
   return (
     <div
       ref={wrapRef}
-      style={{
-        background: '#1C2B3A',
-        padding: '24px 0',
-        cursor: 'grab',
-        userSelect: 'none',
-      }}
+      style={{ background: '#1C2B3A', padding: '28px 0', cursor: 'grab', userSelect: 'none' }}
       onMouseDown={e => onDown(e.clientX)}
       onMouseMove={e => onMove(e.clientX)}
       onMouseUp={onUp}
@@ -300,7 +390,7 @@ function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
     >
       <div
         className="relative mx-auto overflow-hidden"
-        style={{ height: `${RB_H}px`, perspective: '1000px', perspectiveOrigin: '50% 50%' }}
+        style={{ height: `${RB_H}px`, perspective: '1200px', perspectiveOrigin: '50% 50%' }}
       >
         {creators.map((creator, i) => (
           <div
@@ -315,14 +405,12 @@ function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
               pointerEvents: 'none',
             }}
           >
-            <div style={{ transform: `scale(${CARD_SCALE})`, transformOrigin: 'center center' }}>
-              <CreatorCard creator={creator} />
-            </div>
+            <CreatorCard creator={creator} />
           </div>
         ))}
       </div>
 
-      <p className="text-center mt-4 text-xs" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: "'JetBrains Mono', monospace" }}>
+      <p className="text-center mt-3 text-xs" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: "'JetBrains Mono', monospace" }}>
         drag to spin
       </p>
     </div>
@@ -332,19 +420,27 @@ function CreatorRoundabout({ creators }: { creators: CreatorCardData[] }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
-  const [creators, setCreators] = useState<CreatorCardData[]>([])
+  const [realCreators, setRealCreators] = useState<CreatorCardData[]>([])
 
   useEffect(() => {
     fetch('/api/public/creators')
       .then(r => r.json())
-      .then(d => setCreators(Array.isArray(d) ? d : []))
+      .then(d => setRealCreators(Array.isArray(d) ? d : []))
       .catch(() => {})
   }, [])
-  const totalFollowers = creators.reduce((s, c) => s + (c.follower_count ?? 0) + (c.tiktok_follower_count ?? 0), 0)
-  const totalVerifiedCollabs = creators.reduce((s, c) => s + c.verified_matches, 0)
+
+  // Real creators fill from the front; mocks pad the rest up to 10 slots
+  const displayCreators = realCreators.length >= MOCK_CREATORS.length
+    ? realCreators
+    : [...realCreators, ...MOCK_CREATORS.slice(realCreators.length)]
+
+  const totalFollowers      = displayCreators.reduce((s, c) => s + (c.follower_count ?? 0) + (c.tiktok_follower_count ?? 0), 0)
+  const totalVerifiedCollabs = displayCreators.reduce((s, c) => s + c.verified_matches, 0)
+
+  // Stats for the "Proudly Cambridge" section use real data where available
   const liveStats = [
-    { num: creators.length > 0 ? `${creators.length}+` : '30+', label: 'Verified creators', sub: 'joining at launch' },
-    { num: totalFollowers > 0 ? `${formatFollowers(totalFollowers)}+` : '30K+', label: 'Combined local reach', sub: 'Cambridge followers across the network' },
+    { num: realCreators.length > 0 ? `${realCreators.length}+` : '30+', label: 'Verified creators', sub: 'joining at launch' },
+    { num: realCreators.length > 0 ? `${formatFollowers(realCreators.reduce((s, c) => s + (c.follower_count ?? 0) + (c.tiktok_follower_count ?? 0), 0))}+` : '30K+', label: 'Combined local reach', sub: 'Cambridge followers across the network' },
     { num: '20', label: 'Founding business spots', sub: 'available this year' },
   ]
 
@@ -371,8 +467,6 @@ export default function HomePage() {
 
       {/* ── Hero ── */}
       <section className="min-h-screen flex flex-col md:flex-row md:items-center max-w-7xl mx-auto w-full px-6 pt-24 md:pt-28 pb-12 md:pb-16 gap-10 md:gap-16">
-
-        {/* Left */}
         <div className="flex-1 flex flex-col justify-center">
           <div className="mb-7">
             <span className="text-xs tracking-[0.15em] uppercase" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.35)' }}>
@@ -402,9 +496,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Right: post grid */}
+        {/* Post grid */}
         <div className="w-full md:flex-shrink-0 md:w-auto">
-          {/* Mobile carousel */}
           <div className="md:hidden flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-6 px-6 pb-2" style={{ scrollbarWidth: 'none' } as React.CSSProperties}>
             {posts.slice(0, 3).map((p, i) => (
               <div key={p.handle} className="snap-center flex-shrink-0" style={{ width: '72vw', height: '72vw', maxWidth: '260px', maxHeight: '260px' }}>
@@ -418,7 +511,6 @@ export default function HomePage() {
             ))}
             <div className="flex-shrink-0 w-2" aria-hidden />
           </div>
-          {/* Desktop grid — top row: hover/tap to reveal value prop; bottom row: video plays */}
           <div className="hidden md:grid grid-cols-3 gap-3" style={{ width: '609px' }}>
             {posts.slice(0, 3).map((p, i) => (
               <div key={p.handle} style={{ width: '195px', height: '195px' }}>
@@ -469,8 +561,7 @@ export default function HomePage() {
             </div>
             <div className="relative rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
               <img src="/cambridge-map.png" alt="Cambridge city map" className="w-full h-auto object-cover" style={{ opacity: 0.85, filter: 'grayscale(10%) brightness(1.05) contrast(0.95)' }} />
-              {/* Profile circles overlaid on the map */}
-              {creators.slice(0, 4).map((c, i) => ({
+              {realCreators.slice(0, 4).map((c, i) => ({
                 avatar: c.avatar_url,
                 handle: c.instagram_handle ? `@${c.instagram_handle}` : c.display_name,
                 top: ['12%', '22%', '58%', '68%'][i],
@@ -508,51 +599,49 @@ export default function HomePage() {
       {/* ── Meet the creators ── */}
       <section style={{ background: '#1C2B3A', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
 
-        {/* Header + stats */}
-        <div className="max-w-5xl mx-auto px-6 pt-10 pb-4">
-          <div className="mb-6">
-            <span className="text-xs font-bold tracking-widest uppercase mb-3 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.35)' }}>
-              Meet the creators
-            </span>
-            <h2 className="mb-3 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(1.9rem, 4vw, 3rem)', fontWeight: 800, color: '#ffffff' }}>
-              Meet our creators.
-            </h2>
-            <div className="w-12 h-1 rounded-full mb-3" style={{ background: '#F5B800' }} />
-            <p className="text-base max-w-xl" style={{ color: 'rgba(255,255,255,0.55)', fontFamily: "'Inter', sans-serif" }}>
-              Cambridge-based content creators ready to showcase local businesses. All verified, all local.
-            </p>
-          </div>
+        {/* Header — heading left, stats right */}
+        <div className="max-w-5xl mx-auto px-6 pt-10 pb-5">
+          <div className="flex items-start justify-between gap-8">
+            <div>
+              <span className="text-xs font-bold tracking-widest uppercase mb-3 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(255,255,255,0.35)' }}>
+                Meet the creators
+              </span>
+              <h2 className="mb-3 leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(1.9rem, 4vw, 3rem)', fontWeight: 800, color: '#ffffff' }}>
+                Meet our creators.
+              </h2>
+              <div className="w-12 h-1 rounded-full mb-3" style={{ background: '#F5B800' }} />
+              <p className="text-sm max-w-sm" style={{ color: 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>
+                Cambridge-based content creators ready to showcase local businesses. All verified, all local.
+              </p>
+            </div>
 
-          {creators.length > 0 && (
-            <div className="flex items-center gap-8 flex-wrap">
+            {/* Stats — top right */}
+            <div className="hidden sm:flex flex-col gap-4 flex-shrink-0 pt-1 text-right">
               {[
-                { value: creators.length, label: 'Active creators' },
-                { value: totalFollowers, label: 'Combined followers', format: formatFollowers },
-                { value: totalVerifiedCollabs, label: 'Verified collabs' },
+                { value: formatFollowers(totalFollowers) + '+', label: 'Combined followers' },
+                { value: String(displayCreators.length) + '+', label: 'Active creators' },
+                { value: String(totalVerifiedCollabs), label: 'Verified collabs' },
               ].map(stat => (
                 <div key={stat.label}>
-                  <p className="text-3xl font-bold" style={{ color: '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                    {'format' in stat && stat.format ? stat.format(stat.value) : stat.value}
+                  <p className="text-2xl font-bold leading-none" style={{ color: '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                    {stat.value}
                   </p>
-                  <p className="text-xs mt-0.5 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: "'JetBrains Mono', monospace" }}>{stat.label}</p>
+                  <p className="text-[10px] mt-0.5 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {stat.label}
+                  </p>
                 </div>
               ))}
             </div>
-          )}
-        </div>
-
-        {/* 3-D carousel */}
-        <div className="max-w-5xl mx-auto px-6">
-          <div style={{ borderTop: '2px solid rgba(255,255,255,0.5)', borderBottom: '2px solid rgba(255,255,255,0.5)', overflow: 'hidden' }}>
-            {creators.length > 0
-              ? <CreatorRoundabout creators={creators} />
-              : <div className="py-20 text-center"><p style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'Inter', sans-serif" }}>Creators coming soon.</p></div>
-            }
           </div>
         </div>
 
-        {/* Links */}
-        <div className="max-w-5xl mx-auto px-6 py-4">
+        {/* Full-width carousel */}
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <CreatorRoundabout creators={displayCreators} />
+        </div>
+
+        {/* Footer link */}
+        <div className="max-w-5xl mx-auto px-6 py-5">
           <Link
             href="/creators"
             className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-80"
@@ -565,7 +654,6 @@ export default function HomePage() {
 
       {/* ── Join the platform ── */}
       <section style={{ backgroundColor: '#ffffff', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-        {/* Cambridge areas marquee */}
         <div className="overflow-hidden py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
           <div className="flex gap-8 whitespace-nowrap" style={{ animation: 'marquee 30s linear infinite' }}>
             {places.map((p, i) => (
