@@ -78,7 +78,7 @@ export function CreatorMatchesClient({ currentUserId }: { currentUserId: string 
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-          My Matches
+          My Collabs
         </h1>
         <p className="text-sm text-gray-500 mt-0.5">
           {matches.length} match{matches.length !== 1 ? 'es' : ''}
