@@ -169,10 +169,6 @@ export function ProfileForm({ role, initial, userId, onSaved }: Props) {
         setLookupError(data.error ?? 'Profile not found — check the handle is correct and the account is public')
         return
       }
-      if (data.isPrivate) {
-        setLookupError('This account is private — make it public to sync your stats')
-        return
-      }
       setForm(f => ({
         ...f,
         follower_count: data.followers ?? f.follower_count,
@@ -201,7 +197,6 @@ export function ProfileForm({ role, initial, userId, onSaved }: Props) {
       const res = await fetch(`/api/tiktok/lookup?handle=${encodeURIComponent(clean)}&userId=${encodeURIComponent(userId)}&cachePhoto=${cachePhoto}`)
       const data = await res.json()
       if (!res.ok) { setTiktokLookupError(data.error ?? 'Profile not found — check the handle and try again'); return }
-      if (data.isPrivate) { setTiktokLookupError('This account is private — make it public to sync your stats'); return }
       setForm(f => ({
         ...f,
         tiktok_follower_count: data.followers ?? f.tiktok_follower_count,
