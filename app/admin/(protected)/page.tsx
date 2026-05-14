@@ -73,8 +73,8 @@ export default async function AdminOverview() {
           { label: 'Waitlist', value: stats.waitlistCount, href: '/admin/waitlist' },
           { label: 'Creators', value: stats.totalCreators, sub: stats.pendingCreators > 0 ? `${stats.pendingCreators} pending` : 'all approved', href: '/admin/creators' },
           { label: 'Businesses', value: stats.totalBusinesses, href: '/admin/businesses' },
-          { label: 'Total matches', value: stats.totalMatches, href: '/admin/matches' },
-          { label: 'Active collabs', value: stats.activeInvites, href: '/admin/invites' },
+          { label: 'Total matches', value: stats.totalMatches, href: '/admin/collabs' },
+          { label: 'Active collabs', value: stats.activeInvites, href: '/admin/collabs' },
           { label: 'Unused invite codes', value: stats.unusedCodes, href: '/admin/invite-codes' },
         ].map(({ label, value, sub, href }) => (
           <Link key={label} href={href} className="block rounded-2xl bg-white p-5 hover:-translate-y-0.5 hover:shadow-md transition-all" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
@@ -88,7 +88,7 @@ export default async function AdminOverview() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Recent matches</h2>
-          <Link href="/admin/matches" className="text-xs font-semibold text-gray-400 hover:text-[#1C2B3A] transition-colors">View all →</Link>
+          <Link href="/admin/collabs" className="text-xs font-semibold text-gray-400 hover:text-[#1C2B3A] transition-colors">View all →</Link>
         </div>
         {!recentMatches.length ? (
           <p className="text-sm text-gray-400">No matches yet.</p>
@@ -101,7 +101,7 @@ export default async function AdminOverview() {
               return (
                 <Link
                   key={match.id}
-                  href="/admin/matches"
+                  href="/admin/collabs"
                   className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 transition-colors"
                   style={{ borderBottom: i < recentMatches.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}
                 >

@@ -11,7 +11,7 @@ const nav = [
   { href: '/admin/waitlist',     label: 'Waitlist',     icon: Mail },
   { href: '/admin/creators',     label: 'Creators',     icon: Users },
   { href: '/admin/businesses',   label: 'Businesses',   icon: Building2 },
-  { href: '/admin/matches',      label: 'Collabs',      icon: Sparkles },
+  { href: '/admin/collabs',      label: 'Collabs',      icon: Sparkles },
   { href: '/admin/invite-codes', label: 'Invite codes', icon: Key },
   { href: '/admin/audit-log',    label: 'Audit log',    icon: ScrollText },
 ]
