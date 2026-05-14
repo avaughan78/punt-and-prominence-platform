@@ -12,17 +12,21 @@ const mockCircles = [
   { handle: 'cam.eats',        avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
   { handle: 'sundaycam',       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
   { handle: 'cambridgelens',   avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
+  { handle: 'priya.eats.cam',  avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
+  { handle: 'aisha.local',     avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=100&h=100' },
 ]
 
-// Spread across the full viewport, avoiding the central text column
+// Pulled in from the very edges — nothing closer than ~15% to any side
 const circlePositions = [
-  { top: '13%', left: '10%',  rotate: '-2deg'   },  // top-left
-  { top: '10%', left: '50%',  rotate:  '3deg'   },  // top-center
-  { top: '15%', left: '82%',  rotate: '-1.5deg' },  // top-right
-  { top: '53%', left:  '6%',  rotate:  '2deg'   },  // mid-left
-  { top: '48%', left: '86%',  rotate: '-2.5deg' },  // mid-right
-  { top: '78%', left: '21%',  rotate:  '1.5deg' },  // bottom-left
-  { top: '75%', left: '71%',  rotate: '-1deg'   },  // bottom-right
+  { top: '14%', left: '16%', rotate: '-2deg'   },  // top-left
+  { top: '11%', left: '50%', rotate:  '3deg'   },  // top-center
+  { top: '14%', left: '78%', rotate: '-1.5deg' },  // top-right
+  { top: '52%', left: '13%', rotate:  '2deg'   },  // mid-left
+  { top: '48%', left: '80%', rotate: '-2.5deg' },  // mid-right
+  { top: '76%', left: '22%', rotate:  '1.5deg' },  // bottom-left
+  { top: '74%', left: '71%', rotate: '-1deg'   },  // bottom-right
+  { top: '28%', left: '26%', rotate:  '2.5deg' },  // inner top-left
+  { top: '64%', left: '66%', rotate: '-2deg'   },  // inner bottom-right
 ]
 
 // Staggered float durations/delays so nothing bobs in sync
@@ -34,6 +38,8 @@ const floatConfig = [
   { duration: '6.3s', delay: '0.3s' },
   { duration: '7.5s', delay: '1.8s' },
   { duration: '6.9s', delay: '2.5s' },
+  { duration: '6.4s', delay: '1.1s' },
+  { duration: '7.1s', delay: '3.0s' },
 ]
 
 // ─── Components ───────────────────────────────────────────────────────────────
