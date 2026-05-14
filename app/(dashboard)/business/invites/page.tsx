@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, AlertCircle } from 'lucide-react'
-import { InviteCard } from '@/components/invites/InviteCard'
+import { BusinessInviteCard } from '@/components/invites/BusinessInviteCard'
 import { Button } from '@/components/ui/Button'
 import type { Invite } from '@/lib/types'
 
@@ -10,11 +10,7 @@ type Tab = 'open' | 'claimed'
 
 function isOpen(invite: Invite): boolean {
   if (!invite.is_active) return false
-  if (invite.invite_type === 'retainer') {
-    // Open retainer = active and no one has claimed the slot yet
-    return invite.slots_claimed === 0
-  }
-  // Open one-off = active and slots remaining
+  if (invite.invite_type === 'retainer') return invite.slots_claimed === 0
   return invite.slots_claimed < invite.slots_total
 }
 
@@ -45,12 +41,16 @@ export default function BusinessOffersPage() {
     setOffers(prev => prev.filter(o => o.id !== id))
   }
 
+  function handleUpdated(updated: Invite) {
+    setOffers(prev => prev.map(o => o.id === updated.id ? { ...o, ...updated } : o))
+  }
+
   const openOffers = offers.filter(isOpen)
   const claimedOffers = offers.filter(o => !isOpen(o))
   const filtered = tab === 'open' ? openOffers : claimedOffers
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>My Collabs</h1>
@@ -82,7 +82,7 @@ export default function BusinessOffersPage() {
             <p className="text-sm font-semibold text-[#1C2B3A] mb-0.5" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
               Complete your profile to post collabs
             </p>
-            <p className="text-xs text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <p className="text-xs text-gray-500">
               Add your business name, category, and address to your{' '}
               <a href="/business/profile" className="underline text-[#1C2B3A] font-medium">profile</a>{' '}
               before posting a collab.
@@ -104,7 +104,6 @@ export default function BusinessOffersPage() {
             style={{
               background: tab === t.value ? '#1C2B3A' : 'transparent',
               color: tab === t.value ? 'white' : '#6b7280',
-              fontFamily: "'Inter', sans-serif",
             }}
           >
             {t.label}
@@ -122,18 +121,26 @@ export default function BusinessOffersPage() {
           {tab === 'open' ? (
             <>
               <p className="text-sm text-gray-400 mb-4">No open collabs. Post one to start getting matched with creators.</p>
-              <Link href="/business/invites/new">
-                <Button variant="secondary">Post your first collab</Button>
-              </Link>
+              {isProfileComplete && (
+                <Link href="/business/invites/new">
+                  <Button variant="secondary">Post your first collab</Button>
+                </Link>
+              )}
             </>
           ) : (
             <p className="text-sm text-gray-400">No claimed collabs yet.</p>
           )}
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map(invite => (
-            <InviteCard key={invite.id} invite={invite} mode="manage" onToggle={handleToggle} onDelete={handleDelete} />
+            <BusinessInviteCard
+              key={invite.id}
+              invite={invite}
+              onToggle={handleToggle}
+              onDelete={handleDelete}
+              onUpdated={handleUpdated}
+            />
           ))}
         </div>
       )}

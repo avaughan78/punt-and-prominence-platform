@@ -13,6 +13,7 @@ type AuditEvent =
   | 'match.created'
   | 'match.status_changed'
   | 'invite.created'
+  | 'invite.updated'
   | 'invite.deleted'
   | 'invite_code.created'
   | 'waitlist.signup'

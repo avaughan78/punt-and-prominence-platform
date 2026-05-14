@@ -1,5 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { writeAuditLog } from '@/lib/audit'
+
+const EDITABLE = ['title', 'description', 'requirements', 'value_gbp', 'fee_gbp', 'slots_total', 'expires_at', 'posts_per_month', 'duration_months']
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -8,15 +12,90 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const { id } = await params
   const body = await req.json()
+
+  // Toggle-only (pause/activate) — fast path
+  if (Object.keys(body).length === 1 && 'is_active' in body) {
+    const { data, error } = await supabase
+      .from('offers')
+      .update({ is_active: body.is_active })
+      .eq('id', id)
+      .eq('business_id', user.id)
+      .select()
+      .single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(data)
+  }
+
+  // Full edit — whitelist fields, validate, fan out
+  const update: Record<string, unknown> = {}
+  for (const key of EDITABLE) {
+    if (key in body) update[key] = body[key]
+  }
+
+  // Fetch current offer for validation + diffing
+  const { data: current } = await supabase
+    .from('offers')
+    .select('title, description, requirements, value_gbp, fee_gbp, slots_total, slots_claimed, expires_at, posts_per_month, duration_months')
+    .eq('id', id)
+    .eq('business_id', user.id)
+    .single()
+  if (!current) return NextResponse.json({ error: 'Collab not found' }, { status: 404 })
+
+  if (update.slots_total != null && Number(update.slots_total) < (current.slots_claimed ?? 0)) {
+    return NextResponse.json(
+      { error: `Cannot reduce slots below ${current.slots_claimed} — already claimed by ${current.slots_claimed} creator${current.slots_claimed !== 1 ? 's' : ''}` },
+      { status: 400 }
+    )
+  }
+
   const { data, error } = await supabase
     .from('offers')
-    .update(body)
+    .update(update)
     .eq('id', id)
     .eq('business_id', user.id)
     .select()
     .single()
-
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Build human-readable change list for notifications + audit
+  const changes: string[] = []
+  if ('title' in update && update.title !== current.title) changes.push(`Title: "${update.title}"`)
+  if ('value_gbp' in update && update.value_gbp !== current.value_gbp) changes.push(`Value: £${current.value_gbp} → £${update.value_gbp}`)
+  if ('fee_gbp' in update && update.fee_gbp !== current.fee_gbp) changes.push(`Monthly fee: £${current.fee_gbp} → £${update.fee_gbp}`)
+  if ('slots_total' in update && update.slots_total !== current.slots_total) changes.push(`Slots: ${current.slots_total} → ${update.slots_total}`)
+  if ('posts_per_month' in update && update.posts_per_month !== current.posts_per_month) changes.push(`Posts/month: ${current.posts_per_month} → ${update.posts_per_month}`)
+  if ('description' in update && update.description !== current.description) changes.push('Description updated')
+  if ('requirements' in update && update.requirements !== current.requirements) changes.push('Requirements updated')
+  if ('expires_at' in update && update.expires_at !== current.expires_at) changes.push('Expiry updated')
+  if ('duration_months' in update && update.duration_months !== current.duration_months) changes.push('Duration updated')
+
+  // Fan out system message to all active matches on this offer
+  if (changes.length > 0) {
+    const { data: activeMatches } = await supabase
+      .from('matches')
+      .select('id')
+      .eq('offer_id', id)
+      .in('status', ['pending', 'active'])
+
+    if (activeMatches && activeMatches.length > 0) {
+      const admin = createAdminClient()
+      const content = `This collab was updated by the business: ${changes.join(' · ')}`
+      await Promise.all(
+        activeMatches.map(m =>
+          admin.from('match_messages').insert({ match_id: m.id, sender_id: user.id, content })
+        )
+      )
+    }
+
+    await writeAuditLog({
+      event_type: 'invite.updated',
+      actor: user.email ?? user.id,
+      subject_type: 'invite',
+      subject_id: id,
+      metadata: { title: data.title, changes },
+    })
+  }
+
   return NextResponse.json(data)
 }
 
