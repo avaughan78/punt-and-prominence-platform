@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { emailWaitlistConfirmation, emailWaitlistNotify } from '@/lib/email'
+import { writeAuditLog } from '@/lib/audit'
 
 const COOKIE = 'waitlist_done'
 const COOKIE_OPTS = {
@@ -41,6 +42,13 @@ export async function POST(req: Request) {
   await Promise.all([
     emailWaitlistConfirmation({ email }),
     emailWaitlistNotify({ email }),
+    writeAuditLog({
+      event_type: 'waitlist.signup',
+      actor: 'system',
+      subject_type: 'waitlist',
+      subject_id: email,
+      metadata: { email },
+    }),
   ])
 
   const res = NextResponse.json({ ok: true })

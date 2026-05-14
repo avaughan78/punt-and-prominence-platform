@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { generatePuntCode } from '@/lib/utils'
 import { emailMatchClaimed } from '@/lib/email'
+import { writeAuditLog } from '@/lib/audit'
 
 export async function GET() {
   const supabase = await createClient()
@@ -97,6 +98,19 @@ export async function POST(req: Request) {
       puntCode: punt_code,
     })
   }
+
+  await writeAuditLog({
+    event_type: 'match.created',
+    actor: user.email ?? user.id,
+    subject_type: 'match',
+    subject_id: data.id,
+    metadata: {
+      punt_code,
+      offer_title: (offer as { title?: string }).title,
+      creator_name: creatorProfile?.display_name,
+      business_name: bizProfile?.business_name ?? bizProfile?.display_name,
+    },
+  })
 
   return NextResponse.json(data, { status: 201 })
 }

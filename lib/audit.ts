@@ -8,9 +8,12 @@ type AuditEvent =
   | 'creator.approved'
   | 'creator.rejected'
   | 'creator.revoked'
+  | 'match.created'
   | 'match.status_changed'
   | 'invite.created'
   | 'invite.deleted'
+  | 'invite_code.created'
+  | 'waitlist.signup'
 
 export async function writeAuditLog({
   event_type,

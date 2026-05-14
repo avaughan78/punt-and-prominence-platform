@@ -1,4 +1,5 @@
 import { adminGuard } from '@/lib/adminGuard'
+import { writeAuditLog } from '@/lib/audit'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
@@ -29,5 +30,14 @@ export async function POST(request: Request) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+  await writeAuditLog({
+    event_type: 'invite_code.created',
+    actor: process.env.ADMIN_EMAIL ?? 'admin',
+    subject_type: 'invite_code',
+    subject_id: data.id,
+    metadata: { code: data.code, reusable },
+  })
+
   return NextResponse.json(data, { status: 201 })
 }
