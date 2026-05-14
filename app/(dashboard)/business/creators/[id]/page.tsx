@@ -11,22 +11,23 @@ export default async function BusinessCreatorProfilePage({ params }: { params: P
 
   const { data: creator } = await supabase
     .from('profiles')
-    .select(`
-      id, display_name, instagram_handle, tiktok_handle, avatar_url,
-      follower_count, tiktok_follower_count, bio, website_url,
-      matches:matches!matches_creator_id_fkey(
-        id, offer_id, status, created_at, post_url,
-        offer:offers(title, value_gbp, fee_gbp, invite_type, category),
-        deliverables:match_deliverables(id, month_number, post_url, status)
-      )
-    `)
+    .select('id, display_name, instagram_handle, tiktok_handle, avatar_url, follower_count, tiktok_follower_count, bio, website_url')
     .eq('id', id)
     .eq('role', 'creator')
     .single()
 
   if (!creator) redirect('/business/creators')
 
-  const matches = (creator.matches ?? []) as unknown as PublicMatch[]
+  const { data: rawMatches } = await supabase
+    .from('matches')
+    .select(`
+      id, offer_id, status, created_at, post_url,
+      offer:offers(title, value_gbp, fee_gbp, invite_type, category),
+      deliverables:match_deliverables(id, month_number, post_url, status)
+    `)
+    .eq('creator_id', id)
+
+  const matches = (rawMatches ?? []) as unknown as PublicMatch[]
 
   return (
     <CreatorPublicProfileView

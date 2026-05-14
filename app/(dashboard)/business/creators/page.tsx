@@ -127,7 +127,7 @@ function CreatorCard({ creator }: { creator: Creator }) {
       </div>
 
       {/* Stats row */}
-      <div className="w-full flex items-stretch" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+      <div className="w-full flex items-stretch" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}>
         {[
           { value: creator.follower_count != null ? formatFollowers(creator.follower_count) : '—', label: 'Followers' },
           { value: creator.total_matches,    label: 'Collabs' },
@@ -149,7 +149,7 @@ function CreatorCard({ creator }: { creator: Creator }) {
       </div>
 
       {/* Bio + website */}
-      <div className="px-4 pt-3 pb-4 flex flex-col items-center gap-1.5 w-full flex-1">
+      <div className="px-4 pt-3 pb-4 flex flex-col items-center gap-1.5 w-full flex-1" style={{ background: '#ffffff' }}>
         {creator.bio && (
           <p className="text-xs text-gray-500 leading-relaxed text-center line-clamp-4 w-full" style={{ fontFamily: "'Inter', sans-serif" }}>
             {creator.bio}
@@ -171,7 +171,7 @@ function CreatorCard({ creator }: { creator: Creator }) {
       </div>
 
       {/* Actions */}
-      <div className="px-4 pb-4 w-full flex flex-col gap-2">
+      <div className="px-4 pb-4 w-full flex flex-col gap-2" style={{ background: '#ffffff' }}>
         <button
           type="button"
           onClick={() => router.push(`/business/creators/${creator.id}`)}
