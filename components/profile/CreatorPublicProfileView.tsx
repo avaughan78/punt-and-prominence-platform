@@ -73,7 +73,7 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
   const [postsVisible, setPostsVisible] = useState(POSTS_PAGE)
 
   // Collect all submitted/verified posts across one-offs and retainer deliverables
-  const allPosts: { url: string; title: string; date: string; verified: boolean }[] = []
+  const allPosts: { url: string; title: string; date: string; verified: boolean; matchId: string }[] = []
   for (const m of matches) {
     if (m.post_url && (m.status === 'posted' || m.status === 'verified')) {
       allPosts.push({
@@ -81,6 +81,7 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
         title: m.offer?.title ?? 'Collab',
         date: m.created_at,
         verified: m.status === 'verified',
+        matchId: m.id,
       })
     }
     for (const d of m.deliverables ?? []) {
@@ -89,6 +90,7 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
         title: `${m.offer?.title ?? 'Retainer'} · Month ${d.month_number}`,
         date: m.created_at,
         verified: d.status === 'verified',
+        matchId: m.id,
       })
     }
   }
@@ -256,63 +258,62 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {visiblePosts.map((post, i) => {
               const platform = detectPlatform(post.url)
-              const domain = post.url.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0]
               return (
-                <a
+                <div
                   key={i}
-                  href={post.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex flex-col rounded-2xl overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg"
+                  className="flex flex-col rounded-2xl overflow-hidden"
                   style={{ border: '1px solid rgba(0,0,0,0.08)' }}
                 >
-                  {/* Platform header */}
-                  <div
-                    className="relative flex items-end justify-between px-3 pb-2.5"
+                  {/* Platform header — clicks to view the post */}
+                  <a
+                    href={post.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative flex items-end justify-between px-3 pb-2.5 transition-opacity hover:opacity-90"
                     style={{ background: platform.bg, height: '80px' }}
                   >
-                    {/* Platform label */}
                     <span
                       className="text-[11px] font-black tracking-wider text-white/90"
                       style={{ fontFamily: "'JetBrains Mono', monospace", textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}
                     >
                       {platform.label}
                     </span>
-                    {/* Verified badge */}
-                    {post.verified ? (
-                      <div
-                        className="flex items-center gap-1 px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(34,197,94,0.9)', backdropFilter: 'blur(4px)' }}
-                      >
-                        <BadgeCheck className="w-3 h-3 text-white" />
-                        <span className="text-[9px] font-bold text-white uppercase tracking-wide">Verified</span>
-                      </div>
-                    ) : (
-                      <div
-                        className="flex items-center gap-1 px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }}
-                      >
-                        <span className="text-[9px] font-semibold text-white/70 uppercase tracking-wide">Unverified</span>
-                      </div>
-                    )}
-                  </div>
+                    <div className="flex items-center gap-2">
+                      {post.verified ? (
+                        <div
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-full"
+                          style={{ background: 'rgba(34,197,94,0.9)', backdropFilter: 'blur(4px)' }}
+                        >
+                          <BadgeCheck className="w-3 h-3 text-white" />
+                          <span className="text-[9px] font-bold text-white uppercase tracking-wide">Verified</span>
+                        </div>
+                      ) : (
+                        <div
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-full"
+                          style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }}
+                        >
+                          <span className="text-[9px] font-semibold text-white/70 uppercase tracking-wide">Unverified</span>
+                        </div>
+                      )}
+                      <ExternalLink className="w-3 h-3 text-white/60 group-hover:text-white transition-colors" />
+                    </div>
+                  </a>
 
                   {/* Card body */}
-                  <div className="bg-white px-3 py-3 flex flex-col gap-1.5 flex-1">
-                    <p className="text-xs font-semibold text-[#1C2B3A] leading-snug line-clamp-2" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                  <div className="bg-white px-3 py-3 flex flex-col gap-1">
+                    {/* Title — anchors to the collab history row below */}
+                    <a
+                      href={`#match-${post.matchId}`}
+                      className="text-xs font-semibold text-[#1C2B3A] leading-snug line-clamp-2 hover:underline underline-offset-2 decoration-gray-300"
+                      style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+                    >
                       {post.title}
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-auto pt-1">
-                      <ExternalLink className="w-2.5 h-2.5 shrink-0 text-gray-300 group-hover:text-blue-400 transition-colors" />
-                      <span className="text-[10px] text-gray-400 truncate" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                        {domain}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-gray-300" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    </a>
+                    <p className="text-[10px] text-gray-300 mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                       {formatDate(post.date)}
                     </p>
                   </div>
-                </a>
+                </div>
               )
             })}
           </div>
@@ -351,7 +352,8 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
                 return (
                   <div
                     key={m.id}
-                    className="flex items-center gap-3 px-4 py-3 bg-white"
+                    id={`match-${m.id}`}
+                    className="flex items-center gap-3 px-4 py-3 bg-white scroll-mt-4"
                     style={{ borderBottom: i < matches.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}
                   >
                     <div className="flex-1 min-w-0">

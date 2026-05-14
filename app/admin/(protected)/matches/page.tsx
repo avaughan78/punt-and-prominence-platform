@@ -1,14 +1,15 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { formatGBP, formatDate } from '@/lib/utils'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, ExternalLink, Search } from 'lucide-react'
 import { toast } from 'sonner'
 
-type Status = 'accepted' | 'posted' | 'verified'
+type Status = 'accepted' | 'posted' | 'verified' | 'active' | 'completed'
 
 interface MatchEntry {
   id: string
   status: Status
+  post_url: string | null
   created_at: string
   punt_code: string
   creator: {
@@ -23,6 +24,8 @@ interface MatchEntry {
 interface CollabGroup {
   id: string
   title: string
+  description: string | null
+  requirements: string | null
   invite_type: string | null
   value_gbp: number | null
   fee_gbp: number | null
@@ -32,6 +35,7 @@ interface CollabGroup {
   slots_claimed: number
   is_active: boolean
   created_at: string
+  expires_at: string | null
   business: {
     id: string
     business_name: string | null
@@ -45,10 +49,16 @@ interface CollabGroup {
   matches: MatchEntry[]
 }
 
-const STATUS_COLOUR: Record<Status, string> = {
-  accepted: '#F5B800',
-  posted: '#C084FC',
-  verified: '#22c55e',
+const STATUS_COLOUR: Record<Status, { bg: string; text: string; label: string }> = {
+  accepted:  { bg: 'rgba(245,184,0,0.12)',   text: '#b45309', label: 'Accepted' },
+  posted:    { bg: 'rgba(192,132,252,0.15)', text: '#9333ea', label: 'Posted' },
+  verified:  { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a', label: 'Verified' },
+  active:    { bg: 'rgba(107,230,176,0.12)', text: '#059669', label: 'Active' },
+  completed: { bg: 'rgba(148,163,184,0.12)', text: '#64748b', label: 'Completed' },
+}
+
+const STATUS_DOT: Record<Status, string> = {
+  accepted: '#F5B800', posted: '#C084FC', verified: '#22c55e', active: '#6BE6B0', completed: '#94a3b8',
 }
 
 const STATUS_NEXT: Partial<Record<Status, Status>> = {
@@ -56,134 +66,222 @@ const STATUS_NEXT: Partial<Record<Status, Status>> = {
   posted: 'verified',
 }
 
-const FILTERS = ['all', 'accepted', 'posted', 'verified'] as const
+const FILTERS = ['all', 'accepted', 'posted', 'verified', 'active', 'completed'] as const
 type Filter = typeof FILTERS[number]
 
-function SlotDots({ total, claimed }: { total: number; claimed: number }) {
-  if (total > 8) {
-    return (
-      <span className="text-xs font-semibold tabular-nums" style={{ color: claimed >= total ? '#22c55e' : '#F5B800', fontFamily: "'JetBrains Mono', monospace" }}>
-        {claimed}/{total}
-      </span>
-    )
-  }
-  return (
-    <div className="flex gap-1 items-center">
-      {Array.from({ length: total }).map((_, i) => (
-        <span
-          key={i}
-          className="rounded-full"
-          style={{
-            width: '7px', height: '7px',
-            background: i < claimed ? (claimed >= total ? '#22c55e' : '#F5B800') : 'rgba(0,0,0,0.1)',
-          }}
-        />
-      ))}
-    </div>
-  )
+function fmt(n: number) {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}m`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`
+  return String(n)
 }
 
-function StatusMini({ matches }: { matches: MatchEntry[] }) {
+function collabPriority(g: CollabGroup): number {
+  if (!g.is_active) return 2
+  const hasLive = g.matches.some(m => m.status === 'posted' || m.status === 'accepted' || m.status === 'active')
+  return hasLive ? 0 : 1
+}
+
+function StatusDots({ matches }: { matches: MatchEntry[] }) {
   const unique = [...new Set(matches.map(m => m.status))]
   return (
     <div className="flex gap-1 items-center">
       {unique.map(s => (
-        <span
-          key={s}
-          className="rounded-full"
-          style={{ width: '6px', height: '6px', background: STATUS_COLOUR[s] }}
-          title={s}
-        />
+        <span key={s} className="rounded-full" style={{ width: '6px', height: '6px', background: STATUS_DOT[s] }} title={s} />
       ))}
     </div>
   )
 }
 
-function CreatorCard({ match, advancing, onAdvance }: { match: MatchEntry; advancing: string | null; onAdvance: (id: string, s: Status) => void }) {
-  const colour = STATUS_COLOUR[match.status]
-  const nextStatus = STATUS_NEXT[match.status]
-  const nextColour = nextStatus ? STATUS_COLOUR[nextStatus] : null
-  const initial = match.creator?.display_name?.[0]?.toUpperCase() ?? '?'
-
-  function formatFollowers(n: number) {
-    if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`
-    return n.toString()
-  }
-
+function SlotBar({ total, claimed }: { total: number; claimed: number }) {
+  const pct = total > 0 ? Math.round((claimed / total) * 100) : 0
   return (
-    <div
-      className="rounded-2xl bg-white flex flex-col overflow-hidden"
-      style={{ width: '200px', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}
-    >
-      {/* Status strip */}
-      <div style={{ height: '3px', background: colour }} />
-
-      <div className="p-4 flex flex-col gap-3 flex-1">
-        {/* Avatar + name */}
-        <div className="flex items-center gap-3">
-          {match.creator?.avatar_url ? (
-            <img src={match.creator.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
-          ) : (
-            <div
-              className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-sm font-bold text-white"
-              style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}
-            >
-              {initial}
-            </div>
-          )}
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-[#1C2B3A] truncate">{match.creator?.display_name}</p>
-            {match.creator?.instagram_handle && (
-              <a
-                href={`https://instagram.com/${match.creator.instagram_handle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-gray-400 hover:text-[#1C2B3A] transition-colors"
-              >
-                @{match.creator.instagram_handle}
-              </a>
-            )}
-          </div>
-        </div>
-
-        {match.creator?.follower_count != null && (
-          <p className="text-xs text-gray-400 -mt-1">{formatFollowers(match.creator.follower_count)} followers</p>
-        )}
-
-        {/* Status + advance */}
-        <div className="flex items-center gap-2 mt-auto flex-wrap">
-          <span
-            className="text-[11px] font-bold px-2.5 py-1 rounded-full"
-            style={{ background: `${colour}18`, color: colour }}
-          >
-            {match.status}
-          </span>
-          {nextStatus && nextColour && (
-            <button
-              onClick={() => onAdvance(match.id, match.status)}
-              disabled={advancing === match.id}
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full transition-all hover:opacity-75 disabled:opacity-40"
-              style={{ background: `${nextColour}18`, color: nextColour, border: `1px solid ${nextColour}40` }}
-            >
-              {advancing === match.id ? '…' : `→ ${nextStatus}`}
-            </button>
-          )}
-        </div>
-
-        {/* Punt code + date */}
-        <div className="flex items-center justify-between pt-2" style={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-          <span className="text-[10px] font-bold tracking-widest text-gray-300" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{match.punt_code}</span>
-          <span className="text-[10px] text-gray-300">{formatDate(match.created_at)}</span>
-        </div>
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[10px] text-gray-400 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          Capacity
+        </span>
+        <span className="text-[10px] font-semibold" style={{ color: claimed >= total ? '#22c55e' : '#F5B800', fontFamily: "'JetBrains Mono', monospace" }}>
+          {claimed}/{total}
+        </span>
+      </div>
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.08)' }}>
+        <div
+          className="h-full rounded-full"
+          style={{ width: `${pct}%`, background: claimed >= total ? '#22c55e' : '#F5B800', transition: 'width 0.4s ease' }}
+        />
       </div>
     </div>
   )
 }
 
-export default function AdminMatches() {
+function CollabDetail({ group }: { group: CollabGroup }) {
+  const isRetainer = group.invite_type === 'retainer'
+  const value = isRetainer ? group.fee_gbp : group.value_gbp
+
+  return (
+    <div className="flex flex-col gap-4 h-full">
+      {/* Value + type */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span
+          className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md"
+          style={{
+            background: isRetainer ? 'rgba(107,230,176,0.15)' : 'rgba(245,184,0,0.12)',
+            color: isRetainer ? '#059669' : '#b45309',
+            fontFamily: "'JetBrains Mono', monospace",
+          }}
+        >
+          {isRetainer ? 'Retainer' : 'One-off'}
+        </span>
+        {!group.is_active && (
+          <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md bg-gray-100 text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            Paused
+          </span>
+        )}
+        {value != null && (
+          <span className="text-sm font-bold ml-auto" style={{ color: isRetainer ? '#059669' : '#b45309', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+            {formatGBP(value)}{isRetainer ? '/mo' : ''}
+          </span>
+        )}
+      </div>
+
+      <SlotBar total={group.slots_total} claimed={group.slots_claimed} />
+
+      {/* Description */}
+      {group.description && (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>About</p>
+          <p className="text-xs text-gray-600 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>{group.description}</p>
+        </div>
+      )}
+
+      {/* Requirements */}
+      {group.requirements && (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Requirements</p>
+          <p className="text-xs text-gray-600 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>{group.requirements}</p>
+        </div>
+      )}
+
+      {/* Retainer terms */}
+      {isRetainer && (group.posts_per_month != null || group.duration_months != null) && (
+        <div className="flex gap-4">
+          {group.posts_per_month != null && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Posts/mo</p>
+              <p className="text-xs font-bold text-[#1C2B3A]">{group.posts_per_month}</p>
+            </div>
+          )}
+          {group.duration_months != null && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Duration</p>
+              <p className="text-xs font-bold text-[#1C2B3A]">{group.duration_months}mo</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Dates */}
+      <div className="mt-auto pt-2 flex flex-col gap-0.5" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+        <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          Created {formatDate(group.created_at)}
+        </p>
+        {group.expires_at && (
+          <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            Expires {formatDate(group.expires_at)}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function CreatorRow({ match, advancing, onAdvance }: { match: MatchEntry; advancing: string | null; onAdvance: (id: string, s: Status) => void }) {
+  const meta = STATUS_COLOUR[match.status]
+  const nextStatus = STATUS_NEXT[match.status]
+  const name = match.creator?.display_name ?? 'Unknown'
+  const handle = match.creator?.instagram_handle
+  const initial = name[0]?.toUpperCase() ?? '?'
+
+  return (
+    <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl transition-colors hover:bg-gray-50" style={{ minWidth: 0 }}>
+      {/* Avatar */}
+      {match.creator?.avatar_url ? (
+        <img src={match.creator.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+      ) : (
+        <div
+          className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white"
+          style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}
+        >
+          {initial}
+        </div>
+      )}
+
+      {/* Identity */}
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-semibold text-[#1C2B3A] truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+          {handle ? (
+            <a href={`https://instagram.com/${handle}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
+              @{handle}
+            </a>
+          ) : name}
+        </p>
+        {match.creator?.follower_count != null && (
+          <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            {fmt(match.creator.follower_count)} followers
+          </p>
+        )}
+      </div>
+
+      {/* Status */}
+      <span
+        className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0"
+        style={{ background: meta.bg, color: meta.text, fontFamily: "'JetBrains Mono', monospace" }}
+      >
+        {meta.label}
+      </span>
+
+      {/* Post link */}
+      {match.post_url && (
+        <a
+          href={match.post_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 text-[10px] font-medium text-blue-400 hover:text-blue-600 transition-colors shrink-0"
+        >
+          <ExternalLink className="w-3 h-3" />
+          Post
+        </a>
+      )}
+
+      {/* Punt code */}
+      <span className="text-[10px] text-gray-300 shrink-0 hidden lg:block" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+        {match.punt_code}
+      </span>
+
+      {/* Advance button */}
+      {nextStatus && (
+        <button
+          onClick={() => onAdvance(match.id, match.status)}
+          disabled={advancing === match.id}
+          className="text-[10px] font-bold px-2.5 py-1 rounded-full transition-all hover:opacity-80 disabled:opacity-40 shrink-0"
+          style={{
+            background: STATUS_COLOUR[nextStatus].bg,
+            color: STATUS_COLOUR[nextStatus].text,
+            border: `1px solid ${STATUS_DOT[nextStatus]}40`,
+          }}
+        >
+          {advancing === match.id ? '…' : `→ ${STATUS_COLOUR[nextStatus].label}`}
+        </button>
+      )}
+    </div>
+  )
+}
+
+export default function AdminCollabs() {
   const [groups, setGroups] = useState<CollabGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
+  const [search, setSearch] = useState('')
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [advancing, setAdvancing] = useState<string | null>(null)
 
@@ -193,17 +291,30 @@ export default function AdminMatches() {
       .then(d => { setGroups(Array.isArray(d) ? d : []); setLoading(false) })
   }, [])
 
-  const totalMatches = groups.reduce((sum, g) => sum + g.matches.length, 0)
+  const totalCreators = groups.reduce((sum, g) => sum + g.matches.length, 0)
+
+  const searchLower = search.toLowerCase()
 
   const filteredGroups = groups
     .map(g => ({
       ...g,
       matches: filter === 'all' ? g.matches : g.matches.filter(m => m.status === filter),
     }))
-    .filter(g => g.matches.length > 0)
+    .filter(g => {
+      if (g.matches.length === 0) return false
+      if (!searchLower) return true
+      const biz = g.business?.business_name ?? g.business?.display_name ?? ''
+      return (
+        g.title.toLowerCase().includes(searchLower) ||
+        biz.toLowerCase().includes(searchLower)
+      )
+    })
+    .sort((a, b) => collabPriority(a) - collabPriority(b))
 
   const counts = FILTERS.reduce((acc, f) => {
-    acc[f] = f === 'all' ? totalMatches : groups.reduce((sum, g) => sum + g.matches.filter(m => m.status === f).length, 0)
+    acc[f] = f === 'all'
+      ? totalCreators
+      : groups.reduce((sum, g) => sum + g.matches.filter(m => m.status === f).length, 0)
     return acc
   }, {} as Record<Filter, number>)
 
@@ -229,7 +340,7 @@ export default function AdminMatches() {
         ...g,
         matches: g.matches.map(m => m.id === matchId ? { ...m, status: next } : m),
       })))
-      toast.success(`Marked as ${next}`)
+      toast.success(`Marked as ${STATUS_COLOUR[next].label}`)
     } else {
       toast.error('Failed to update status')
     }
@@ -238,50 +349,66 @@ export default function AdminMatches() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+      <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Matches</h1>
+          <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Collabs</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {totalMatches} match{totalMatches !== 1 ? 'es' : ''} across {groups.length} collab{groups.length !== 1 ? 's' : ''}
+            {totalCreators} creator{totalCreators !== 1 ? 's' : ''} across {groups.length} collab{groups.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <div className="flex gap-1.5 flex-wrap">
-          {FILTERS.map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors capitalize"
-              style={{
-                background: filter === f ? '#1C2B3A' : 'white',
-                color: filter === f ? 'white' : '#6b7280',
-                border: '1px solid rgba(0,0,0,0.1)',
-              }}
-            >
-              {f} {counts[f] > 0 && <span className="opacity-60">({counts[f]})</span>}
-            </button>
-          ))}
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+          <input
+            type="search"
+            placeholder="Search collabs or businesses…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="pl-9 pr-4 py-2 text-sm rounded-xl border border-black/10 outline-none focus:border-[#F5B800] w-64 transition-colors"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          />
         </div>
+      </div>
+
+      {/* Status filter pills */}
+      <div className="flex gap-1.5 flex-wrap mb-6">
+        {FILTERS.map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors capitalize"
+            style={{
+              background: filter === f ? '#1C2B3A' : 'white',
+              color: filter === f ? 'white' : '#6b7280',
+              border: '1px solid rgba(0,0,0,0.1)',
+            }}
+          >
+            {f === 'all' ? 'All' : STATUS_COLOUR[f as Status].label}
+            {counts[f] > 0 && (
+              <span className="ml-1.5 opacity-60">({counts[f]})</span>
+            )}
+          </button>
+        ))}
       </div>
 
       {loading ? (
         <p className="text-sm text-gray-400">Loading…</p>
       ) : !filteredGroups.length ? (
-        <p className="text-sm text-gray-400">No matches found.</p>
+        <p className="text-sm text-gray-400">No collabs found.</p>
       ) : (
         <div className="rounded-2xl overflow-hidden bg-white" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
           {filteredGroups.map((group, gi) => {
             const isRetainer = group.invite_type === 'retainer'
-            const value = isRetainer ? group.fee_gbp : group.value_gbp
-            const valueLabel = isRetainer ? '/mo' : ''
             const bizName = group.business?.business_name ?? group.business?.display_name ?? '—'
             const isExpanded = expanded.has(group.id)
             const isLast = gi === filteredGroups.length - 1
-            const slotsOpen = group.slots_total - group.slots_claimed
+            const hasAction = group.matches.some(m => m.status === 'posted')
 
             return (
               <div
                 key={group.id}
-                style={{ borderBottom: (!isLast || isExpanded) ? '1px solid rgba(0,0,0,0.06)' : 'none' }}
+                style={{ borderBottom: isLast && !isExpanded ? 'none' : '1px solid rgba(0,0,0,0.06)' }}
               >
                 {/* ── Collab row ── */}
                 <button
@@ -304,50 +431,39 @@ export default function AdminMatches() {
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-semibold text-[#1C2B3A]">{group.title}</span>
-                      {group.invite_type && (
-                        <span
-                          className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
-                          style={{
-                            background: isRetainer ? 'rgba(192,132,252,0.12)' : 'rgba(107,230,176,0.12)',
-                            color: isRetainer ? '#9333ea' : '#059669',
-                            fontFamily: "'JetBrains Mono', monospace",
-                          }}
-                        >
-                          {isRetainer ? 'retainer' : 'one-off'}
-                        </span>
-                      )}
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                        style={{
+                          background: isRetainer ? 'rgba(192,132,252,0.12)' : 'rgba(107,230,176,0.12)',
+                          color: isRetainer ? '#9333ea' : '#059669',
+                          fontFamily: "'JetBrains Mono', monospace",
+                        }}
+                      >
+                        {isRetainer ? 'retainer' : 'one-off'}
+                      </span>
                       {!group.is_active && (
                         <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-100 text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                          closed
+                          paused
+                        </span>
+                      )}
+                      {hasAction && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ background: 'rgba(192,132,252,0.15)', color: '#9333ea', fontFamily: "'JetBrains Mono', monospace" }}>
+                          post ready
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {bizName}
-                      {group.business?.category ? ` · ${group.business.category}` : ''}
+                      {bizName}{group.business?.category ? ` · ${group.business.category}` : ''}
                     </p>
                   </div>
 
-                  {/* Value */}
-                  {value != null && (
-                    <span className="text-sm font-bold hidden sm:block shrink-0" style={{ color: '#F5B800', fontFamily: "'JetBrains Mono', monospace" }}>
-                      {formatGBP(value)}{valueLabel}
-                    </span>
-                  )}
+                  {/* Slot fraction */}
+                  <span className="text-xs font-semibold hidden sm:block shrink-0" style={{ color: group.slots_claimed >= group.slots_total ? '#22c55e' : '#F5B800', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {group.slots_claimed}/{group.slots_total}
+                  </span>
 
-                  {/* Slot dots + status mini */}
-                  <div className="flex flex-col items-center gap-1.5 shrink-0 hidden sm:flex">
-                    <SlotDots total={group.slots_total} claimed={group.slots_claimed} />
-                    {slotsOpen > 0 && group.is_active && (
-                      <span className="text-[9px] text-gray-400 uppercase tracking-wide">{slotsOpen} open</span>
-                    )}
-                  </div>
-
-                  {/* Status dots summary */}
-                  <StatusMini matches={group.matches} />
-
-                  {/* Date */}
-                  <span className="text-xs text-gray-400 shrink-0 hidden md:block">{formatDate(group.created_at)}</span>
+                  {/* Status dots */}
+                  <StatusDots matches={group.matches} />
 
                   {/* Creator count */}
                   <span className="text-xs font-semibold text-gray-400 shrink-0">
@@ -361,24 +477,42 @@ export default function AdminMatches() {
                   />
                 </button>
 
-                {/* ── Expanded creator cards ── */}
+                {/* ── Expanded panel: 35/65 two-column ── */}
                 {isExpanded && (
                   <div
-                    className="px-5 py-4 flex flex-wrap gap-3"
+                    className="flex gap-0"
                     style={{ background: '#f8f9fb', borderTop: '1px solid rgba(0,0,0,0.05)' }}
                   >
-                    {group.matches.length === 0 ? (
-                      <p className="text-sm text-gray-400">No creators match this filter.</p>
-                    ) : (
-                      group.matches.map(match => (
-                        <CreatorCard
-                          key={match.id}
-                          match={match}
-                          advancing={advancing}
-                          onAdvance={advanceStatus}
-                        />
-                      ))
-                    )}
+                    {/* Left: collab details */}
+                    <div
+                      className="p-5 flex-shrink-0"
+                      style={{ width: '35%', borderRight: '1px solid rgba(0,0,0,0.06)' }}
+                    >
+                      <CollabDetail group={group} />
+                    </div>
+
+                    {/* Right: creator rows */}
+                    <div className="flex-1 py-3 min-w-0">
+                      {group.matches.length === 0 ? (
+                        <p className="text-sm text-gray-400 px-4 py-2">No creators match this filter.</p>
+                      ) : (
+                        <div className="flex flex-col gap-0.5 px-2">
+                          {[...group.matches]
+                            .sort((a, b) => {
+                              const order: Record<Status, number> = { posted: 0, accepted: 1, active: 2, verified: 3, completed: 4 }
+                              return (order[a.status] ?? 5) - (order[b.status] ?? 5)
+                            })
+                            .map(match => (
+                              <CreatorRow
+                                key={match.id}
+                                match={match}
+                                advancing={advancing}
+                                onAdvance={advanceStatus}
+                              />
+                            ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
