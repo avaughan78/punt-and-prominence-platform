@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Star, MapPin, Lock, Loader2, ArrowRight, Check } from 'lucide-react'
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -72,6 +72,13 @@ export default function ComingSoon() {
 
   const [email, setEmail] = useState('')
   const [emailStatus, setEmailStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+
+  // Restore success state if this browser already submitted
+  useEffect(() => {
+    if (document.cookie.split(';').some(c => c.trim().startsWith('waitlist_done='))) {
+      setEmailStatus('success')
+    }
+  }, [])
 
   async function handlePreview(e: React.FormEvent) {
     e.preventDefault()
