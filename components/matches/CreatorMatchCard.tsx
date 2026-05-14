@@ -241,7 +241,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       {/* ── Status / next step ── */}
       <div
         className="px-5 py-3 flex items-center gap-2.5"
-        style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}
+        style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}
       >
         <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: strip }} />
         <p className="text-sm font-medium" style={{ color: '#374151', fontFamily: "'Inter', sans-serif" }}>
@@ -264,7 +264,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
 
       {/* ── One-off: submit post ── */}
       {!isRetainer && match.status === 'accepted' && (
-        <div className="px-5 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+        <div className="px-5 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}>
           {!showPostForm ? (
             <Button size="sm" onClick={() => setShowPostForm(true)}>
               Submit post link
@@ -302,7 +302,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
 
       {/* ── One-off: post submitted ── */}
       {!isRetainer && match.status === 'posted' && (
-        <div className="px-5 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+        <div className="px-5 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}>
           {!editingPostUrl ? (
             <div className="flex items-center gap-3 flex-wrap">
               {match.post_url && (
@@ -362,7 +362,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
 
       {/* ── Retainer: deliverables ── */}
       {isRetainer && match.status !== 'accepted' && (
-        <div className="px-5 py-4 flex flex-col gap-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+        <div className="px-5 py-4 flex flex-col gap-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}>
           {(match.deliverables ?? []).length === 0 && match.status === 'active' && (
             <p className="text-xs text-gray-400 italic">No posts submitted yet for this month.</p>
           )}
@@ -475,7 +475,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       )}
 
       {/* ── Collab details toggle ── */}
-      <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+      <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}>
         <button
           onClick={() => setDetailsOpen(o => !o)}
           className="w-full flex items-center justify-between px-5 py-3 transition-colors hover:bg-gray-50"
@@ -492,7 +492,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
         {detailsOpen && (
           <div
             className="px-5 pb-5 flex flex-col gap-4"
-            style={{ background: 'transparent' }}
+            style={{ background: '#ffffff' }}
           >
             {/* Punt code */}
             <div
@@ -569,7 +569,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       <div
         ref={msgRef}
         className="px-5 py-3"
-        style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}
+        style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}
       >
         <button
           onClick={toggleMsg}

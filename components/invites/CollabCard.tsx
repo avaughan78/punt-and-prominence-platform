@@ -85,7 +85,7 @@ function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: Creat
     <div>
       <div
         className="flex items-center gap-3 px-5 py-3"
-        style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}
+        style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}
       >
         {/* Avatar + identity — links to creator profile */}
         <Link
@@ -345,7 +345,7 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
         {/* Footer */}
         <div
           className="flex items-center gap-2 px-5 py-3"
-          style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}
+          style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}
         >
           <button
             onClick={() => setEditing(true)}
