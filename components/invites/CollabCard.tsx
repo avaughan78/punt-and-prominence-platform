@@ -82,7 +82,7 @@ function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: Creat
   const statusLabel = match.status === 'accepted' && isRetainer ? 'Awaiting activation' : meta.label
 
   return (
-    <div>
+    <div ref={msgRef}>
       <div
         className="flex items-center gap-3 px-5 py-3"
         style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}
@@ -186,7 +186,7 @@ function CreatorRow({ match, isRetainer, currentUserId, onStatusUpdated }: Creat
 
       {/* Inline thread — expands below row */}
       {msgOpen && (
-        <div ref={msgRef} className="px-5 pb-4">
+        <div className="px-5 pb-4">
           <InlineMessageThread matchId={match.id} currentUserId={currentUserId} />
         </div>
       )}
