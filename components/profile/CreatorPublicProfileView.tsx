@@ -1,14 +1,34 @@
 'use client'
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import Link from 'next/link'
-import { BadgeCheck, ArrowLeft, ExternalLink, Eye, ChevronDown } from 'lucide-react'
+import { BadgeCheck, ArrowLeft, ExternalLink, Eye, ChevronDown, Globe } from 'lucide-react'
 import { CategoryBadge } from '@/components/ui/Badge'
 import { formatGBP, formatDate } from '@/lib/utils'
 
-function detectPlatform(url: string): { label: string; bg: string; accent: string } {
-  if (/instagram\.com/i.test(url)) return { label: 'IG', bg: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 55%, #fcb045 100%)', accent: '#fd1d1d' }
-  if (/tiktok\.com/i.test(url))    return { label: 'TT', bg: 'linear-gradient(135deg, #010101 0%, #161616 100%)', accent: '#69C9D0' }
-  return { label: 'WEB', bg: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)', accent: '#6BE6B0' }
+function InstagramIcon({ className, style }: { className?: string; style?: CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+      <circle cx="12" cy="12" r="4"/>
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+    </svg>
+  )
+}
+
+function TikTokIcon({ className, style }: { className?: string; style?: CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.53V6.77a4.85 4.85 0 0 1-1.01-.08z"/>
+    </svg>
+  )
+}
+
+type IconComponent = React.ComponentType<{ className?: string; style?: CSSProperties }>
+
+function detectPlatform(url: string): { Icon: IconComponent; bg: string } {
+  if (/instagram\.com/i.test(url)) return { Icon: InstagramIcon, bg: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 55%, #fcb045 100%)' }
+  if (/tiktok\.com/i.test(url))    return { Icon: TikTokIcon,   bg: 'linear-gradient(135deg, #010101 0%, #161616 100%)' }
+  return { Icon: Globe, bg: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)' }
 }
 
 function fmt(n: number): string {
@@ -80,7 +100,9 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
       allPosts.push({ url: m.post_url, title: m.offer?.title ?? 'Collab', date: m.created_at, verified: m.status === 'verified', matchId: m.id })
     }
     for (const d of m.deliverables ?? []) {
-      allPosts.push({ url: d.post_url, title: `${m.offer?.title ?? 'Retainer'} · Month ${d.month_number}`, date: m.created_at, verified: d.status === 'verified', matchId: m.id })
+      if (d.post_url) {
+        allPosts.push({ url: d.post_url, title: `${m.offer?.title ?? 'Retainer'} · Month ${d.month_number}`, date: m.created_at, verified: d.status === 'verified', matchId: m.id })
+      }
     }
   }
   allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -228,7 +250,7 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
                   className="flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all hover:opacity-90"
                   style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.08), rgba(253,29,29,0.06), rgba(252,176,69,0.06))', border: '1.5px solid rgba(131,58,180,0.18)' }}
                 >
-                  <span className="text-[11px] font-black" style={{ color: '#833ab4', fontFamily: "'JetBrains Mono', monospace" }}>IG</span>
+                  <InstagramIcon className="w-5 h-5 shrink-0" style={{ color: '#833ab4' }} />
                   <div>
                     <p className="text-xl font-extrabold text-[#1C2B3A] leading-none" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                       {fmt(creator.follower_count!)}
@@ -246,7 +268,7 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
                   className="flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all hover:opacity-90"
                   style={{ background: 'rgba(1,1,1,0.04)', border: '1.5px solid rgba(0,0,0,0.1)' }}
                 >
-                  <span className="text-[11px] font-black text-[#1C2B3A]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>TT</span>
+                  <TikTokIcon className="w-5 h-5 shrink-0 text-[#1C2B3A]" />
                   <div>
                     <p className="text-xl font-extrabold text-[#1C2B3A] leading-none" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                       {fmt(creator.tiktok_follower_count!)}
@@ -264,7 +286,7 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-blue-600 transition-all hover:opacity-80"
                   style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.18)', fontFamily: "'Inter', sans-serif" }}
                 >
-                  <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                  <Globe className="w-3.5 h-3.5 shrink-0" />
                   {websiteDomain}
                 </a>
               )}
@@ -327,62 +349,39 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
             </h2>
             <span className="text-xs text-gray-400">{allPosts.length} post{allPosts.length !== 1 ? 's' : ''}</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
             {visiblePosts.map((post, i) => {
               const platform = detectPlatform(post.url)
+              const Icon = platform.Icon
               return (
                 <div
                   key={i}
-                  className="flex flex-col rounded-2xl overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md"
-                  style={{ border: '1px solid rgba(0,0,0,0.08)' }}
+                  className="flex items-center gap-3 px-4 py-3"
+                  style={{ background: '#ffffff', borderBottom: i < visiblePosts.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}
                 >
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                    style={{ background: platform.bg }}
+                  >
+                    <Icon className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[#1C2B3A] truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                      {post.title}
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      {formatDate(post.date)}
+                    </p>
+                  </div>
+                  {post.verified && <BadgeCheck className="w-4 h-4 shrink-0" style={{ color: '#22c55e' }} />}
                   <a
                     href={post.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group relative flex flex-col justify-between px-3 py-3 transition-opacity hover:opacity-90"
-                    style={{ background: platform.bg, height: '88px' }}
+                    className="shrink-0 p-1.5 rounded-lg transition-colors hover:bg-gray-50"
                   >
-                    <div className="flex items-center justify-between">
-                      <span
-                        className="text-[11px] font-black tracking-wider text-white/90"
-                        style={{ fontFamily: "'JetBrains Mono', monospace", textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}
-                      >
-                        {platform.label}
-                      </span>
-                      <ExternalLink className="w-3 h-3 text-white/50 group-hover:text-white transition-colors" />
-                    </div>
-                    <div className="flex items-end justify-end">
-                      {post.verified ? (
-                        <div
-                          className="flex items-center gap-1 px-2 py-0.5 rounded-full"
-                          style={{ background: 'rgba(34,197,94,0.9)', backdropFilter: 'blur(4px)' }}
-                        >
-                          <BadgeCheck className="w-3 h-3 text-white" />
-                          <span className="text-[9px] font-bold text-white uppercase tracking-wide">Verified</span>
-                        </div>
-                      ) : (
-                        <div
-                          className="flex items-center gap-1 px-2 py-0.5 rounded-full"
-                          style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }}
-                        >
-                          <span className="text-[9px] font-semibold text-white/70 uppercase tracking-wide">Pending</span>
-                        </div>
-                      )}
-                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-gray-400" />
                   </a>
-                  <div className="bg-white px-3 py-2.5 flex flex-col gap-0.5">
-                    <a
-                      href={`#match-${post.matchId}`}
-                      className="text-xs font-semibold text-[#1C2B3A] leading-snug line-clamp-2 hover:underline underline-offset-2 decoration-gray-300"
-                      style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
-                    >
-                      {post.title}
-                    </a>
-                    <p className="text-[10px] text-gray-300 mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                      {formatDate(post.date)}
-                    </p>
-                  </div>
                 </div>
               )
             })}

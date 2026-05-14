@@ -31,7 +31,7 @@ export default async function CreatorProfilePreviewPage() {
       creator={creator as unknown as CreatorPublicData}
       matches={matches}
       backHref="/creator/profile"
-      backLabel="Edit profile"
+      backLabel="Back to profile"
       isSelf
     />
   )

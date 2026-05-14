@@ -1,6 +1,16 @@
 'use client'
-import { useState } from 'react'
-import { MapPin, Pencil, ExternalLink } from 'lucide-react'
+import { useState, type CSSProperties } from 'react'
+import { MapPin, Pencil, ExternalLink, Globe } from 'lucide-react'
+
+function InstagramIcon({ className, style }: { className?: string; style?: CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+      <circle cx="12" cy="12" r="4"/>
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+    </svg>
+  )
+}
 import { ProfileForm, type ProfileFormData } from './ProfileForm'
 import { CloseAccountSection } from '@/components/account/CloseAccountSection'
 import { CategoryBadge } from '@/components/ui/Badge'
@@ -177,7 +187,7 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80 max-w-[200px]"
                     style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.08), rgba(253,29,29,0.08), rgba(252,176,69,0.08))', border: '1px solid rgba(131,58,180,0.2)', color: '#833ab4', fontFamily: "'Inter', sans-serif" }}
                   >
-                    <span className="text-xs font-bold shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>IG</span>
+                    <InstagramIcon className="w-4 h-4 shrink-0" style={{ color: '#833ab4' }} />
                     <span className="truncate">@{profile.instagram_handle}</span>
                   </a>
                 )}
@@ -189,7 +199,7 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-blue-600 transition-all hover:opacity-80 max-w-[200px]"
                     style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.18)', fontFamily: "'Inter', sans-serif" }}
                   >
-                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                    <Globe className="w-3.5 h-3.5 shrink-0" />
                     <span className="truncate">{websiteDomain}</span>
                   </a>
                 )}

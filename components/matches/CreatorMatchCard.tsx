@@ -174,7 +174,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
 
   useEffect(() => {
     if (msgOpen) {
-      setTimeout(() => msgRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
+      setTimeout(() => msgRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
     }
   }, [msgOpen])
 

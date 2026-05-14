@@ -74,7 +74,7 @@ export function MatchMessages({ matchId, currentUserId }: Props) {
 
   useEffect(() => {
     if (open) {
-      setTimeout(() => containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
+      setTimeout(() => containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
     }
   }, [open])
 
