@@ -18,7 +18,6 @@ function businessNav(): NavItem[] {
     { href: '/business', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { href: '/business/creators', label: 'Creators', icon: <Users className="w-4 h-4" /> },
     { href: '/business/invites', label: 'My Collabs', icon: <ShoppingBag className="w-4 h-4" /> },
-    { href: '/business/matches', label: 'Matches', icon: <GitMerge className="w-4 h-4" /> },
     { href: '/business/billing', label: 'Billing', icon: <CreditCard className="w-4 h-4" /> },
     { href: '/business/profile', label: 'Profile', icon: <UserCircle className="w-4 h-4" /> },
   ]
@@ -94,8 +93,8 @@ export function DashboardShell({ children, role, displayName }: Props) {
         <nav className="flex-1 px-3 py-2">
           {navItems.map(item => {
             const active = pathname === item.href || (item.href !== '/business' && item.href !== '/creator' && pathname.startsWith(item.href))
-            const isMatches = item.href.endsWith('/matches')
-            const showBadge = isMatches && unread > 0 && !active
+            const isCollabs = item.href === '/business/invites'
+            const showBadge = isCollabs && unread > 0 && !active
             return (
               <Link
                 key={item.href}
