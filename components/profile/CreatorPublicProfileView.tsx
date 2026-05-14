@@ -124,8 +124,8 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
 
       {/* Profile card */}
       <div
-        className="bg-white rounded-3xl overflow-hidden mb-5"
-        style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 8px 40px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.06)' }}
+        className="rounded-3xl overflow-hidden mb-5"
+        style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 8px 40px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.06)' }}
       >
         {/* Hero band */}
         <div className="relative" style={{ height: '80px' }}>

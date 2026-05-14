@@ -259,8 +259,8 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
       {editing && <EditInviteModal invite={invite} onClose={() => setEditing(false)} onSaved={onUpdated} />}
 
       <div
-        className="bg-white rounded-2xl overflow-hidden"
-        style={{ border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}
+        className="rounded-2xl overflow-hidden"
+        style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}
       >
         {/* Thin color strip */}
         <div style={{ height: '4px', background: stripColor }} />

@@ -40,8 +40,9 @@ function CreatorMiniCard({ match }: { match: MatchPreview }) {
 
   return (
     <div
-      className="bg-white rounded-2xl overflow-hidden flex flex-col"
+      className="rounded-2xl overflow-hidden flex flex-col"
       style={{
+        background: '#ffffff',
         border: isDone ? '1.5px solid rgba(34,197,94,0.3)' : '1px solid rgba(0,0,0,0.07)',
         boxShadow: isDone ? '0 0 0 3px rgba(34,197,94,0.06), 0 1px 6px rgba(0,0,0,0.04)' : '0 1px 4px rgba(0,0,0,0.04)',
       }}

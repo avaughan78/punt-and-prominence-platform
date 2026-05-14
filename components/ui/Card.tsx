@@ -11,11 +11,11 @@ export function Card({ children, className, padding = true }: CardProps) {
   return (
     <div
       className={cn(
-        'bg-white rounded-2xl',
+        'rounded-2xl',
         padding && 'p-5 sm:p-6',
         className
       )}
-      style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}
+      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}
     >
       {children}
     </div>

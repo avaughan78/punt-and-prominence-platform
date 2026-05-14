@@ -72,8 +72,8 @@ export function InviteCard({ invite, mode, isApproved = true, isProfileComplete 
 
   return (
     <div
-      className="bg-white rounded-2xl overflow-hidden flex flex-col"
-      style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+      className="rounded-2xl overflow-hidden flex flex-col"
+      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
     >
       {/* ── Header band ── */}
       <div className="relative shrink-0" style={{ height: '72px' }}>

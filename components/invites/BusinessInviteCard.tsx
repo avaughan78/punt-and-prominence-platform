@@ -85,8 +85,8 @@ export function BusinessInviteCard({ invite, onToggle, onDelete, onUpdated }: Pr
       )}
 
       <div
-        className="bg-white rounded-2xl overflow-hidden flex flex-col transition-shadow hover:shadow-md"
-        style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}
+        className="rounded-2xl overflow-hidden flex flex-col transition-shadow hover:shadow-md"
+        style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}
       >
         {/* Status strip */}
         <div style={{ height: '3px', background: stripColor }} />

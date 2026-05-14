@@ -58,12 +58,12 @@ function CreatorCard({ creator }: { creator: Creator }) {
 
   return (
     <div
-      className="bg-white rounded-2xl flex flex-col items-center overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg"
+      className="rounded-2xl flex flex-col items-center overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg"
       style={{
         border: creator.instagram_handle ? '1.5px solid transparent' : '1px solid rgba(0,0,0,0.07)',
         background: creator.instagram_handle
-          ? 'linear-gradient(white, white) padding-box, linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045) border-box'
-          : 'white',
+          ? 'linear-gradient(#ffffff, #ffffff) padding-box, linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045) border-box'
+          : '#ffffff',
       }}
     >
       {/* Top gradient band — Instagram gradient if creator has a handle */}

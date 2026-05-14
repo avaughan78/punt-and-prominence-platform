@@ -27,8 +27,8 @@ export function CreatorCard({ creator, compact = false }: { creator: CreatorCard
   if (compact) {
     return (
       <div
-        className="bg-white rounded-2xl flex flex-col items-center overflow-hidden"
-        style={{ border: '1px solid rgba(0,0,0,0.07)' }}
+        className="rounded-2xl flex flex-col items-center overflow-hidden"
+        style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}
       >
         <div className="w-full h-9 shrink-0" style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)' }} />
 
@@ -81,8 +81,8 @@ export function CreatorCard({ creator, compact = false }: { creator: CreatorCard
 
   return (
     <div
-      className="bg-white rounded-2xl flex flex-col items-center overflow-hidden"
-      style={{ border: '1px solid rgba(0,0,0,0.07)' }}
+      className="rounded-2xl flex flex-col items-center overflow-hidden"
+      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)' }}
     >
       <div className="w-full h-14 shrink-0" style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)' }} />
 
