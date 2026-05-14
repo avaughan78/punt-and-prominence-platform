@@ -27,7 +27,7 @@ function creatorNav(): NavItem[] {
   return [
     { href: '/creator', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { href: '/creator/browse', label: 'Browse Collabs', icon: <Search className="w-4 h-4" /> },
-    { href: '/creator/matches', label: 'My Matches', icon: <GitMerge className="w-4 h-4" /> },
+    { href: '/creator/matches', label: 'My Collabs', icon: <GitMerge className="w-4 h-4" /> },
     { href: '/creator/profile', label: 'Profile', icon: <UserCircle className="w-4 h-4" /> },
   ]
 }
