@@ -255,7 +255,7 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
     (a, b) => (STATUS_PRIORITY[a.status] ?? 3) - (STATUS_PRIORITY[b.status] ?? 3)
   )
 
-  const pendingCount = matches.filter(m => !['verified', 'completed'].includes(m.status)).length
+  const verifyCount = matches.filter(m => m.status === 'posted').length
 
   return (
     <>
@@ -326,6 +326,15 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
               {isRetainer ? '/mo' : 'value'}
             </p>
           </div>
+
+          {verifyCount > 0 && (
+            <span
+              className="text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0"
+              style={{ background: 'rgba(192,132,252,0.15)', color: '#9333ea', fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {verifyCount} to verify
+            </span>
+          )}
 
           <ChevronDown
             className="w-3.5 h-3.5 text-gray-400 transition-transform duration-200 flex-shrink-0"
