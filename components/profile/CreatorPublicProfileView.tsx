@@ -46,6 +46,7 @@ export interface PublicDeliverable {
 
 export interface PublicMatch {
   id: string
+  offer_id: string | null
   status: string
   created_at: string
   post_url: string | null
@@ -67,9 +68,10 @@ interface Props {
   backHref: string
   backLabel: string
   isSelf?: boolean
+  makeOfferHref?: (offerId: string) => string
 }
 
-export function CreatorPublicProfileView({ creator, matches, backHref, backLabel, isSelf = false }: Props) {
+export function CreatorPublicProfileView({ creator, matches, backHref, backLabel, isSelf = false, makeOfferHref }: Props) {
   const [postsVisible, setPostsVisible] = useState(POSTS_PAGE)
 
   // Collect all submitted/verified posts across one-offs and retainer deliverables
@@ -357,9 +359,19 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
                     style={{ borderBottom: i < matches.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#1C2B3A] truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                        {m.offer?.title ?? 'Unknown collab'}
-                      </p>
+                      {makeOfferHref && m.offer_id ? (
+                        <Link
+                          href={makeOfferHref(m.offer_id)}
+                          className="text-sm font-medium text-[#1C2B3A] truncate block hover:underline underline-offset-2 decoration-gray-300"
+                          style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+                        >
+                          {m.offer?.title ?? 'Unknown collab'}
+                        </Link>
+                      ) : (
+                        <p className="text-sm font-medium text-[#1C2B3A] truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                          {m.offer?.title ?? 'Unknown collab'}
+                        </p>
+                      )}
                       <div className="flex items-center gap-2 mt-0.5">
                         {m.offer?.category && <CategoryBadge category={m.offer.category} className="py-0 px-1.5 text-[10px]" />}
                         <span className="text-xs text-gray-400">{formatDate(m.created_at)}</span>

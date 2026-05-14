@@ -15,7 +15,7 @@ export default async function BusinessCreatorProfilePage({ params }: { params: P
       id, display_name, instagram_handle, tiktok_handle, avatar_url,
       follower_count, tiktok_follower_count, bio, website_url,
       matches:matches!matches_creator_id_fkey(
-        id, status, created_at, post_url,
+        id, offer_id, status, created_at, post_url,
         offer:offers(title, value_gbp, fee_gbp, invite_type, category),
         deliverables:match_deliverables(id, month_number, post_url, status)
       )
@@ -34,6 +34,7 @@ export default async function BusinessCreatorProfilePage({ params }: { params: P
       matches={matches}
       backHref="/business/creators"
       backLabel="All creators"
+      makeOfferHref={(offerId) => `/business/invites?open=${offerId}`}
     />
   )
 }
