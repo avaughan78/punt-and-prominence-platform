@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
+import { REQUIREMENT_CHIPS } from '@/lib/requirementChips'
 
 const CATEGORIES = [
   { value: 'dining', label: 'Dining & drinks' },
@@ -38,6 +39,14 @@ export function InviteForm() {
 
   function set(key: string, value: string) {
     setForm(f => ({ ...f, [key]: value }))
+  }
+
+  function addRequirement(text: string) {
+    setForm(f => {
+      const current = f.requirements.trim()
+      const joined = current ? (current.endsWith(',') ? `${current} ${text}` : `${current}, ${text}`) : text
+      return { ...f, requirements: joined }
+    })
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -207,15 +216,39 @@ export function InviteForm() {
         </div>
       )}
 
-      <Textarea
-        label="Requirements (optional)"
-        placeholder={inviteType === 'retainer'
-          ? 'e.g. 1 Reel + 2 Stories per month, tag @yourbusiness'
-          : 'e.g. 1 Reel + 2 Stories, tag @yourbusiness, use #CambridgeEats'}
-        rows={2}
-        value={form.requirements}
-        onChange={e => set('requirements', e.target.value)}
-      />
+      <div className="flex flex-col gap-2">
+        <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          Requirements <span className="font-normal text-gray-400 normal-case tracking-normal">optional</span>
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {REQUIREMENT_CHIPS.map(chip => (
+            <button
+              key={chip.label}
+              type="button"
+              onClick={() => addRequirement(chip.text)}
+              className="px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
+              style={{
+                background: 'rgba(28,43,58,0.05)',
+                color: '#1C2B3A',
+                border: '1px solid rgba(28,43,58,0.1)',
+                fontFamily: "'JetBrains Mono', monospace",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(28,43,58,0.1)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(28,43,58,0.05)' }}
+            >
+              + {chip.label}
+            </button>
+          ))}
+        </div>
+        <Textarea
+          placeholder={inviteType === 'retainer'
+            ? 'e.g. 1 Reel + 2 Stories per month, tag @yourbusiness'
+            : 'e.g. 1 Reel + 2 Stories, tag @yourbusiness, use #CambridgeEats'}
+          rows={2}
+          value={form.requirements}
+          onChange={e => set('requirements', e.target.value)}
+        />
+      </div>
 
       <div className="flex gap-3 pt-2">
         <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>

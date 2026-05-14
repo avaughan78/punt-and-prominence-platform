@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
+import { REQUIREMENT_CHIPS } from '@/lib/requirementChips'
 import type { Invite } from '@/lib/types'
 
 interface Props {
@@ -27,6 +28,14 @@ export function EditInviteModal({ invite, onClose, onSaved }: Props) {
     posts_per_month: String(invite.posts_per_month ?? ''),
     duration_months: String(invite.duration_months ?? ''),
   })
+
+  function addRequirement(text: string) {
+    setForm(f => {
+      const current = f.requirements.trim()
+      const joined = current ? (current.endsWith(',') ? `${current} ${text}` : `${current}, ${text}`) : text
+      return { ...f, requirements: joined }
+    })
+  }
 
   function set(key: string, value: string) {
     setForm(f => ({ ...f, [key]: value }))
@@ -181,12 +190,36 @@ export function EditInviteModal({ invite, onClose, onSaved }: Props) {
             />
           )}
 
-          <Textarea
-            label="Requirements (optional)"
-            rows={2}
-            value={form.requirements}
-            onChange={e => set('requirements', e.target.value)}
-          />
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              Requirements <span className="font-normal text-gray-400 normal-case tracking-normal">optional</span>
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {REQUIREMENT_CHIPS.map(chip => (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={() => addRequirement(chip.text)}
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
+                  style={{
+                    background: 'rgba(28,43,58,0.05)',
+                    color: '#1C2B3A',
+                    border: '1px solid rgba(28,43,58,0.1)',
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(28,43,58,0.1)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(28,43,58,0.05)' }}
+                >
+                  + {chip.label}
+                </button>
+              ))}
+            </div>
+            <Textarea
+              rows={2}
+              value={form.requirements}
+              onChange={e => set('requirements', e.target.value)}
+            />
+          </div>
 
           <div className="flex gap-3 pt-1">
             <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
