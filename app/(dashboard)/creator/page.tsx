@@ -17,6 +17,8 @@ export default async function CreatorDashboard() {
     supabase.rpc('get_unread_message_count'),
   ])
 
+  if (!profile?.instagram_handle) redirect('/creator/onboarding')
+
   // Count invites that still have slots available
   const availableInvites = (invites ?? []).filter(o => o.slots_claimed < o.slots_total).length
   const active = matches?.filter(m => ['pending','posted'].includes(m.status)).length ?? 0

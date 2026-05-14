@@ -33,27 +33,30 @@ interface LookupData {
   isPrivate?: boolean
 }
 
-interface Props {
-  role: Role
-  initial: {
-    display_name: string
-    business_name: string | null
-    bio: string | null
-    instagram_handle: string | null
-    website_url: string | null
-    address_line: string | null
-    category: string | null
-    latitude: number | null
-    longitude: number | null
-    avatar_url: string | null
-    follower_count: number | null
-    tiktok_handle: string | null
-    tiktok_follower_count: number | null
-  }
-  userId: string
+export interface ProfileFormData {
+  display_name: string
+  business_name: string | null
+  bio: string | null
+  instagram_handle: string | null
+  website_url: string | null
+  address_line: string | null
+  category: string | null
+  latitude: number | null
+  longitude: number | null
+  avatar_url: string | null
+  follower_count: number | null
+  tiktok_handle: string | null
+  tiktok_follower_count: number | null
 }
 
-export function ProfileForm({ role, initial, userId }: Props) {
+interface Props {
+  role: Role
+  initial: ProfileFormData
+  userId: string
+  onSaved?: (data: ProfileFormData) => void
+}
+
+export function ProfileForm({ role, initial, userId, onSaved }: Props) {
   const [form, setForm] = useState({
     display_name: initial.display_name ?? '',
     business_name: initial.business_name ?? '',
@@ -220,6 +223,7 @@ export function ProfileForm({ role, initial, userId }: Props) {
     })
     if (res.ok) {
       toast.success('Profile updated')
+      onSaved?.(form)
     } else {
       const d = await res.json()
       toast.error(d.error ?? 'Failed to save')

@@ -23,6 +23,8 @@ export default async function BusinessDashboard() {
     supabase.rpc('get_unread_message_count'),
   ])
 
+  if (!profile?.business_name) redirect('/business/onboarding')
+
   const activeOffers = offers?.filter(o => o.is_active).length ?? 0
   const totalMatches = matches?.length ?? 0
   const pendingMatches = matches?.filter(m => m.status === 'pending').length ?? 0
