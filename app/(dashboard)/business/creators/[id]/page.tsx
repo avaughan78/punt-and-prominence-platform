@@ -35,7 +35,7 @@ export default async function BusinessCreatorProfilePage({ params }: { params: P
       matches={matches}
       backHref="/business/creators"
       backLabel="All creators"
-      makeOfferHref={(offerId) => `/business/invites?open=${offerId}`}
+      offerLinkBase="/business/invites"
     />
   )
 }

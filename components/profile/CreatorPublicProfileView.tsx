@@ -88,10 +88,10 @@ interface Props {
   backHref: string
   backLabel: string
   isSelf?: boolean
-  makeOfferHref?: (offerId: string) => string
+  offerLinkBase?: string
 }
 
-export function CreatorPublicProfileView({ creator, matches, backHref, backLabel, isSelf = false, makeOfferHref }: Props) {
+export function CreatorPublicProfileView({ creator, matches, backHref, backLabel, isSelf = false, offerLinkBase }: Props) {
   const [postsVisible, setPostsVisible] = useState(POSTS_PAGE)
 
   const allPosts: { url: string; title: string; date: string; verified: boolean; matchId: string }[] = []
@@ -431,9 +431,9 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
                       style={{ background: meta.text }}
                     />
                     <div className="flex-1 min-w-0">
-                      {makeOfferHref && m.offer_id ? (
+                      {offerLinkBase && m.offer_id ? (
                         <Link
-                          href={makeOfferHref(m.offer_id)}
+                          href={`${offerLinkBase}?open=${m.offer_id}`}
                           className="text-sm font-medium text-[#1C2B3A] truncate block hover:underline underline-offset-2 decoration-gray-300"
                           style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
                         >
