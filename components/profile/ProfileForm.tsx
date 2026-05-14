@@ -540,13 +540,76 @@ export function ProfileForm({ role, initial, userId, onSaved }: Props) {
       )}
 
       {role === 'business' && (
-        <Input
-          label="Instagram handle"
-          placeholder="yourhandle"
-          value={form.instagram_handle}
-          onChange={e => set('instagram_handle', e.target.value.replace(/^@/, ''))}
-          hint="Without the @"
-        />
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            Instagram handle <span className="text-gray-400 normal-case font-normal">· optional</span>
+          </label>
+          <SocialHandleInput
+            platform="instagram"
+            value={form.instagram_handle}
+            onChange={v => { set('instagram_handle', v); setLookupData(null); setLookupError(null) }}
+            onVerify={() => lookupInstagram(form.instagram_handle)}
+            looking={looking}
+            verified={!!lookupData}
+            placeholder="yourbiz"
+          />
+          <p className="text-xs text-gray-400">Tap → to sync your profile photo and bio</p>
+        </div>
+      )}
+
+      {role === 'business' && lookupData && (
+        <div
+          className="flex items-center gap-3 rounded-xl px-4 py-3"
+          style={{ background: 'rgba(107,230,176,0.08)', border: '1px solid rgba(107,230,176,0.3)' }}
+        >
+          <div className="relative shrink-0">
+            <div className="w-12 h-12 rounded-full overflow-hidden" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}>
+              {lookupData.image
+                ? <img src={lookupData.image} alt="" className="w-full h-full object-cover" />
+                : <span className="w-full h-full flex items-center justify-center text-white font-bold text-sm">{initials}</span>
+              }
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: '#059669' }}>
+              <Check className="w-2.5 h-2.5 text-white" />
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-semibold text-[#1C2B3A] truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                {lookupData.name ?? `@${lookupData.handle}`}
+              </p>
+              {lookupData.verified && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(245,184,0,0.15)', color: '#b45309', fontFamily: "'JetBrains Mono', monospace" }}>
+                  VERIFIED
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500">@{lookupData.handle}</p>
+          </div>
+          {lookupData.followers != null && (
+            <div className="text-right shrink-0">
+              <p className="text-sm font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                {lookupData.followers.toLocaleString()}
+              </p>
+              <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>followers</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {role === 'business' && lookupError && (
+        <div className="flex items-start gap-3 rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)' }}>
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
+          <p className="text-xs text-red-600 flex-1">{lookupError}</p>
+          <button
+            type="button"
+            onClick={() => lookupInstagram(form.instagram_handle)}
+            className="flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700 shrink-0"
+          >
+            <RefreshCw className="w-3 h-3" />
+            Retry
+          </button>
+        </div>
       )}
 
       <Input

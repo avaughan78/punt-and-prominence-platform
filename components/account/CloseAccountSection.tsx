@@ -1,18 +1,16 @@
 export function CloseAccountSection() {
   return (
-    <div className="mt-10 pt-8" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-      <p className="text-sm font-semibold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-        Close your account
-      </p>
-      <p className="text-xs text-gray-400 max-w-sm">
-        To close your account and remove your data, email{' '}
+    <div className="pt-6" style={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+      <p className="text-xs text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>
+        To close your account, email{' '}
         <a
           href="mailto:hello@puntandprominence.co.uk?subject=Account closure request"
-          className="text-[#1C2B3A] font-medium hover:underline"
+          className="hover:underline"
+          style={{ color: '#9ca3af' }}
         >
           hello@puntandprominence.co.uk
         </a>
-        . We&apos;ll handle it within 30 days in line with UK GDPR.
+        . We&apos;ll handle it within 30 days under UK GDPR.
       </p>
     </div>
   )
