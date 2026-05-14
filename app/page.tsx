@@ -19,7 +19,7 @@ const mockCircles = [
 // Pulled in from the very edges — nothing closer than ~15% to any side
 const circlePositions = [
   { top: '14%', left: '16%', rotate: '-2deg'   },  // top-left
-  { top: '11%', left: '50%', rotate:  '3deg'   },  // top-center
+  { top:  '9%', left: '63%', rotate:  '3deg'   },  // top-right of center
   { top: '14%', left: '78%', rotate: '-1.5deg' },  // top-right
   { top: '52%', left: '13%', rotate:  '2deg'   },  // mid-left
   { top: '48%', left: '80%', rotate: '-2.5deg' },  // mid-right
