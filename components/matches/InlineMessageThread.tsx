@@ -30,7 +30,7 @@ export function InlineMessageThread({ matchId, currentUserId }: Props) {
   const [sending, setSending] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetch(`/api/matches/${matchId}/messages`)
@@ -38,11 +38,15 @@ export function InlineMessageThread({ matchId, currentUserId }: Props) {
       .then(d => { setMessages(Array.isArray(d) ? d : []); setLoaded(true) })
   }, [matchId])
 
+  // Scroll within the thread container only — never scroll the page
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
   }, [messages])
 
-  useEffect(() => { inputRef.current?.focus() }, [])
+  // preventScroll stops the browser scrolling the page to reveal the input
+  useEffect(() => { inputRef.current?.focus({ preventScroll: true }) }, [])
 
   async function send() {
     if (!draft.trim() || sending) return
@@ -64,6 +68,7 @@ export function InlineMessageThread({ matchId, currentUserId }: Props) {
     <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(28,43,58,0.08)' }}>
       {/* Bubble thread */}
       <div
+        ref={scrollRef}
         className="flex flex-col p-3 overflow-y-auto"
         style={{ background: '#f8f9fb', maxHeight: '280px', minHeight: '80px', gap: '2px' }}
       >
@@ -125,7 +130,6 @@ export function InlineMessageThread({ matchId, currentUserId }: Props) {
                 </div>
               )
             })}
-            <div ref={bottomRef} />
           </>
         )}
       </div>

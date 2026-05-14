@@ -56,8 +56,23 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
-  const user = session?.user ?? null
+  // getUser() makes a server-side token validation call — more reliable than
+  // getSession() in middleware where stale cookies can cause redirect loops.
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Helper: redirect while forwarding any refreshed Supabase session cookies.
+  // Without this, the redirect response drops the new tokens and the next
+  // request sees a stale/missing session → bounce loop.
+  function redirectTo(pathname: string, preserveQuery = false): NextResponse {
+    const url = request.nextUrl.clone()
+    url.pathname = pathname
+    if (!preserveQuery) url.search = ''
+    const res = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach(({ name, value, ...rest }) => {
+      res.cookies.set(name, value, rest as Parameters<typeof res.cookies.set>[2])
+    })
+    return res
+  }
 
   const isBusinessRoute = path.startsWith('/business')
   const isCreatorRoute = path === '/creator' || path.startsWith('/creator/')
@@ -67,8 +82,13 @@ export async function middleware(request: NextRequest) {
   if ((isBusinessRoute || isCreatorRoute) && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    url.search = ''
     url.searchParams.set('next', path)
-    return NextResponse.redirect(url)
+    const res = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach(({ name, value, ...rest }) => {
+      res.cookies.set(name, value, rest as Parameters<typeof res.cookies.set>[2])
+    })
+    return res
   }
 
   if (user) {
@@ -76,22 +96,12 @@ export async function middleware(request: NextRequest) {
 
     // Redirect logged-in users away from auth pages
     if (isAuthPage) {
-      const url = request.nextUrl.clone()
-      url.pathname = role === 'business' ? '/business' : '/creator'
-      return NextResponse.redirect(url)
+      return redirectTo(role === 'business' ? '/business' : '/creator')
     }
 
     // Role-guard: wrong dashboard
-    if (isBusinessRoute && role !== 'business') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/creator'
-      return NextResponse.redirect(url)
-    }
-    if (isCreatorRoute && role !== 'creator') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/business'
-      return NextResponse.redirect(url)
-    }
+    if (isBusinessRoute && role !== 'business') return redirectTo('/creator')
+    if (isCreatorRoute && role !== 'creator') return redirectTo('/business')
   }
 
   return supabaseResponse
