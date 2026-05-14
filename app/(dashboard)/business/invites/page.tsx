@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, AlertCircle } from 'lucide-react'
 import { BusinessInviteCard } from '@/components/invites/BusinessInviteCard'
+import { ClaimedCollabCard } from '@/components/invites/ClaimedCollabCard'
 import { Button } from '@/components/ui/Button'
 import type { Invite } from '@/lib/types'
 
@@ -131,8 +132,20 @@ export default function BusinessOffersPage() {
             <p className="text-sm text-gray-400">No claimed collabs yet.</p>
           )}
         </div>
+      ) : tab === 'claimed' ? (
+        <div className="flex flex-col gap-6">
+          {filtered.map(invite => (
+            <ClaimedCollabCard
+              key={invite.id}
+              invite={invite}
+              onToggle={handleToggle}
+              onDelete={handleDelete}
+              onUpdated={handleUpdated}
+            />
+          ))}
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
           {filtered.map(invite => (
             <BusinessInviteCard
               key={invite.id}

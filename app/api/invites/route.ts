@@ -10,9 +10,12 @@ export async function GET() {
 
   const role = user.user_metadata?.role
 
+  const businessSelect = `*, business:profiles!offers_business_id_fkey(id, display_name, business_name, address_line, category, latitude, longitude, avatar_url, instagram_handle), matches(id, status, punt_code, created_at, post_url, creator:profiles!matches_creator_id_fkey(id, display_name, instagram_handle, avatar_url, follower_count))`
+  const creatorSelect = `*, business:profiles!offers_business_id_fkey(id, display_name, business_name, address_line, category, latitude, longitude, avatar_url, instagram_handle)`
+
   let query = supabase
     .from('offers')
-    .select('*, business:profiles!offers_business_id_fkey(id, display_name, business_name, address_line, category, latitude, longitude, avatar_url, instagram_handle)')
+    .select(role === 'business' ? businessSelect : creatorSelect)
     .order('created_at', { ascending: false })
 
   if (role === 'business') {

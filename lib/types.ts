@@ -60,6 +60,16 @@ export interface Invite {
   updated_at: string
   // Joined
   business?: Pick<Profile, 'id' | 'display_name' | 'business_name' | 'address_line' | 'category' | 'latitude' | 'longitude' | 'avatar_url' | 'instagram_handle'>
+  matches?: MatchPreview[]
+}
+
+export interface MatchPreview {
+  id: string
+  status: MatchStatus
+  punt_code: string
+  created_at: string
+  post_url: string | null
+  creator: Pick<Profile, 'id' | 'display_name' | 'instagram_handle' | 'avatar_url' | 'follower_count'>
 }
 
 export interface Match {
