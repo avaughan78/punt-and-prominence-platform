@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { formatGBP, formatDate } from '@/lib/utils'
 import { ChevronDown, ExternalLink, Search } from 'lucide-react'
-import { toast } from 'sonner'
 
 type Status = 'accepted' | 'posted' | 'verified' | 'active' | 'completed'
 
@@ -61,10 +60,6 @@ const STATUS_DOT: Record<Status, string> = {
   accepted: '#F5B800', posted: '#C084FC', verified: '#22c55e', active: '#6BE6B0', completed: '#94a3b8',
 }
 
-const STATUS_NEXT: Partial<Record<Status, Status>> = {
-  accepted: 'posted',
-  posted: 'verified',
-}
 
 const FILTERS = ['all', 'accepted', 'posted', 'verified', 'active', 'completed'] as const
 type Filter = typeof FILTERS[number]
@@ -195,9 +190,8 @@ function CollabDetail({ group }: { group: CollabGroup }) {
   )
 }
 
-function CreatorRow({ match, advancing, onAdvance }: { match: MatchEntry; advancing: string | null; onAdvance: (id: string, s: Status) => void }) {
+function CreatorRow({ match }: { match: MatchEntry }) {
   const meta = STATUS_COLOUR[match.status]
-  const nextStatus = STATUS_NEXT[match.status]
   const name = match.creator?.display_name ?? 'Unknown'
   const handle = match.creator?.instagram_handle
   const initial = name[0]?.toUpperCase() ?? '?'
@@ -258,21 +252,6 @@ function CreatorRow({ match, advancing, onAdvance }: { match: MatchEntry; advanc
         {match.punt_code}
       </span>
 
-      {/* Advance button */}
-      {nextStatus && (
-        <button
-          onClick={() => onAdvance(match.id, match.status)}
-          disabled={advancing === match.id}
-          className="text-[10px] font-bold px-2.5 py-1 rounded-full transition-all hover:opacity-80 disabled:opacity-40 shrink-0"
-          style={{
-            background: STATUS_COLOUR[nextStatus].bg,
-            color: STATUS_COLOUR[nextStatus].text,
-            border: `1px solid ${STATUS_DOT[nextStatus]}40`,
-          }}
-        >
-          {advancing === match.id ? '…' : `→ ${STATUS_COLOUR[nextStatus].label}`}
-        </button>
-      )}
     </div>
   )
 }
@@ -283,7 +262,6 @@ export default function AdminCollabs() {
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
-  const [advancing, setAdvancing] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/matches')
@@ -324,27 +302,6 @@ export default function AdminCollabs() {
       next.has(id) ? next.delete(id) : next.add(id)
       return next
     })
-  }
-
-  async function advanceStatus(matchId: string, current: Status) {
-    const next = STATUS_NEXT[current]
-    if (!next) return
-    setAdvancing(matchId)
-    const res = await fetch(`/api/admin/matches/${matchId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: next }),
-    })
-    if (res.ok) {
-      setGroups(gs => gs.map(g => ({
-        ...g,
-        matches: g.matches.map(m => m.id === matchId ? { ...m, status: next } : m),
-      })))
-      toast.success(`Marked as ${STATUS_COLOUR[next].label}`)
-    } else {
-      toast.error('Failed to update status')
-    }
-    setAdvancing(null)
   }
 
   return (
@@ -506,8 +463,6 @@ export default function AdminCollabs() {
                               <CreatorRow
                                 key={match.id}
                                 match={match}
-                                advancing={advancing}
-                                onAdvance={advanceStatus}
                               />
                             ))}
                         </div>
