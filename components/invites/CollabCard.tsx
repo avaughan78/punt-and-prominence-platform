@@ -267,7 +267,11 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
   const isActive       = invite.is_active
   const hasLiveMatches = matches.some(m => !['verified', 'completed'].includes(m.status))
 
-  const stripColor = !isActive ? '#94a3b8' : isRetainer ? '#6BE6B0' : '#F5B800'
+  const stripColor = !isActive
+    ? '#94a3b8'
+    : isRetainer
+      ? '#60a5fa'
+      : 'linear-gradient(90deg, #833ab4, #fd1d1d, #fcb045)'
 
   async function handleToggle() {
     setToggling(true)
