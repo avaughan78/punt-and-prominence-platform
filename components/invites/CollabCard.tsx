@@ -267,11 +267,14 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
   const isActive       = invite.is_active
   const hasLiveMatches = matches.some(m => !['verified', 'completed'].includes(m.status))
 
-  const stripColor = !isActive
-    ? '#94a3b8'
+  const cardBorderStyle: React.CSSProperties = !isActive
+    ? { background: '#ffffff', border: '1.5px solid #94a3b8' }
     : isRetainer
-      ? '#60a5fa'
-      : 'linear-gradient(90deg, #833ab4, #fd1d1d, #fcb045)'
+      ? { background: '#ffffff', border: '1.5px solid #60a5fa' }
+      : {
+          border: '1.5px solid transparent',
+          background: 'linear-gradient(#ffffff, #ffffff) padding-box, linear-gradient(90deg, #833ab4, #fd1d1d, #fcb045) border-box',
+        }
 
   async function handleToggle() {
     setToggling(true)
@@ -327,10 +330,8 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
 
       <div
         className="rounded-2xl overflow-hidden"
-        style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}
+        style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)', ...cardBorderStyle }}
       >
-        {/* Status strip */}
-        <div style={{ height: '4px', background: stripColor }} />
 
         {/* Header — click to expand */}
         <button
