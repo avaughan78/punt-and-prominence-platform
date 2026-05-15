@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+
+export const dynamic = 'force-dynamic'
 import { StatCard } from '@/components/ui/Card'
 import { StatusBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -12,7 +14,7 @@ export default async function BusinessDashboard() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { data: offers }, { data: matches }, { data: unreadCount }, { data: postedMatches }] = await Promise.all([
+  const [{ data: profile }, { data: offers }, { data: matches }, { data: unreadCount }, { data: postedMatchesRaw }] = await Promise.all([
     supabase.from('profiles').select('business_name').eq('id', user!.id).single(),
     supabase.from('offers').select('id, is_active').eq('business_id', user!.id),
     supabase.from('matches')
@@ -22,13 +24,20 @@ export default async function BusinessDashboard() {
       .limit(5),
     supabase.rpc('get_unread_message_count'),
     supabase.from('matches')
-      .select('id, post_url, created_at, offer:offers(title), creator:profiles!matches_creator_id_fkey(id,display_name,instagram_handle)')
+      .select('id, post_url, created_at, offer:offers(title), creator:profiles!matches_creator_id_fkey(id,display_name,instagram_handle), deliverables:match_deliverables(status)')
       .eq('business_id', user!.id)
       .eq('status', 'posted')
       .order('created_at', { ascending: false }),
   ])
 
   if (!profile?.business_name) redirect('/business/onboarding')
+
+  // Only show matches that still have unverified content
+  const postedMatches = (postedMatchesRaw ?? []).filter(m => {
+    const delivs = (m.deliverables as { status: string }[]) ?? []
+    if (delivs.length === 0) return !!m.post_url
+    return delivs.some(d => d.status !== 'verified')
+  })
 
   const activeOffers = offers?.filter(o => o.is_active).length ?? 0
   const totalMatches = matches?.length ?? 0
