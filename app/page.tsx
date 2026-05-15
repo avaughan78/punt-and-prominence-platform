@@ -134,11 +134,11 @@ export default function ComingSoon() {
         />
       </div>
 
-      {/* ── Floating profile circles — scattered across the full viewport ── */}
+      {/* ── Floating profile circles — hidden on mobile, scattered on larger screens ── */}
       {mockCircles.map((p, i) => (
         <div
           key={p.handle}
-          className="absolute splash-float pointer-events-none"
+          className="absolute splash-float pointer-events-none hidden sm:block"
           style={{
             top: circlePositions[i].top,
             left: circlePositions[i].left,
@@ -172,7 +172,7 @@ export default function ComingSoon() {
 
         {/* Heading */}
         <h1
-          className="text-5xl sm:text-6xl font-extrabold text-white mb-5 leading-tight"
+          className="text-4xl sm:text-6xl font-extrabold text-white mb-4 sm:mb-5 leading-tight"
           style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
         >
           Something<br />
@@ -180,9 +180,9 @@ export default function ComingSoon() {
           is coming.
         </h1>
 
-        {/* Subtitle — brighter with a mint accent on the key phrase */}
+        {/* Subtitle */}
         <p
-          className="text-base sm:text-lg leading-relaxed max-w-sm mb-8"
+          className="text-sm sm:text-lg leading-relaxed max-w-sm mb-7 sm:mb-8"
           style={{ fontFamily: "'Inter', sans-serif", color: 'rgba(255,255,255,0.82)' }}
         >
           Connecting Cambridge businesses with a community of{' '}
@@ -199,7 +199,7 @@ export default function ComingSoon() {
             You&apos;re on the list — we&apos;ll be in touch.
           </div>
         ) : (
-          <form onSubmit={handleWaitlist} className="flex items-center gap-2 w-full max-w-sm">
+          <form onSubmit={handleWaitlist} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full max-w-sm">
             <input
               type="email"
               required
@@ -217,7 +217,7 @@ export default function ComingSoon() {
             <button
               type="submit"
               disabled={emailStatus === 'loading' || !email}
-              className="shrink-0 flex items-center gap-1.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-50"
+              className="shrink-0 flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-50"
               style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
             >
               {emailStatus === 'loading'
@@ -235,19 +235,19 @@ export default function ComingSoon() {
         )}
 
         {/* Stats */}
-        <div className="flex items-center gap-8 mt-10">
+        <div className="flex items-center gap-5 sm:gap-8 mt-8 sm:mt-10">
           {[
             { num: '30',   label: 'Verified creators' },
             { num: '30K+', label: 'Local followers'   },
             { num: '20',   label: 'Founding spots'    },
           ].map((stat, i) => (
-            <div key={stat.label} className="flex items-center gap-8">
-              {i > 0 && <div className="w-px h-8 self-center" style={{ background: 'rgba(255,255,255,0.1)' }} />}
+            <div key={stat.label} className="flex items-center gap-5 sm:gap-8">
+              {i > 0 && <div className="w-px h-6 sm:h-8 self-center" style={{ background: 'rgba(255,255,255,0.1)' }} />}
               <div className="flex flex-col items-center">
-                <span className="text-2xl font-extrabold text-white leading-none" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                <span className="text-xl sm:text-2xl font-extrabold text-white leading-none" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                   {stat.num}
                 </span>
-                <span className="text-[10px] mt-1 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: "'JetBrains Mono', monospace" }}>
+                <span className="text-[9px] sm:text-[10px] mt-1 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: "'JetBrains Mono', monospace" }}>
                   {stat.label}
                 </span>
               </div>
