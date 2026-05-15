@@ -57,14 +57,14 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
   const isFulfilled = match.status === 'verified'
   const isCompleted = match.status === 'completed'
   const isDone = isFulfilled || isCompleted
-  const allDeliverablesVerified = deliverables.length > 0
-    ? deliverables.every(d => d.status === 'verified')
-    : !!legacyUrl
-  const canFulfil = match.status === 'posted' && allDeliverablesVerified
 
   const deliverables = match.deliverables ?? []
   const legacyUrl = match.post_url && deliverables.length === 0 ? match.post_url : null
   const hasPosts = deliverables.length > 0 || !!legacyUrl
+  const allDeliverablesVerified = deliverables.length > 0
+    ? deliverables.every(d => d.status === 'verified')
+    : !!legacyUrl
+  const canFulfil = match.status === 'posted' && allDeliverablesVerified
 
   useEffect(() => {
     fetch(`/api/matches/${match.id}/messages/unread`)
