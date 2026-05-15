@@ -44,12 +44,19 @@ export function DashboardShell({ children, role, displayName }: Props) {
   const navItems = role === 'business' ? businessNav() : creatorNav()
   const [unread, setUnread] = useState(0)
 
-  useEffect(() => {
+  function refreshUnread() {
     fetch('/api/messages/unread')
       .then(r => r.json())
       .then(d => setUnread(d.count ?? 0))
       .catch(() => {})
-  }, [pathname]) // re-check when navigating
+  }
+
+  useEffect(() => { refreshUnread() }, [pathname])
+
+  useEffect(() => {
+    window.addEventListener('deliverable-verified', refreshUnread)
+    return () => window.removeEventListener('deliverable-verified', refreshUnread)
+  }, [])
 
   async function handleSignOut() {
     const supabase = createClient()

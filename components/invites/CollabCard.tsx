@@ -263,6 +263,7 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
       ...m,
       deliverables: (m.deliverables ?? []).map(d => d.id === deliverableId ? { ...d, status: 'verified' as const, verified_at: new Date().toISOString() } : d),
     } : m))
+    window.dispatchEvent(new Event('deliverable-verified'))
   }
 
   const sortedMatches = [...matches].sort(
