@@ -340,7 +340,7 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
             </p>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span
-                className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md"
+                className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md"
                 style={{
                   background: isRetainer ? 'rgba(107,230,176,0.15)' : 'rgba(245,184,0,0.12)',
                   color: isRetainer ? '#059669' : '#b45309',
@@ -350,17 +350,17 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                 {isRetainer ? 'Retainer' : 'One-off'}
               </span>
               {!isActive && (
-                <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(0,0,0,0.06)', color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
+                <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(0,0,0,0.08)', color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>
                   Paused
                 </span>
               )}
               {isActive && isFull && (
-                <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(34,197,94,0.12)', color: '#15803d', fontFamily: "'JetBrains Mono', monospace" }}>
+                <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(34,197,94,0.15)', color: '#15803d', fontFamily: "'JetBrains Mono', monospace" }}>
                   Full
                 </span>
               )}
               {isActive && !isFull && (
-                <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(245,184,0,0.12)', color: '#92400e', fontFamily: "'JetBrains Mono', monospace" }}>
+                <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(245,184,0,0.18)', color: '#92400e', fontFamily: "'JetBrains Mono', monospace" }}>
                   Active
                 </span>
               )}
