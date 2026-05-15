@@ -276,10 +276,14 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
   }
 
   function handleDeliverableVerified(matchId: string, deliverableId: string) {
-    setMatches(prev => prev.map(m => m.id === matchId ? {
-      ...m,
-      deliverables: (m.deliverables ?? []).map(d => d.id === deliverableId ? { ...d, status: 'verified' as const, verified_at: new Date().toISOString() } : d),
-    } : m))
+    setMatches(prev => prev.map(m => {
+      if (m.id !== matchId) return m
+      const updatedDelivs = (m.deliverables ?? []).map(d =>
+        d.id === deliverableId ? { ...d, status: 'verified' as const, verified_at: new Date().toISOString() } : d
+      )
+      const allVerified = updatedDelivs.length > 0 && updatedDelivs.every(d => d.status === 'verified')
+      return { ...m, deliverables: updatedDelivs, status: allVerified ? 'verified' as const : m.status }
+    }))
     window.dispatchEvent(new Event('deliverable-verified'))
   }
 
