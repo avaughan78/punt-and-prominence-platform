@@ -160,19 +160,23 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
               ) : null}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-              {filtered.map(invite => (
-                <CollabCard
-                  key={invite.id}
-                  invite={invite}
-                  currentUserId={currentUserId}
-                  initialOpen={invite.id === openCollabId}
-                  initialOpenMatchId={invite.id === openCollabId ? openMatchId : undefined}
-                  onToggle={handleToggle}
-                  onDelete={handleDelete}
-                  onUpdated={handleUpdated}
-                  onViewDetail={setDetailCollab}
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[filtered.filter((_, i) => i % 2 === 0), filtered.filter((_, i) => i % 2 === 1)].map((col, ci) => (
+                <div key={ci} className="flex flex-col gap-4">
+                  {col.map(invite => (
+                    <CollabCard
+                      key={invite.id}
+                      invite={invite}
+                      currentUserId={currentUserId}
+                      initialOpen={invite.id === openCollabId}
+                      initialOpenMatchId={invite.id === openCollabId ? openMatchId : undefined}
+                      onToggle={handleToggle}
+                      onDelete={handleDelete}
+                      onUpdated={handleUpdated}
+                      onViewDetail={setDetailCollab}
+                    />
+                  ))}
+                </div>
               ))}
             </div>
           )}
