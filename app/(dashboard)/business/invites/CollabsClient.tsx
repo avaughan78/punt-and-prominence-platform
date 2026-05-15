@@ -7,44 +7,24 @@ import { CollabDetailModal } from '@/components/invites/CollabDetailModal'
 import { Button } from '@/components/ui/Button'
 import type { Invite } from '@/lib/types'
 
-type Filter = 'all' | 'waiting' | 'engaged' | 'closed' | 'one_off' | 'retainer'
-
-const TERMINAL = new Set(['verified', 'completed'])
-
-function isWaiting(inv: Invite)  { return (inv.matches ?? []).length === 0 }
-function isEngaged(inv: Invite)  { return (inv.matches ?? []).some(m => !TERMINAL.has(m.status)) }
-function isClosed(inv: Invite)   {
-  const matches = inv.matches ?? []
-  return !inv.is_active || (matches.length > 0 && matches.every(m => TERMINAL.has(m.status)))
-}
-
-function matchesFilter(inv: Invite, filter: Filter): boolean {
-  switch (filter) {
-    case 'waiting':  return isWaiting(inv)
-    case 'engaged':  return isEngaged(inv)
-    case 'closed':   return isClosed(inv)
-    case 'one_off':  return inv.invite_type !== 'retainer'
-    case 'retainer': return inv.invite_type === 'retainer'
-    default:         return true
-  }
-}
+type Filter = 'all' | 'open' | 'closed'
 
 const FILTERS: { value: Filter; label: string }[] = [
-  { value: 'all',      label: 'All' },
-  { value: 'waiting',  label: 'Waiting' },
-  { value: 'engaged',  label: 'Engaged' },
-  { value: 'closed',   label: 'Closed' },
-  { value: 'one_off',  label: 'One-off' },
-  { value: 'retainer', label: 'Retainer' },
+  { value: 'all',    label: 'All' },
+  { value: 'open',   label: 'Open' },
+  { value: 'closed', label: 'Closed' },
 ]
 
 const EMPTY_MESSAGES: Record<Filter, string> = {
-  all:      'No collabs yet. Post one to start getting matched with creators.',
-  waiting:  'No collabs waiting for creators.',
-  engaged:  'No collabs with active matches right now.',
-  closed:   'No closed or completed campaigns.',
-  one_off:  'No one-off collabs.',
-  retainer: 'No retainer collabs.',
+  all:    'No collabs yet. Post one to start getting matched with creators.',
+  open:   'No open collabs right now.',
+  closed: 'No closed collabs yet.',
+}
+
+function matchesFilter(inv: Invite, filter: Filter): boolean {
+  if (filter === 'open')   return inv.is_active
+  if (filter === 'closed') return !inv.is_active
+  return true
 }
 
 interface Props {
@@ -64,8 +44,7 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
     fetch('/api/invites')
       .then(r => r.json())
       .then(data => {
-        const arr: Invite[] = Array.isArray(data) ? data : []
-        setCollabs(arr)
+        setCollabs(Array.isArray(data) ? data : [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -82,21 +61,25 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
   }
 
   const sorted = [...collabs].sort((a, b) => {
-    const rank = (inv: Invite) => isEngaged(inv) ? 0 : isWaiting(inv) ? 1 : 2
-    return rank(a) - rank(b)
+    if (a.is_active && !b.is_active) return -1
+    if (!a.is_active && b.is_active) return 1
+    return 0
   })
 
   const filtered = sorted.filter(inv => matchesFilter(inv, filter))
 
-  const counts = Object.fromEntries(
-    FILTERS.map(f => [f.value, f.value === 'all' ? collabs.length : collabs.filter(i => matchesFilter(i, f.value)).length])
-  ) as Record<Filter, number>
+  const counts = {
+    all:    collabs.length,
+    open:   collabs.filter(i => i.is_active).length,
+    closed: collabs.filter(i => !i.is_active).length,
+  }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       {detailCollab && (
         <CollabDetailModal invite={detailCollab} onClose={() => setDetailCollab(null)} />
       )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -105,9 +88,9 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {collabs.length} collab{collabs.length !== 1 ? 's' : ''}
-            {counts.engaged > 0 && (
+            {counts.open > 0 && (
               <span className="ml-2 text-xs font-semibold px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(107,230,176,0.15)', color: '#059669' }}>
-                {counts.engaged} engaged
+                {counts.open} open
               </span>
             )}
           </p>
@@ -139,7 +122,7 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
       ) : (
         <>
           {collabs.length > 0 && (
-            <div className="flex gap-1.5 flex-wrap mb-5">
+            <div className="flex gap-1.5 mb-5">
               {FILTERS.filter(f => f.value === 'all' || counts[f.value] > 0).map(f => {
                 const active = filter === f.value
                 return (
@@ -153,14 +136,12 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
                     }}
                   >
                     {f.label}
-                    {f.value !== 'all' && (
-                      <span
-                        className="text-[10px] font-bold px-1 py-0.5 rounded-md min-w-[18px] text-center"
-                        style={{ background: active ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.08)' }}
-                      >
-                        {counts[f.value]}
-                      </span>
-                    )}
+                    <span
+                      className="text-[10px] font-bold px-1 py-0.5 rounded-md min-w-[18px] text-center"
+                      style={{ background: active ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.08)' }}
+                    >
+                      {counts[f.value]}
+                    </span>
                   </button>
                 )
               })}
@@ -179,7 +160,7 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
               ) : null}
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {filtered.map(invite => (
                 <CollabCard
                   key={invite.id}

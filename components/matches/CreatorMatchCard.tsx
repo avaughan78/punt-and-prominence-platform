@@ -8,7 +8,7 @@ import { InlineMessageThread } from '@/components/matches/InlineMessageThread'
 import { formatGBP, normalizeUrl } from '@/lib/utils'
 import type { Match, MatchDeliverable } from '@/lib/types'
 
-const STRIP_COLOR: Record<string, string> = {
+const BORDER_COLOR: Record<string, string> = {
   accepted:  '#F5B800',
   posted:    '#C084FC',
   verified:  '#22c55e',
@@ -59,7 +59,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
 
   const isRetainer = match.invite?.invite_type === 'retainer'
   const isDone     = match.status === 'verified' || match.status === 'completed'
-  const strip      = STRIP_COLOR[match.status] ?? '#94a3b8'
+  const borderColor = BORDER_COLOR[match.status] ?? '#94a3b8'
   const pill       = STATUS_PILL[match.status] ?? STATUS_PILL.accepted
 
   const invite     = match.invite
@@ -181,10 +181,8 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
   return (
     <div
       className="rounded-2xl overflow-hidden"
-      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}
+      style={{ background: '#ffffff', border: `1.5px solid ${borderColor}`, boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}
     >
-      {/* Status strip */}
-      <div style={{ height: '4px', background: strip }} />
 
       {/* Compact header row — always visible, click to expand */}
       <button
@@ -252,7 +250,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
             className="px-5 py-3 flex items-center gap-2.5"
             style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}
           >
-            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: strip }} />
+            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: borderColor }} />
             <p className="text-sm font-medium text-gray-600 flex-1" style={{ fontFamily: "'Inter', sans-serif" }}>
               {nextStepLabel(match.status, isRetainer)}
             </p>
