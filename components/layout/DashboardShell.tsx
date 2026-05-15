@@ -94,7 +94,7 @@ export function DashboardShell({ children, role, displayName }: Props) {
           {navItems.map(item => {
             const active = pathname === item.href || (item.href !== '/business' && item.href !== '/creator' && pathname.startsWith(item.href))
             const isCollabs = item.href === '/business/invites'
-            const showBadge = isCollabs && unread > 0 && !active
+            const showBadge = isCollabs && unread > 0
             return (
               <Link
                 key={item.href}
@@ -172,7 +172,7 @@ export function DashboardShell({ children, role, displayName }: Props) {
         {navItems.map(item => {
           const active = pathname === item.href || (item.href !== '/business' && item.href !== '/creator' && pathname.startsWith(item.href))
           const isCollabsOrMatches = item.href.endsWith('/matches') || item.href === '/business/invites'
-          const showBadge = isCollabsOrMatches && unread > 0 && !active
+          const showBadge = isCollabsOrMatches && unread > 0
           return (
             <Link
               key={item.href}
