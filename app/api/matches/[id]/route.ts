@@ -16,7 +16,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const allowedUpdates: Record<string, string[]> = {
     business: ['status'],
-    creator: ['status', 'post_url'],
+    creator: ['status'],
   }
   const allowed = allowedUpdates[role] ?? []
   const update: Record<string, unknown> = {}
@@ -27,7 +27,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // Status transition validation (one_off and retainer)
   const validTransitions: Record<string, Record<string, string[]>> = {
     business: { accepted: ['active'], posted: ['verified'], active: ['completed'] },
-    creator: { accepted: ['posted'], posted: ['accepted'], active: ['completed'] },
+    creator: { accepted: ['posted'], active: ['completed'] },
   }
 
   const { data: match } = await supabase
