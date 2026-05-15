@@ -12,7 +12,7 @@ import type { Invite, MatchPreview } from '@/lib/types'
 const STATUS_META: Record<string, { bg: string; text: string; label: string }> = {
   accepted:  { bg: 'rgba(245,184,0,0.12)',   text: '#b45309', label: 'Awaiting content' },
   posted:    { bg: 'rgba(192,132,252,0.12)', text: '#9333ea', label: 'Post ready' },
-  verified:  { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a', label: 'Complete' },
+  verified:  { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a', label: 'Accepted' },
   active:    { bg: 'rgba(107,230,176,0.12)', text: '#059669', label: 'Active' },
   completed: { bg: 'rgba(148,163,184,0.12)', text: '#64748b', label: 'Complete' },
 }
@@ -54,7 +54,13 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
   const handle = creator?.instagram_handle
   const name = creator?.display_name ?? 'Creator'
   const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
-  const isDone = match.status === 'verified' || match.status === 'completed'
+  const isFulfilled = match.status === 'verified'
+  const isCompleted = match.status === 'completed'
+  const isDone = isFulfilled || isCompleted
+  const allDeliverablesVerified = deliverables.length > 0
+    ? deliverables.every(d => d.status === 'verified')
+    : !!legacyUrl
+  const canFulfil = match.status === 'posted' && allDeliverablesVerified
 
   const deliverables = match.deliverables ?? []
   const legacyUrl = match.post_url && deliverables.length === 0 ? match.post_url : null
@@ -151,7 +157,19 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
           <Button size="sm" loading={loading} onClick={() => updateStatus('active')} className="flex-shrink-0">Activate</Button>
         )}
 
-        {isDone && (
+        {(canFulfil || isFulfilled) && !isCompleted && (
+          <button
+            onClick={() => updateStatus(isFulfilled ? 'posted' : 'verified')}
+            disabled={loading}
+            title={isFulfilled ? 'Un-fulfil creator' : 'Mark creator as fulfilled'}
+            className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-50"
+            style={{ background: isFulfilled ? '#22c55e' : 'transparent', border: isFulfilled ? 'none' : '1.5px solid #d1d5db' }}
+          >
+            <Check className="w-3 h-3" style={{ color: isFulfilled ? 'white' : '#9ca3af' }} />
+          </button>
+        )}
+
+        {isCompleted && (
           <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#22c55e' }}>
             <Check className="w-3 h-3 text-white" />
           </div>
@@ -276,14 +294,10 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
   }
 
   function handleDeliverableVerified(matchId: string, deliverableId: string) {
-    setMatches(prev => prev.map(m => {
-      if (m.id !== matchId) return m
-      const updatedDelivs = (m.deliverables ?? []).map(d =>
-        d.id === deliverableId ? { ...d, status: 'verified' as const, verified_at: new Date().toISOString() } : d
-      )
-      const allVerified = updatedDelivs.length > 0 && updatedDelivs.every(d => d.status === 'verified')
-      return { ...m, deliverables: updatedDelivs, status: allVerified ? 'verified' as const : m.status }
-    }))
+    setMatches(prev => prev.map(m => m.id === matchId ? {
+      ...m,
+      deliverables: (m.deliverables ?? []).map(d => d.id === deliverableId ? { ...d, status: 'verified' as const, verified_at: new Date().toISOString() } : d),
+    } : m))
     window.dispatchEvent(new Event('deliverable-verified'))
   }
 

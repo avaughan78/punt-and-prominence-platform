@@ -81,7 +81,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     // Business verifies a deliverable
     const { data: match } = await supabase
       .from('matches')
-      .select('id, status')
+      .select('id')
       .eq('id', id)
       .eq('business_id', user.id)
       .single()
@@ -95,18 +95,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       .select()
       .single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-    // Auto-advance match to verified if all deliverables are now verified
-    if (match.status === 'posted') {
-      const { data: remaining } = await supabase
-        .from('match_deliverables')
-        .select('id')
-        .eq('match_id', id)
-        .neq('status', 'verified')
-      if (remaining?.length === 0) {
-        await supabase.from('matches').update({ status: 'verified' }).eq('id', id)
-      }
-    }
 
     return NextResponse.json(data)
   }
