@@ -227,7 +227,6 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
 
   const stripColor = !isActive
     ? '#94a3b8'
-    : isFull    ? '#22c55e'
     : isRetainer ? '#6BE6B0'
     : '#F5B800'
 
@@ -320,6 +319,22 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
                   style={{ background: 'rgba(0,0,0,0.06)', color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}
                 >
                   Paused
+                </span>
+              )}
+              {isActive && isFull && (
+                <span
+                  className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md"
+                  style={{ background: 'rgba(34,197,94,0.12)', color: '#15803d', fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  Full
+                </span>
+              )}
+              {isActive && !isFull && (
+                <span
+                  className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md"
+                  style={{ background: 'rgba(245,184,0,0.12)', color: '#92400e', fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  Active
                 </span>
               )}
               {isActive && !isRetainer && (
