@@ -51,9 +51,10 @@ interface Props {
   currentUserId: string
   isProfileComplete: boolean
   openCollabId?: string
+  openMatchId?: string
 }
 
-export function CollabsClient({ currentUserId, isProfileComplete, openCollabId }: Props) {
+export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, openMatchId }: Props) {
   const [collabs, setCollabs] = useState<Invite[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
@@ -66,13 +67,9 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId }
         const arr: Invite[] = Array.isArray(data) ? data : []
         setCollabs(arr)
         setLoading(false)
-        if (openCollabId) {
-          const match = arr.find(c => c.id === openCollabId)
-          if (match) setDetailCollab(match)
-        }
       })
       .catch(() => setLoading(false))
-  }, [openCollabId])
+  }, [])
 
   function handleToggle(id: string, active: boolean) {
     setCollabs(prev => prev.map(o => o.id === id ? { ...o, is_active: active } : o))
@@ -188,6 +185,8 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId }
                   key={invite.id}
                   invite={invite}
                   currentUserId={currentUserId}
+                  initialOpen={invite.id === openCollabId}
+                  initialOpenMatchId={invite.id === openCollabId ? openMatchId : undefined}
                   onToggle={handleToggle}
                   onDelete={handleDelete}
                   onUpdated={handleUpdated}

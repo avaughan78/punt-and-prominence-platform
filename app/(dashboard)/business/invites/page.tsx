@@ -6,13 +6,13 @@ import { CollabsClient } from './CollabsClient'
 export default async function BusinessCollabsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ open?: string }>
+  searchParams: Promise<{ open?: string; match?: string }>
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { open }] = await Promise.all([
+  const [{ data: profile }, { open, match }] = await Promise.all([
     supabase.from('profiles').select('business_name, category, address_line').eq('id', user.id).single(),
     searchParams,
   ])
@@ -22,6 +22,7 @@ export default async function BusinessCollabsPage({
       currentUserId={user.id}
       isProfileComplete={isBusinessProfileComplete(profile as Record<string, unknown>)}
       openCollabId={open}
+      openMatchId={match}
     />
   )
 }

@@ -1,11 +1,10 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { MessageCircle, Pencil, Trash2, Check, ChevronDown, ImageIcon } from 'lucide-react'
+import { MessageCircle, Pencil, Trash2, Check, ChevronDown, ImageIcon, ExternalLink, Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { EditInviteModal } from '@/components/invites/EditInviteModal'
-import { PostsModal } from '@/components/invites/PostsModal'
 import { InlineMessageThread } from '@/components/matches/InlineMessageThread'
 import { formatGBP } from '@/lib/utils'
 import type { Invite, MatchPreview } from '@/lib/types'
@@ -18,7 +17,6 @@ const STATUS_META: Record<string, { bg: string; text: string; label: string }> =
   completed: { bg: 'rgba(148,163,184,0.12)', text: '#64748b', label: 'Complete' },
 }
 
-// Most urgent first
 const STATUS_PRIORITY: Record<string, number> = {
   posted: 0, accepted: 1, active: 2, verified: 3, completed: 4,
 }
@@ -29,28 +27,38 @@ function fmt(n: number) {
   return String(n)
 }
 
+function fmtDate(dt: string) {
+  return new Date(dt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}
+
 interface CreatorRowProps {
   match: MatchPreview
   isRetainer: boolean
   collabTitle: string
   currentUserId: string
+  initialPostsOpen?: boolean
   onStatusUpdated: (matchId: string, status: string) => void
   onDeliverableVerified: (matchId: string, deliverableId: string) => void
 }
 
-function CreatorRow({ match, isRetainer, collabTitle, currentUserId, onStatusUpdated, onDeliverableVerified }: CreatorRowProps) {
-  const [msgOpen, setMsgOpen] = useState(false)
-  const [postsOpen, setPostsOpen] = useState(false)
-  const [unread, setUnread] = useState(0)
-  const [loading, setLoading] = useState(false)
+function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPostsOpen, onStatusUpdated, onDeliverableVerified }: CreatorRowProps) {
+  const [msgOpen, setMsgOpen]       = useState(false)
+  const [postsOpen, setPostsOpen]   = useState(initialPostsOpen ?? false)
+  const [unread, setUnread]         = useState(0)
+  const [loading, setLoading]       = useState(false)
+  const [verifyingDid, setVerifyingDid] = useState<string | null>(null)
   const msgRef = useRef<HTMLDivElement>(null)
 
-  const meta = STATUS_META[match.status] ?? STATUS_META.pending
+  const meta = STATUS_META[match.status] ?? STATUS_META.posted
   const creator = match.creator
   const handle = creator?.instagram_handle
   const name = creator?.display_name ?? 'Creator'
   const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
   const isDone = match.status === 'verified' || match.status === 'completed'
+
+  const deliverables = match.deliverables ?? []
+  const legacyUrl = match.post_url && deliverables.length === 0 ? match.post_url : null
+  const hasPosts = deliverables.length > 0 || !!legacyUrl
 
   useEffect(() => {
     fetch(`/api/matches/${match.id}/messages/unread`)
@@ -72,6 +80,23 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, onStatusUpd
     setLoading(false)
   }
 
+  async function verifyDeliverable(did: string) {
+    setVerifyingDid(did)
+    const res = await fetch(`/api/matches/${match.id}/deliverables/${did}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'verify' }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? 'Failed to verify')
+    } else {
+      onDeliverableVerified(match.id, did)
+      toast.success('Post verified')
+    }
+    setVerifyingDid(null)
+  }
+
   useEffect(() => {
     if (msgOpen) {
       setTimeout(() => msgRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
@@ -87,41 +112,21 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, onStatusUpd
 
   return (
     <div ref={msgRef}>
-      {postsOpen && (
-        <PostsModal
-          match={match}
-          creatorName={creator?.instagram_handle ? `@${creator.instagram_handle}` : (creator?.display_name ?? 'Creator')}
-          collabTitle={collabTitle}
-          isRetainer={isRetainer}
-          onDeliverableVerified={onDeliverableVerified}
-          onClose={() => setPostsOpen(false)}
-        />
-      )}
+      {/* Creator row */}
       <div
         className="flex items-center gap-3 px-5 py-3"
         style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}
       >
-        {/* Avatar + identity — links to creator profile */}
-        <Link
-          href={`/business/creators/${creator?.id}`}
-          className="flex items-center gap-3 flex-1 min-w-0 group"
-        >
+        {/* Avatar + identity */}
+        <Link href={`/business/creators/${creator?.id}`} className="flex items-center gap-3 flex-1 min-w-0 group">
           <div
             className="p-[2px] rounded-full flex-shrink-0 transition-opacity group-hover:opacity-80"
             style={{ background: handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(0,0,0,0.1)' }}
           >
             {creator?.avatar_url ? (
-              <img
-                src={creator.avatar_url}
-                alt={name}
-                className="w-9 h-9 rounded-full object-cover block"
-                style={{ border: '2px solid white' }}
-              />
+              <img src={creator.avatar_url} alt={name} className="w-9 h-9 rounded-full object-cover block" style={{ border: '2px solid white' }} />
             ) : (
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)', border: '2px solid white' }}
-              >
+              <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)', border: '2px solid white' }}>
                 {initials}
               </div>
             )}
@@ -146,16 +151,16 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, onStatusUpd
           {statusLabel}
         </span>
 
-        {/* Quick actions */}
-        {/* Posts button — shows when there are deliverables or a legacy post_url */}
-        {((match.deliverables?.length ?? 0) > 0 || match.post_url) && (
+        {/* Posts toggle — inline expand */}
+        {hasPosts && (
           <button
-            onClick={() => setPostsOpen(true)}
+            onClick={() => setPostsOpen(o => !o)}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold transition-all flex-shrink-0"
-            style={{ background: 'rgba(192,132,252,0.12)', color: '#9333ea', fontFamily: "'JetBrains Mono', monospace" }}
+            style={{ background: postsOpen ? 'rgba(192,132,252,0.2)' : 'rgba(192,132,252,0.12)', color: '#9333ea', fontFamily: "'JetBrains Mono', monospace" }}
           >
             <ImageIcon className="w-3.5 h-3.5" />
-            {(match.deliverables?.length ?? 0) > 0 ? `${match.deliverables!.length} post${match.deliverables!.length !== 1 ? 's' : ''}` : 'Post'}
+            {deliverables.length > 0 ? `${deliverables.length} post${deliverables.length !== 1 ? 's' : ''}` : 'Post'}
+            <ChevronDown className="w-3 h-3 transition-transform duration-150" style={{ transform: postsOpen ? 'rotate(180deg)' : 'none' }} />
           </button>
         )}
 
@@ -166,24 +171,17 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, onStatusUpd
         )}
 
         {isDone && (
-          <div
-            className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: '#22c55e' }}
-          >
+          <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#22c55e' }}>
             <Check className="w-3 h-3 text-white" />
           </div>
         )}
 
-        {/* Message button — headline feature */}
+        {/* Message button */}
         <button
           onClick={toggleMsg}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex-shrink-0"
           style={{
-            background: msgOpen
-              ? '#1C2B3A'
-              : unread > 0
-                ? '#F5B800'
-                : 'rgba(28,43,58,0.06)',
+            background: msgOpen ? '#1C2B3A' : unread > 0 ? '#F5B800' : 'rgba(28,43,58,0.06)',
             color: msgOpen ? 'white' : unread > 0 ? '#1C2B3A' : '#6b7280',
           }}
         >
@@ -192,7 +190,49 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, onStatusUpd
         </button>
       </div>
 
-      {/* Inline thread — expands below row */}
+      {/* Inline posts */}
+      {postsOpen && hasPosts && (
+        <div
+          className="px-5 py-3 flex flex-col gap-2"
+          style={{ background: 'rgba(192,132,252,0.04)', borderTop: '1px solid rgba(192,132,252,0.1)' }}
+        >
+          {legacyUrl && (
+            <div className="flex items-center gap-3 py-1">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold" style={{ background: '#C084FC', color: '#1C2B3A' }}>1</div>
+              <a href={legacyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-blue-500 hover:underline flex-1 truncate">
+                <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                View post
+              </a>
+            </div>
+          )}
+          {deliverables.map((d, idx) => (
+            <div key={d.id} className="flex items-center gap-3 py-1">
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
+                style={{ background: d.status === 'verified' ? '#6BE6B0' : '#C084FC', color: '#1C2B3A' }}
+              >
+                {d.month_number ?? idx + 1}
+              </div>
+              <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-blue-500 hover:underline flex-1 truncate">
+                <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                {isRetainer ? `Month ${d.month_number}` : `Post ${idx + 1}`}
+              </a>
+              <span className="text-[10px] text-gray-400 flex-shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                {d.verified_at ? `verified ${fmtDate(d.verified_at)}` : fmtDate(d.created_at)}
+              </span>
+              {d.status === 'verified' ? (
+                <Check className="w-4 h-4 flex-shrink-0" style={{ color: '#22c55e' }} />
+              ) : (
+                <Button size="sm" loading={verifyingDid === d.id} onClick={() => verifyDeliverable(d.id)}>
+                  Verify
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Inline message thread */}
       {msgOpen && (
         <div className="px-5 pb-4">
           <InlineMessageThread matchId={match.id} currentUserId={currentUserId} />
@@ -205,14 +245,16 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, onStatusUpd
 interface Props {
   invite: Invite
   currentUserId: string
+  initialOpen?: boolean
+  initialOpenMatchId?: string
   onToggle: (id: string, active: boolean) => void
   onDelete: (id: string) => void
   onUpdated: (updated: Invite) => void
   onViewDetail?: (invite: Invite) => void
 }
 
-export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdated }: Props) {
-  const [open, setOpen]         = useState(false)
+export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatchId, onToggle, onDelete, onUpdated, onViewDetail }: Props) {
+  const [open, setOpen]         = useState(initialOpen ?? false)
   const [editing, setEditing]   = useState(false)
   const [toggling, setToggling] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -220,15 +262,12 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
 
   useEffect(() => { setMatches(invite.matches ?? []) }, [invite.matches])
 
-  const isRetainer    = invite.invite_type === 'retainer'
-  const isFull        = invite.slots_claimed >= invite.slots_total
-  const isActive      = invite.is_active
+  const isRetainer     = invite.invite_type === 'retainer'
+  const isFull         = invite.slots_claimed >= invite.slots_total
+  const isActive       = invite.is_active
   const hasLiveMatches = matches.some(m => !['verified', 'completed'].includes(m.status))
 
-  const stripColor = !isActive
-    ? '#94a3b8'
-    : isRetainer ? '#6BE6B0'
-    : '#F5B800'
+  const stripColor = !isActive ? '#94a3b8' : isRetainer ? '#6BE6B0' : '#F5B800'
 
   async function handleToggle() {
     setToggling(true)
@@ -289,18 +328,14 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
         {/* Status strip */}
         <div style={{ height: '4px', background: stripColor }} />
 
-        {/* Compact header row — click to expand */}
+        {/* Header — click to expand */}
         <button
           type="button"
           onClick={() => setOpen(o => !o)}
           className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-gray-50"
         >
-          {/* Title + meta */}
           <div className="flex-1 min-w-0">
-            <p
-              className="font-bold text-[#1C2B3A] text-sm leading-tight truncate"
-              style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
-            >
+            <p className="font-bold text-[#1C2B3A] text-sm leading-tight truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
               {invite.title}
             </p>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -315,26 +350,17 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
                 {isRetainer ? 'Retainer' : 'One-off'}
               </span>
               {!isActive && (
-                <span
-                  className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md"
-                  style={{ background: 'rgba(0,0,0,0.06)', color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}
-                >
+                <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(0,0,0,0.06)', color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
                   Paused
                 </span>
               )}
               {isActive && isFull && (
-                <span
-                  className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md"
-                  style={{ background: 'rgba(34,197,94,0.12)', color: '#15803d', fontFamily: "'JetBrains Mono', monospace" }}
-                >
+                <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(34,197,94,0.12)', color: '#15803d', fontFamily: "'JetBrains Mono', monospace" }}>
                   Full
                 </span>
               )}
               {isActive && !isFull && (
-                <span
-                  className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md"
-                  style={{ background: 'rgba(245,184,0,0.12)', color: '#92400e', fontFamily: "'JetBrains Mono', monospace" }}
-                >
+                <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(245,184,0,0.12)', color: '#92400e', fontFamily: "'JetBrains Mono', monospace" }}>
                   Active
                 </span>
               )}
@@ -351,12 +377,8 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
             </div>
           </div>
 
-          {/* Value */}
           <div className="shrink-0 text-right">
-            <p
-              className="font-bold text-sm leading-tight"
-              style={{ color: isRetainer ? '#059669' : '#b45309', fontFamily: "'Bricolage Grotesque', sans-serif" }}
-            >
+            <p className="font-bold text-sm leading-tight" style={{ color: isRetainer ? '#059669' : '#b45309', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
               {isRetainer ? formatGBP(invite.fee_gbp ?? 0) : formatGBP(invite.value_gbp)}
             </p>
             <p className="text-[9px] text-gray-400 mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
@@ -365,24 +387,17 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
           </div>
 
           {verifyCount > 0 && (
-            <span
-              className="text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0"
-              style={{ background: 'rgba(192,132,252,0.15)', color: '#9333ea', fontFamily: "'JetBrains Mono', monospace" }}
-            >
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0" style={{ background: 'rgba(192,132,252,0.15)', color: '#9333ea', fontFamily: "'JetBrains Mono', monospace" }}>
               {verifyCount} to verify
             </span>
           )}
 
-          <ChevronDown
-            className="w-3.5 h-3.5 text-gray-400 transition-transform duration-200 flex-shrink-0"
-            style={{ transform: open ? 'rotate(180deg)' : 'none' }}
-          />
+          <ChevronDown className="w-3.5 h-3.5 text-gray-400 transition-transform duration-200 flex-shrink-0" style={{ transform: open ? 'rotate(180deg)' : 'none' }} />
         </button>
 
         {/* Expanded body */}
         {open && (
           <div>
-            {/* Creator rows */}
             {sortedMatches.length === 0 ? (
               <div className="px-5 py-4 text-xs text-gray-400 italic" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
                 No creators matched yet — your collab is live.
@@ -395,6 +410,7 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
                   isRetainer={isRetainer}
                   collabTitle={invite.title}
                   currentUserId={currentUserId}
+                  initialPostsOpen={initialOpenMatchId === m.id}
                   onStatusUpdated={handleStatusUpdated}
                   onDeliverableVerified={handleDeliverableVerified}
                 />
@@ -402,14 +418,8 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
             )}
 
             {/* Footer */}
-            <div
-              className="flex items-center gap-2 px-5 py-3"
-              style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}
-            >
-              <button
-                onClick={() => setEditing(true)}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-[#1C2B3A] transition-colors"
-              >
+            <div className="flex items-center gap-2 px-5 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}>
+              <button onClick={() => setEditing(true)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-[#1C2B3A] transition-colors">
                 <Pencil className="w-3 h-3" />
                 Edit
               </button>
@@ -423,6 +433,16 @@ export function CollabCard({ invite, currentUserId, onToggle, onDelete, onUpdate
               >
                 {isActive ? 'Pause' : 'Activate'}
               </Button>
+              {onViewDetail && (
+                <button
+                  onClick={() => onViewDetail(invite)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-[#1C2B3A] transition-colors"
+                  title="View collab stats"
+                >
+                  <Info className="w-3 h-3" />
+                  Stats
+                </button>
+              )}
               <button
                 onClick={handleDelete}
                 disabled={deleting}

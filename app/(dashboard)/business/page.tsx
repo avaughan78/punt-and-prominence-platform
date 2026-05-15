@@ -157,7 +157,7 @@ export default async function BusinessDashboard() {
                 >
                   <div className="flex-1 min-w-0">
                     <Link
-                      href={`/business/invites?open=${offerId}`}
+                      href={`/business/invites?open=${offerId}${match.status === 'posted' ? `&match=${match.id}` : ''}`}
                       className="text-sm font-medium text-[#1C2B3A] truncate block hover:underline"
                     >
                       {offer?.title}
