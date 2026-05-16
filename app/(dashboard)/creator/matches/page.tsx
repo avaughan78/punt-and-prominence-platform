@@ -12,7 +12,7 @@ export default async function CreatorMatchesPage({
   if (!user) redirect('/login')
 
   const { filter } = await searchParams
-  const validFilters = ['all', 'todo', 'submitted', 'done', 'one_off', 'retainer', 'unread'] as const
+  const validFilters = ['all', 'in_progress', 'visited', 'todo', 'submitted', 'done', 'one_off', 'retainer', 'unread'] as const
   type Filter = typeof validFilters[number]
   const initialFilter = validFilters.includes(filter as Filter) ? (filter as Filter) : undefined
 

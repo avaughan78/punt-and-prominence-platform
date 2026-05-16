@@ -75,9 +75,9 @@ export default async function CreatorDashboard() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <StatCard label="Available collabs" value={availableInvites} href="/creator/browse" />
-        <StatCard label="In progress" value={inProgress} accent="#C084FC" href="/creator/matches" />
-        <StatCard label="Completed" value={completed} accent="#22c55e" href="/creator/matches" />
-        <StatCard label="Visits confirmed" value={visits} accent="#6BE6B0" href="/creator/matches" />
+        <StatCard label="In progress" value={inProgress} accent="#C084FC" href="/creator/matches?filter=in_progress" />
+        <StatCard label="Completed" value={completed} accent="#22c55e" href="/creator/matches?filter=done" />
+        <StatCard label="Visits confirmed" value={visits} accent="#6BE6B0" href="/creator/matches?filter=visited" />
       </div>
 
       <div className="rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"

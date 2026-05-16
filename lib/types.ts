@@ -69,6 +69,7 @@ export interface MatchPreview {
   punt_code: string
   created_at: string
   post_url: string | null
+  scan_count: number
   creator: Pick<Profile, 'id' | 'display_name' | 'instagram_handle' | 'avatar_url' | 'follower_count'>
   deliverables?: MatchDeliverable[]
 }

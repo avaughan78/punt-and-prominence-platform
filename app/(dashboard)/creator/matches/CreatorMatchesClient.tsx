@@ -5,7 +5,7 @@ import { CreatorMatchCard } from '@/components/matches/CreatorMatchCard'
 import { Button } from '@/components/ui/Button'
 import type { Match } from '@/lib/types'
 
-type Filter = 'all' | 'todo' | 'submitted' | 'done' | 'one_off' | 'retainer' | 'unread'
+type Filter = 'all' | 'in_progress' | 'visited' | 'todo' | 'submitted' | 'done' | 'one_off' | 'retainer' | 'unread'
 
 function isTodo(m: Match) {
   if (m.status === 'accepted') return true
@@ -17,34 +17,40 @@ function isTodo(m: Match) {
 
 function matchesFilter(m: Match, f: Filter, unreadMatchIds: Set<string>): boolean {
   switch (f) {
-    case 'unread':    return unreadMatchIds.has(m.id)
-    case 'todo':      return isTodo(m)
-    case 'submitted': return m.status === 'posted'
-    case 'done':      return m.status === 'verified' || m.status === 'completed'
-    case 'one_off':   return m.invite?.invite_type !== 'retainer'
-    case 'retainer':  return m.invite?.invite_type === 'retainer'
-    default:          return true
+    case 'unread':      return unreadMatchIds.has(m.id)
+    case 'in_progress': return ['accepted', 'posted', 'active'].includes(m.status)
+    case 'visited':     return (m.scan_count ?? 0) > 0
+    case 'todo':        return isTodo(m)
+    case 'submitted':   return m.status === 'posted'
+    case 'done':        return m.status === 'verified' || m.status === 'completed'
+    case 'one_off':     return m.invite?.invite_type !== 'retainer'
+    case 'retainer':    return m.invite?.invite_type === 'retainer'
+    default:            return true
   }
 }
 
 const FILTERS: { value: Filter; label: string }[] = [
-  { value: 'all',       label: 'All' },
-  { value: 'unread',    label: 'Unread' },
-  { value: 'todo',      label: 'To do' },
-  { value: 'submitted', label: 'Submitted' },
-  { value: 'done',      label: 'Done' },
-  { value: 'one_off',   label: 'One-off' },
-  { value: 'retainer',  label: 'Retainer' },
+  { value: 'all',         label: 'All' },
+  { value: 'unread',      label: 'Unread' },
+  { value: 'in_progress', label: 'In progress' },
+  { value: 'visited',     label: 'Visited' },
+  { value: 'todo',        label: 'To do' },
+  { value: 'submitted',   label: 'Submitted' },
+  { value: 'done',        label: 'Done' },
+  { value: 'one_off',     label: 'One-off' },
+  { value: 'retainer',    label: 'Retainer' },
 ]
 
 const EMPTY: Record<Filter, string> = {
-  all:       'No matches yet.',
-  unread:    'No unread messages right now.',
-  todo:      'Nothing to action right now.',
-  submitted: 'No posts awaiting verification.',
-  done:      'No completed matches yet.',
-  one_off:   'No one-off matches.',
-  retainer:  'No retainer matches.',
+  all:         'No matches yet.',
+  unread:      'No unread messages right now.',
+  in_progress: 'No in-progress matches.',
+  visited:     'No visits recorded yet.',
+  todo:        'Nothing to action right now.',
+  submitted:   'No posts awaiting verification.',
+  done:        'No completed matches yet.',
+  one_off:     'No one-off matches.',
+  retainer:    'No retainer matches.',
 }
 
 export function CreatorMatchesClient({ currentUserId, initialFilter }: { currentUserId: string; initialFilter?: Filter }) {

@@ -119,11 +119,11 @@ export default async function BusinessDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
-        <StatCard label="Open collabs" value={activeOffers} href="/business/invites" />
+        <StatCard label="Open collabs" value={activeOffers} href="/business/invites?filter=open" />
         <StatCard label="Creators matched" value={creatorsMatched} accent="#6BE6B0" href="/business/invites" />
-        <StatCard label="In progress" value={inProgress} accent="#C084FC" href="/business/invites" />
-        <StatCard label="Visits confirmed" value={visits} accent="#F5B800" href="/business/invites" />
-        <StatCard label="Fulfilled" value={fulfilled} accent="#22c55e" href="/business/invites" />
+        <StatCard label="In progress" value={inProgress} accent="#C084FC" href="/business/invites?filter=in_progress" />
+        <StatCard label="Visits confirmed" value={visits} accent="#F5B800" href="/business/invites?filter=visited" />
+        <StatCard label="Fulfilled" value={fulfilled} accent="#22c55e" href="/business/invites?filter=fulfilled" />
       </div>
 
       {/* Recent activity */}

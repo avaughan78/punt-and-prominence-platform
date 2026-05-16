@@ -7,22 +7,28 @@ import { CollabDetailModal } from '@/components/invites/CollabDetailModal'
 import { Button } from '@/components/ui/Button'
 import type { Invite } from '@/lib/types'
 
-type Filter = 'all' | 'open' | 'closed' | 'review' | 'unread'
+type Filter = 'all' | 'in_progress' | 'visited' | 'fulfilled' | 'open' | 'closed' | 'review' | 'unread'
 
 const FILTERS: { value: Filter; label: string }[] = [
-  { value: 'all',    label: 'All' },
-  { value: 'unread', label: 'Unread' },
-  { value: 'review', label: 'Needs review' },
-  { value: 'open',   label: 'Open' },
-  { value: 'closed', label: 'Closed' },
+  { value: 'all',         label: 'All' },
+  { value: 'unread',      label: 'Unread' },
+  { value: 'in_progress', label: 'In progress' },
+  { value: 'visited',     label: 'Visited' },
+  { value: 'fulfilled',   label: 'Fulfilled' },
+  { value: 'review',      label: 'Needs review' },
+  { value: 'open',        label: 'Open' },
+  { value: 'closed',      label: 'Closed' },
 ]
 
 const EMPTY_MESSAGES: Record<Filter, string> = {
-  all:    'No collabs yet. Post one to start getting matched with creators.',
-  unread: 'No unread messages right now.',
-  review: 'Nothing to review right now.',
-  open:   'No open collabs right now.',
-  closed: 'No closed collabs yet.',
+  all:         'No collabs yet. Post one to start getting matched with creators.',
+  unread:      'No unread messages right now.',
+  in_progress: 'No in-progress collabs right now.',
+  visited:     'No visits recorded yet.',
+  fulfilled:   'No fulfilled collabs yet.',
+  review:      'Nothing to review right now.',
+  open:        'No open collabs right now.',
+  closed:      'No closed collabs yet.',
 }
 
 function needsReview(inv: Invite): boolean {
@@ -30,10 +36,13 @@ function needsReview(inv: Invite): boolean {
 }
 
 function matchesFilter(inv: Invite, filter: Filter, unreadMatchIds: Set<string>): boolean {
-  if (filter === 'unread') return (inv.matches ?? []).some(m => unreadMatchIds.has(m.id))
-  if (filter === 'review') return needsReview(inv)
-  if (filter === 'open')   return inv.is_active
-  if (filter === 'closed') return !inv.is_active
+  if (filter === 'unread')      return (inv.matches ?? []).some(m => unreadMatchIds.has(m.id))
+  if (filter === 'in_progress') return (inv.matches ?? []).some(m => ['accepted', 'posted', 'active'].includes(m.status))
+  if (filter === 'visited')     return (inv.matches ?? []).some(m => (m.scan_count ?? 0) > 0)
+  if (filter === 'fulfilled')   return (inv.matches ?? []).some(m => m.status === 'verified')
+  if (filter === 'review')      return needsReview(inv)
+  if (filter === 'open')        return inv.is_active
+  if (filter === 'closed')      return !inv.is_active
   return true
 }
 
@@ -81,12 +90,15 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
 
   const filtered = sorted.filter(inv => matchesFilter(inv, filter, unreadMatchIds))
 
-  const counts = {
-    all:    collabs.length,
-    unread: collabs.filter(inv => (inv.matches ?? []).some(m => unreadMatchIds.has(m.id))).length,
-    review: collabs.filter(needsReview).length,
-    open:   collabs.filter(i => i.is_active).length,
-    closed: collabs.filter(i => !i.is_active).length,
+  const counts: Record<Filter, number> = {
+    all:         collabs.length,
+    unread:      collabs.filter(inv => (inv.matches ?? []).some(m => unreadMatchIds.has(m.id))).length,
+    in_progress: collabs.filter(inv => (inv.matches ?? []).some(m => ['accepted', 'posted', 'active'].includes(m.status))).length,
+    visited:     collabs.filter(inv => (inv.matches ?? []).some(m => (m.scan_count ?? 0) > 0)).length,
+    fulfilled:   collabs.filter(inv => (inv.matches ?? []).some(m => m.status === 'verified')).length,
+    review:      collabs.filter(needsReview).length,
+    open:        collabs.filter(i => i.is_active).length,
+    closed:      collabs.filter(i => !i.is_active).length,
   }
 
   return (
