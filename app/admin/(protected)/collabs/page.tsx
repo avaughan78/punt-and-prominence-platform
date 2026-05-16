@@ -1,13 +1,23 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { formatGBP, formatDate } from '@/lib/utils'
-import { ChevronDown, ExternalLink, Search } from 'lucide-react'
+import { ChevronDown, ExternalLink, Search, AlertCircle } from 'lucide-react'
 
-type Status = 'accepted' | 'posted' | 'verified' | 'active' | 'completed'
+type MatchStatus = 'accepted' | 'posted' | 'verified' | 'active' | 'completed'
+
+interface Deliverable {
+  id: string
+  status: 'pending' | 'verified'
+  post_url: string | null
+  verified_at: string | null
+  month_number: number | null
+  created_at: string
+}
 
 interface MatchEntry {
   id: string
-  status: Status
+  status: MatchStatus
   post_url: string | null
   created_at: string
   punt_code: string
@@ -18,6 +28,7 @@ interface MatchEntry {
     follower_count: number | null
     avatar_url: string | null
   } | null
+  deliverables: Deliverable[]
 }
 
 interface CollabGroup {
@@ -40,29 +51,21 @@ interface CollabGroup {
     business_name: string | null
     display_name: string
     category: string | null
-    address_line: string | null
     instagram_handle: string | null
-    website_url: string | null
     avatar_url: string | null
   } | null
   matches: MatchEntry[]
 }
 
-const STATUS_COLOUR: Record<Status, { bg: string; text: string; label: string }> = {
-  accepted:  { bg: 'rgba(245,184,0,0.12)',   text: '#b45309', label: 'Accepted' },
-  posted:    { bg: 'rgba(192,132,252,0.15)', text: '#9333ea', label: 'Posted' },
-  verified:  { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a', label: 'Verified' },
+const STATUS_META: Record<MatchStatus, { bg: string; text: string; label: string }> = {
+  accepted:  { bg: 'rgba(245,184,0,0.12)',   text: '#b45309', label: 'Awaiting content' },
+  posted:    { bg: 'rgba(192,132,252,0.15)', text: '#9333ea', label: 'Post ready' },
+  verified:  { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a', label: 'Accepted' },
   active:    { bg: 'rgba(107,230,176,0.12)', text: '#059669', label: 'Active' },
   completed: { bg: 'rgba(148,163,184,0.12)', text: '#64748b', label: 'Completed' },
 }
 
-const STATUS_DOT: Record<Status, string> = {
-  accepted: '#F5B800', posted: '#C084FC', verified: '#22c55e', active: '#6BE6B0', completed: '#94a3b8',
-}
-
-
-const FILTERS = ['all', 'accepted', 'posted', 'verified', 'active', 'completed'] as const
-type Filter = typeof FILTERS[number]
+const MATCH_ORDER: Record<MatchStatus, number> = { posted: 0, accepted: 1, active: 2, verified: 3, completed: 4 }
 
 function fmt(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}m`
@@ -70,70 +73,233 @@ function fmt(n: number) {
   return String(n)
 }
 
-function collabPriority(g: CollabGroup): number {
-  if (!g.is_active) return 2
-  const hasLive = g.matches.some(m => m.status === 'posted' || m.status === 'accepted' || m.status === 'active')
-  return hasLive ? 0 : 1
+function fmtDate(dt: string) {
+  return new Date(dt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
-function StatusDots({ matches }: { matches: MatchEntry[] }) {
-  const unique = [...new Set(matches.map(m => m.status))]
+// ── Stats bar ──────────────────────────────────────────────────────────────────
+
+function StatsBar({ groups }: { groups: CollabGroup[] }) {
+  const activeCollabs   = groups.filter(g => g.is_active).length
+  const postsToVerify   = groups.reduce((s, g) => s + g.matches.filter(m => m.status === 'posted').length, 0)
+  const activeRetainers = groups.reduce((s, g) => s + g.matches.filter(m => m.status === 'active').length, 0)
+  const gmv = groups
+    .filter(g => g.is_active)
+    .reduce((s, g) => s + (g.invite_type === 'retainer' ? (g.fee_gbp ?? 0) : (g.value_gbp ?? 0)) * g.slots_claimed, 0)
+
+  const stats = [
+    { label: 'Active collabs',   value: activeCollabs,            accent: '#F5B800' },
+    { label: 'Value in market',  value: formatGBP(gmv),           accent: '#6BE6B0' },
+    { label: 'Posts to verify',  value: postsToVerify,            accent: postsToVerify > 0 ? '#C084FC' : '#94a3b8' },
+    { label: 'Live retainers',   value: activeRetainers,          accent: '#60a5fa' },
+  ]
+
   return (
-    <div className="flex gap-1 items-center">
-      {unique.map(s => (
-        <span key={s} className="rounded-full" style={{ width: '6px', height: '6px', background: STATUS_DOT[s] }} title={s} />
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      {stats.map(s => (
+        <div key={s.label} className="rounded-xl bg-white px-4 py-3" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
+          <p className="text-2xl font-extrabold leading-none" style={{ color: s.accent, fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+            {s.value}
+          </p>
+          <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            {s.label}
+          </p>
+        </div>
       ))}
     </div>
   )
 }
 
-function SlotBar({ total, claimed }: { total: number; claimed: number }) {
-  const pct = total > 0 ? Math.round((claimed / total) * 100) : 0
+// ── Match status summary text ──────────────────────────────────────────────────
+
+function MatchSummary({ matches }: { matches: MatchEntry[] }) {
+  const counts = matches.reduce((acc, m) => {
+    acc[m.status] = (acc[m.status] ?? 0) + 1
+    return acc
+  }, {} as Record<MatchStatus, number>)
+
+  const parts = (Object.entries(counts) as [MatchStatus, number][])
+    .sort(([a], [b]) => MATCH_ORDER[a] - MATCH_ORDER[b])
+    .map(([status, count]) => (
+      <span key={status} style={{ color: STATUS_META[status].text }}>
+        {count} {STATUS_META[status].label.toLowerCase()}
+      </span>
+    ))
+
+  return (
+    <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+      {parts}
+    </div>
+  )
+}
+
+// ── Creator row ────────────────────────────────────────────────────────────────
+
+function CreatorRow({ match, isRetainer }: { match: MatchEntry; isRetainer: boolean }) {
+  const [open, setOpen] = useState(false)
+  const meta    = STATUS_META[match.status]
+  const name    = match.creator?.display_name ?? 'Unknown'
+  const handle  = match.creator?.instagram_handle
+  const initial = name[0]?.toUpperCase() ?? '?'
+
+  const deliverables = match.deliverables ?? []
+  const legacyUrl    = match.post_url && deliverables.length === 0 ? match.post_url : null
+  const allPosts     = [...deliverables, ...(legacyUrl ? [{ id: 'legacy', status: 'verified' as const, post_url: legacyUrl, verified_at: null, month_number: null, created_at: match.created_at }] : [])]
+  const verifiedCount = deliverables.filter(d => d.status === 'verified').length
+  const hasPosts = allPosts.length > 0
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl transition-colors hover:bg-gray-50">
+        {/* Avatar */}
+        {match.creator?.avatar_url ? (
+          <img src={match.creator.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+        ) : (
+          <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}>
+            {initial}
+          </div>
+        )}
+
+        {/* Identity */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Link
+              href={`/admin/creators?highlight=${match.creator?.id}`}
+              className="text-xs font-semibold text-[#1C2B3A] hover:underline truncate"
+              style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+            >
+              {handle ? `@${handle}` : name}
+            </Link>
+            {handle && (
+              <a href={`https://instagram.com/${handle}`} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-gray-500">
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
+            )}
+          </div>
+          {match.creator?.follower_count != null && (
+            <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {fmt(match.creator.follower_count)} followers
+            </p>
+          )}
+        </div>
+
+        {/* Status */}
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0" style={{ background: meta.bg, color: meta.text, fontFamily: "'JetBrains Mono', monospace" }}>
+          {meta.label}
+        </span>
+
+        {/* Deliverable count */}
+        {deliverables.length > 0 && (
+          <span className="text-[10px] font-semibold shrink-0" style={{ color: verifiedCount === deliverables.length ? '#16a34a' : '#9333ea', fontFamily: "'JetBrains Mono', monospace" }}>
+            {verifiedCount}/{deliverables.length}
+          </span>
+        )}
+
+        {/* Posts toggle */}
+        {hasPosts && (
+          <button
+            onClick={() => setOpen(o => !o)}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold shrink-0 transition-all"
+            style={{ background: open ? 'rgba(192,132,252,0.2)' : 'rgba(192,132,252,0.1)', color: '#9333ea' }}
+          >
+            Posts <ChevronDown className="w-3 h-3 transition-transform duration-150" style={{ transform: open ? 'rotate(180deg)' : 'none' }} />
+          </button>
+        )}
+
+        {/* Punt code */}
+        <span className="text-[10px] text-gray-300 shrink-0 hidden lg:block" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          {match.punt_code}
+        </span>
+      </div>
+
+      {/* Deliverables panel */}
+      {open && hasPosts && (
+        <div className="mx-3 mb-2 rounded-xl px-3 py-2 flex flex-col gap-2" style={{ background: 'rgba(192,132,252,0.05)', border: '1px solid rgba(192,132,252,0.12)' }}>
+          {allPosts.map((d, idx) => (
+            <div key={d.id} className="flex items-center gap-2.5">
+              <div
+                className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
+                style={{ background: d.status === 'verified' ? '#6BE6B0' : '#C084FC', color: '#1C2B3A' }}
+              >
+                {d.month_number ?? idx + 1}
+              </div>
+              {d.post_url ? (
+                <a
+                  href={d.post_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-blue-500 hover:underline flex-1 truncate"
+                >
+                  <ExternalLink className="w-3 h-3 shrink-0" />
+                  {isRetainer ? `Month ${d.month_number ?? idx + 1}` : `Post ${idx + 1}`}
+                </a>
+              ) : (
+                <span className="text-xs text-gray-400 flex-1">No URL submitted</span>
+              )}
+              <span className="text-[10px] text-gray-400 shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                {d.verified_at ? `✓ ${fmtDate(d.verified_at)}` : fmtDate(d.created_at)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Slot bar ───────────────────────────────────────────────────────────────────
+
+function SlotBar({ total, claimed, inline }: { total: number; claimed: number; inline?: boolean }) {
+  const pct   = total > 0 ? Math.round((claimed / total) * 100) : 0
+  const full  = claimed >= total
+  const color = full ? '#22c55e' : '#F5B800'
+
+  if (inline) {
+    return (
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="text-xs font-semibold" style={{ color, fontFamily: "'JetBrains Mono', monospace" }}>
+          {claimed}/{total}
+        </span>
+        <div className="w-16 h-1.5 rounded-full overflow-hidden hidden sm:block" style={{ background: 'rgba(0,0,0,0.08)' }}>
+          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[10px] text-gray-400 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-          Capacity
-        </span>
-        <span className="text-[10px] font-semibold" style={{ color: claimed >= total ? '#22c55e' : '#F5B800', fontFamily: "'JetBrains Mono', monospace" }}>
-          {claimed}/{total}
-        </span>
+        <span className="text-[10px] text-gray-400 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Capacity</span>
+        <span className="text-[10px] font-semibold" style={{ color, fontFamily: "'JetBrains Mono', monospace" }}>{claimed}/{total}</span>
       </div>
       <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.08)' }}>
-        <div
-          className="h-full rounded-full"
-          style={{ width: `${pct}%`, background: claimed >= total ? '#22c55e' : '#F5B800', transition: 'width 0.4s ease' }}
-        />
+        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
       </div>
     </div>
   )
 }
 
+// ── Collab detail (expanded left panel) ───────────────────────────────────────
+
 function CollabDetail({ group }: { group: CollabGroup }) {
   const isRetainer = group.invite_type === 'retainer'
   const value = isRetainer ? group.fee_gbp : group.value_gbp
+  const bizName = group.business?.business_name ?? group.business?.display_name ?? '—'
 
   return (
     <div className="flex flex-col gap-4 h-full">
-      {/* Value + type */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span
-          className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md"
-          style={{
-            background: isRetainer ? 'rgba(107,230,176,0.15)' : 'rgba(245,184,0,0.12)',
-            color: isRetainer ? '#059669' : '#b45309',
-            fontFamily: "'JetBrains Mono', monospace",
-          }}
-        >
+        <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: isRetainer ? 'rgba(96,165,250,0.15)' : 'rgba(245,184,0,0.12)', color: isRetainer ? '#1d4ed8' : '#b45309', fontFamily: "'JetBrains Mono', monospace" }}>
           {isRetainer ? 'Retainer' : 'One-off'}
         </span>
         {!group.is_active && (
           <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md bg-gray-100 text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            Paused
+            Closed
           </span>
         )}
         {value != null && (
-          <span className="text-sm font-bold ml-auto" style={{ color: isRetainer ? '#059669' : '#b45309', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+          <span className="text-sm font-bold ml-auto" style={{ color: isRetainer ? '#1d4ed8' : '#b45309', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
             {formatGBP(value)}{isRetainer ? '/mo' : ''}
           </span>
         )}
@@ -141,7 +307,17 @@ function CollabDetail({ group }: { group: CollabGroup }) {
 
       <SlotBar total={group.slots_total} claimed={group.slots_claimed} />
 
-      {/* Description */}
+      {/* Business link */}
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Business</p>
+        <Link href={`/admin/businesses`} className="text-xs font-semibold text-[#1C2B3A] hover:underline" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+          {bizName}
+        </Link>
+        {group.business?.category && (
+          <p className="text-[10px] text-gray-400 mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{group.business.category}</p>
+        )}
+      </div>
+
       {group.description && (
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>About</p>
@@ -149,7 +325,6 @@ function CollabDetail({ group }: { group: CollabGroup }) {
         </div>
       )}
 
-      {/* Requirements */}
       {group.requirements && (
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Requirements</p>
@@ -157,7 +332,6 @@ function CollabDetail({ group }: { group: CollabGroup }) {
         </div>
       )}
 
-      {/* Retainer terms */}
       {isRetainer && (group.posts_per_month != null || group.duration_months != null) && (
         <div className="flex gap-4">
           {group.posts_per_month != null && (
@@ -175,93 +349,44 @@ function CollabDetail({ group }: { group: CollabGroup }) {
         </div>
       )}
 
-      {/* Dates */}
       <div className="mt-auto pt-2 flex flex-col gap-0.5" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-        <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-          Created {formatDate(group.created_at)}
-        </p>
+        <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Created {formatDate(group.created_at)}</p>
         {group.expires_at && (
-          <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            Expires {formatDate(group.expires_at)}
-          </p>
+          <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Expires {formatDate(group.expires_at)}</p>
         )}
       </div>
     </div>
   )
 }
 
-function CreatorRow({ match }: { match: MatchEntry }) {
-  const meta = STATUS_COLOUR[match.status]
-  const name = match.creator?.display_name ?? 'Unknown'
-  const handle = match.creator?.instagram_handle
-  const initial = name[0]?.toUpperCase() ?? '?'
+// ── Page ──────────────────────────────────────────────────────────────────────
 
-  return (
-    <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl transition-colors hover:bg-gray-50" style={{ minWidth: 0 }}>
-      {/* Avatar */}
-      {match.creator?.avatar_url ? (
-        <img src={match.creator.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
-      ) : (
-        <div
-          className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white"
-          style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}
-        >
-          {initial}
-        </div>
-      )}
+type CollabFilter = 'all' | 'attention' | 'open' | 'closed'
+type StatusFilter = 'any' | MatchStatus
 
-      {/* Identity */}
-      <div className="min-w-0 flex-1">
-        <p className="text-xs font-semibold text-[#1C2B3A] truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-          {handle ? (
-            <a href={`https://instagram.com/${handle}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
-              @{handle}
-            </a>
-          ) : name}
-        </p>
-        {match.creator?.follower_count != null && (
-          <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            {fmt(match.creator.follower_count)} followers
-          </p>
-        )}
-      </div>
+const COLLAB_FILTERS: { value: CollabFilter; label: string }[] = [
+  { value: 'all',       label: 'All' },
+  { value: 'attention', label: 'Attention needed' },
+  { value: 'open',      label: 'Open' },
+  { value: 'closed',    label: 'Closed' },
+]
 
-      {/* Status */}
-      <span
-        className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0"
-        style={{ background: meta.bg, color: meta.text, fontFamily: "'JetBrains Mono', monospace" }}
-      >
-        {meta.label}
-      </span>
-
-      {/* Post link */}
-      {match.post_url && (
-        <a
-          href={match.post_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-[10px] font-medium text-blue-400 hover:text-blue-600 transition-colors shrink-0"
-        >
-          <ExternalLink className="w-3 h-3" />
-          Post
-        </a>
-      )}
-
-      {/* Punt code */}
-      <span className="text-[10px] text-gray-300 shrink-0 hidden lg:block" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-        {match.punt_code}
-      </span>
-
-    </div>
-  )
-}
+const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
+  { value: 'any',       label: 'Any status' },
+  { value: 'posted',    label: 'Post ready' },
+  { value: 'accepted',  label: 'Awaiting content' },
+  { value: 'active',    label: 'Active' },
+  { value: 'verified',  label: 'Accepted' },
+  { value: 'completed', label: 'Completed' },
+]
 
 export default function AdminCollabs() {
-  const [groups, setGroups] = useState<CollabGroup[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<Filter>('all')
-  const [search, setSearch] = useState('')
-  const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const [groups, setGroups]       = useState<CollabGroup[]>([])
+  const [loading, setLoading]     = useState(true)
+  const [collabFilter, setCollabFilter] = useState<CollabFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('any')
+  const [search, setSearch]       = useState('')
+  const [expanded, setExpanded]   = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetch('/api/admin/matches')
@@ -269,32 +394,47 @@ export default function AdminCollabs() {
       .then(d => { setGroups(Array.isArray(d) ? d : []); setLoading(false) })
   }, [])
 
-  const totalCreators = groups.reduce((sum, g) => sum + g.matches.length, 0)
+  const attentionCount = groups.reduce((s, g) => s + g.matches.filter(m => m.status === 'posted').length, 0)
 
   const searchLower = search.toLowerCase()
 
   const filteredGroups = groups
-    .map(g => ({
-      ...g,
-      matches: filter === 'all' ? g.matches : g.matches.filter(m => m.status === filter),
-    }))
-    .filter(g => {
-      if (filter !== 'all' && g.matches.length === 0) return false
-      if (!searchLower) return true
-      const biz = g.business?.business_name ?? g.business?.display_name ?? ''
-      return (
-        g.title.toLowerCase().includes(searchLower) ||
-        biz.toLowerCase().includes(searchLower)
-      )
+    .map(g => {
+      let matches = g.matches
+      if (statusFilter !== 'any') matches = matches.filter(m => m.status === statusFilter)
+      return { ...g, matches }
     })
-    .sort((a, b) => collabPriority(a) - collabPriority(b))
-
-  const counts = FILTERS.reduce((acc, f) => {
-    acc[f] = f === 'all'
-      ? totalCreators
-      : groups.reduce((sum, g) => sum + g.matches.filter(m => m.status === f).length, 0)
-    return acc
-  }, {} as Record<Filter, number>)
+    .filter(g => {
+      // Collab-level filter
+      if (collabFilter === 'open'      && !g.is_active) return false
+      if (collabFilter === 'closed'    && g.is_active)  return false
+      if (collabFilter === 'attention' && !g.matches.some(m => m.status === 'posted')) return false
+      // Status filter: hide collab if no matches survive
+      if (statusFilter !== 'any' && g.matches.length === 0) return false
+      // Search: title, business name, or creator handle/name
+      if (searchLower) {
+        const bizName = g.business?.business_name ?? g.business?.display_name ?? ''
+        const matchesCreator = g.matches.some(m =>
+          (m.creator?.display_name ?? '').toLowerCase().includes(searchLower) ||
+          (m.creator?.instagram_handle ?? '').toLowerCase().includes(searchLower)
+        )
+        if (
+          !g.title.toLowerCase().includes(searchLower) &&
+          !bizName.toLowerCase().includes(searchLower) &&
+          !matchesCreator
+        ) return false
+      }
+      return true
+    })
+    .sort((a, b) => {
+      const pri = (g: CollabGroup) => {
+        if (g.matches.some(m => m.status === 'posted')) return 0
+        if (g.is_active && g.matches.some(m => m.status === 'accepted' || m.status === 'active')) return 1
+        if (g.is_active) return 2
+        return 3
+      }
+      return pri(a) - pri(b)
+    })
 
   function toggleExpand(id: string) {
     setExpanded(prev => {
@@ -310,144 +450,137 @@ export default function AdminCollabs() {
         <div>
           <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Collabs</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {groups.length} collab{groups.length !== 1 ? 's' : ''} · {totalCreators} creator{totalCreators !== 1 ? 's' : ''} matched
+            {groups.length} collab{groups.length !== 1 ? 's' : ''} · {groups.reduce((s, g) => s + g.matches.length, 0)} matches
           </p>
         </div>
-
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           <input
             type="search"
-            placeholder="Search collabs or businesses…"
+            placeholder="Search collab, business or creator…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 pr-4 py-2 text-sm rounded-xl border border-black/10 outline-none focus:border-[#F5B800] w-full sm:w-64 transition-colors"
+            className="pl-9 pr-4 py-2 text-sm rounded-xl border border-black/10 outline-none focus:border-[#F5B800] w-full sm:w-72 transition-colors"
             style={{ fontFamily: "'Inter', sans-serif" }}
           />
         </div>
       </div>
 
-      {/* Status filter pills */}
+      {!loading && <StatsBar groups={groups} />}
+
+      {/* Collab filter tabs */}
+      <div className="flex gap-1.5 flex-wrap mb-3">
+        {COLLAB_FILTERS.map(f => {
+          const active = collabFilter === f.value
+          const badge  = f.value === 'attention' ? attentionCount : null
+          return (
+            <button
+              key={f.value}
+              onClick={() => setCollabFilter(f.value)}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
+              style={{
+                background: active ? '#1C2B3A' : 'white',
+                color: active ? 'white' : '#6b7280',
+                border: '1px solid rgba(0,0,0,0.1)',
+              }}
+            >
+              {f.value === 'attention' && <AlertCircle className="w-3 h-3" />}
+              {f.label}
+              {badge != null && badge > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: active ? 'rgba(255,255,255,0.2)' : 'rgba(192,132,252,0.2)', color: active ? 'white' : '#9333ea' }}>
+                  {badge}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Status sub-filter */}
       <div className="flex gap-1.5 flex-wrap mb-6">
-        {FILTERS.map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors capitalize"
-            style={{
-              background: filter === f ? '#1C2B3A' : 'white',
-              color: filter === f ? 'white' : '#6b7280',
-              border: '1px solid rgba(0,0,0,0.1)',
-            }}
-          >
-            {f === 'all' ? 'All' : STATUS_COLOUR[f as Status].label}
-            {counts[f] > 0 && (
-              <span className="ml-1.5 opacity-60">({counts[f]})</span>
-            )}
-          </button>
-        ))}
+        {STATUS_FILTERS.map(f => {
+          const active = statusFilter === f.value
+          return (
+            <button
+              key={f.value}
+              onClick={() => setStatusFilter(f.value)}
+              className="text-[11px] px-2.5 py-1 rounded-md font-medium transition-colors"
+              style={{
+                background: active ? 'rgba(28,43,58,0.08)' : 'transparent',
+                color: active ? '#1C2B3A' : '#9ca3af',
+              }}
+            >
+              {f.label}
+            </button>
+          )
+        })}
       </div>
 
       {loading ? (
-        <p className="text-sm text-gray-400">Loading…</p>
-      ) : !filteredGroups.length ? (
+        <div className="flex justify-center py-16">
+          <div className="w-5 h-5 rounded-full border-2 border-[#F5B800] border-t-transparent animate-spin" />
+        </div>
+      ) : filteredGroups.length === 0 ? (
         <p className="text-sm text-gray-400">No collabs found.</p>
       ) : (
         <div className="rounded-2xl overflow-hidden bg-white" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
           {filteredGroups.map((group, gi) => {
             const isRetainer = group.invite_type === 'retainer'
-            const bizName = group.business?.business_name ?? group.business?.display_name ?? '—'
+            const bizName    = group.business?.business_name ?? group.business?.display_name ?? '—'
             const isExpanded = expanded.has(group.id)
-            const isLast = gi === filteredGroups.length - 1
-            const hasAction = group.matches.some(m => m.status === 'posted')
+            const isLast     = gi === filteredGroups.length - 1
+            const needsAttention = group.matches.some(m => m.status === 'posted')
 
             return (
-              <div
-                key={group.id}
-                style={{ borderBottom: isLast && !isExpanded ? 'none' : '1px solid rgba(0,0,0,0.06)' }}
-              >
+              <div key={group.id} style={{ borderBottom: isLast && !isExpanded ? 'none' : '1px solid rgba(0,0,0,0.06)' }}>
+
                 {/* ── Collab row ── */}
                 <button
-                  className="w-full flex items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50/70"
+                  className="w-full flex items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-gray-50/70"
                   onClick={() => toggleExpand(group.id)}
                 >
+                  {/* Attention dot */}
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: needsAttention ? '#C084FC' : group.is_active ? '#6BE6B0' : '#e5e7eb' }} />
+
                   {/* Business avatar */}
                   {group.business?.avatar_url ? (
-                    <img src={group.business.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover shrink-0 ring-2 ring-white shadow-sm" />
+                    <img src={group.business.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-white shadow-sm" />
                   ) : (
-                    <div
-                      className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-sm font-bold text-white ring-2 ring-white shadow-sm"
-                      style={{ background: 'linear-gradient(135deg, #1C2B3A, #2d4a63)' }}
-                    >
+                    <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-sm font-bold text-white ring-2 ring-white shadow-sm" style={{ background: 'linear-gradient(135deg, #1C2B3A, #2d4a63)' }}>
                       {bizName[0]?.toUpperCase()}
                     </div>
                   )}
 
-                  {/* Title + business */}
+                  {/* Title + business + status summary */}
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-semibold text-[#1C2B3A]">{group.title}</span>
-                      <span
-                        className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
-                        style={{
-                          background: isRetainer ? 'rgba(192,132,252,0.12)' : 'rgba(107,230,176,0.12)',
-                          color: isRetainer ? '#9333ea' : '#059669',
-                          fontFamily: "'JetBrains Mono', monospace",
-                        }}
-                      >
+                      <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ background: isRetainer ? 'rgba(96,165,250,0.12)' : 'rgba(245,184,0,0.1)', color: isRetainer ? '#1d4ed8' : '#b45309', fontFamily: "'JetBrains Mono', monospace" }}>
                         {isRetainer ? 'retainer' : 'one-off'}
                       </span>
                       {!group.is_active && (
-                        <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-100 text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                          paused
-                        </span>
-                      )}
-                      {hasAction && (
-                        <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ background: 'rgba(192,132,252,0.15)', color: '#9333ea', fontFamily: "'JetBrains Mono', monospace" }}>
-                          post ready
-                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-100 text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>closed</span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {bizName}{group.business?.category ? ` · ${group.business.category}` : ''}
-                    </p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <p className="text-xs text-gray-400">{bizName}{group.business?.category ? ` · ${group.business.category}` : ''}</p>
+                      {group.matches.length > 0 && <MatchSummary matches={group.matches} />}
+                    </div>
                   </div>
 
-                  {/* Slot fraction */}
-                  <span className="text-xs font-semibold hidden sm:block shrink-0" style={{ color: group.slots_claimed >= group.slots_total ? '#22c55e' : '#F5B800', fontFamily: "'JetBrains Mono', monospace" }}>
-                    {group.slots_claimed}/{group.slots_total}
-                  </span>
-
-                  {/* Status dots */}
-                  <StatusDots matches={group.matches} />
-
-                  {/* Creator count */}
-                  <span className="text-xs font-semibold text-gray-400 shrink-0">
-                    {group.matches.length} creator{group.matches.length !== 1 ? 's' : ''}
-                  </span>
+                  {/* Slot bar inline */}
+                  <SlotBar total={group.slots_total} claimed={group.slots_claimed} inline />
 
                   {/* Chevron */}
-                  <ChevronDown
-                    className="w-4 h-4 shrink-0 transition-transform duration-200"
-                    style={{ color: '#d1d5db', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                  />
+                  <ChevronDown className="w-4 h-4 shrink-0 transition-transform duration-200" style={{ color: '#d1d5db', transform: isExpanded ? 'rotate(180deg)' : 'none' }} />
                 </button>
 
-                {/* ── Expanded panel: 35/65 two-column ── */}
+                {/* ── Expanded panel ── */}
                 {isExpanded && (
-                  <div
-                    className="flex flex-col sm:flex-row"
-                    style={{ background: '#f8f9fb', borderTop: '1px solid rgba(0,0,0,0.05)' }}
-                  >
-                    {/* Left: collab details */}
-                    <div
-                      className="p-5 sm:flex-shrink-0 sm:border-r"
-                      style={{ borderColor: 'rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}
-                    >
-                      <div className="sm:w-56 lg:w-64">
-                        <CollabDetail group={group} />
-                      </div>
+                  <div className="flex flex-col sm:flex-row" style={{ background: '#f8f9fb', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+                    {/* Left: collab detail */}
+                    <div className="p-5 sm:w-56 lg:w-64 sm:shrink-0 sm:border-r" style={{ borderColor: 'rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                      <CollabDetail group={group} />
                     </div>
 
                     {/* Right: creator rows */}
@@ -457,15 +590,9 @@ export default function AdminCollabs() {
                       ) : (
                         <div className="flex flex-col gap-0.5 px-2">
                           {[...group.matches]
-                            .sort((a, b) => {
-                              const order: Record<Status, number> = { posted: 0, accepted: 1, active: 2, verified: 3, completed: 4 }
-                              return (order[a.status] ?? 5) - (order[b.status] ?? 5)
-                            })
+                            .sort((a, b) => (MATCH_ORDER[a.status] ?? 5) - (MATCH_ORDER[b.status] ?? 5))
                             .map(match => (
-                              <CreatorRow
-                                key={match.id}
-                                match={match}
-                              />
+                              <CreatorRow key={match.id} match={match} isRetainer={isRetainer} />
                             ))}
                         </div>
                       )}
