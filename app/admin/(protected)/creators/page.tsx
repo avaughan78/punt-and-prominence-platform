@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, ArrowUpDown } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Creator {
@@ -20,15 +20,21 @@ interface Creator {
   match_count: number
 }
 
+type SortKey = 'created_at' | 'follower_count' | 'match_count'
+type SortDir = 'asc' | 'desc'
+
 export default function AdminCreators() {
-  const [creators, setCreators] = useState<Creator[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('all')
+  const [creators, setCreators]         = useState<Creator[]>([])
+  const [loading, setLoading]           = useState(true)
+  const [filter, setFilter]             = useState<'all' | 'pending' | 'approved'>('all')
+  const [sortKey, setSortKey]           = useState<SortKey>('created_at')
+  const [sortDir, setSortDir]           = useState<SortDir>('desc')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [rejectId, setRejectId] = useState<string | null>(null)
+  const [rejectId, setRejectId]         = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState('')
-  const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [expanded, setExpanded] = useState<string | null>(null)
+  const [approveId, setApproveId]       = useState<string | null>(null)
+  const [deleteId, setDeleteId]         = useState<string | null>(null)
+  const [expanded, setExpanded]         = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -59,26 +65,61 @@ export default function AdminCreators() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, reason }),
     })
+    toast.success(action === 'approve' ? 'Creator approved' : action === 'revoke' ? 'Access revoked' : 'Creator rejected')
     setRejectId(null)
+    setApproveId(null)
     setRejectReason('')
     await load()
     setActionLoading(null)
   }
 
-  const filtered = creators.filter(c => {
-    if (filter === 'pending') return !c.is_approved
-    if (filter === 'approved') return c.is_approved
-    return true
-  })
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('desc') }
+  }
+
+  const filtered = creators
+    .filter(c => {
+      if (filter === 'pending')  return !c.is_approved
+      if (filter === 'approved') return c.is_approved
+      return true
+    })
+    .sort((a, b) => {
+      let av: number, bv: number
+      if (sortKey === 'created_at') {
+        av = new Date(a.created_at).getTime()
+        bv = new Date(b.created_at).getTime()
+      } else if (sortKey === 'follower_count') {
+        av = (a.follower_count ?? 0) + (a.tiktok_follower_count ?? 0)
+        bv = (b.follower_count ?? 0) + (b.tiktok_follower_count ?? 0)
+      } else {
+        av = a.match_count; bv = b.match_count
+      }
+      return sortDir === 'asc' ? av - bv : bv - av
+    })
 
   function formatFollowers(n: number) {
     if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`
     return n.toString()
   }
 
+  function SortBtn({ k, label }: { k: SortKey; label: string }) {
+    const active = sortKey === k
+    return (
+      <button
+        onClick={() => toggleSort(k)}
+        className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-semibold transition-colors"
+        style={{ background: active ? '#1C2B3A' : 'white', color: active ? 'white' : '#6b7280', border: '1px solid rgba(0,0,0,0.1)' }}
+      >
+        <ArrowUpDown className="w-3 h-3" />
+        {label} {active ? (sortDir === 'desc' ? '↓' : '↑') : ''}
+      </button>
+    )
+  }
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Creators</h1>
           <p className="text-sm text-gray-500 mt-0.5">{creators.filter(c => !c.is_approved).length} pending approval</p>
@@ -89,16 +130,19 @@ export default function AdminCreators() {
               key={f}
               onClick={() => setFilter(f)}
               className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors capitalize"
-              style={{
-                background: filter === f ? '#1C2B3A' : 'white',
-                color: filter === f ? 'white' : '#6b7280',
-                border: '1px solid rgba(0,0,0,0.1)',
-              }}
+              style={{ background: filter === f ? '#1C2B3A' : 'white', color: filter === f ? 'white' : '#6b7280', border: '1px solid rgba(0,0,0,0.1)' }}
             >
               {f}
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="flex gap-2 mb-4 flex-wrap items-center">
+        <span className="text-xs text-gray-400 mr-1">Sort:</span>
+        <SortBtn k="created_at" label="Joined" />
+        <SortBtn k="follower_count" label="Followers" />
+        <SortBtn k="match_count" label="Matches" />
       </div>
 
       {loading ? (
@@ -108,18 +152,13 @@ export default function AdminCreators() {
       ) : (
         <div className="rounded-2xl overflow-hidden bg-white" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
           {filtered.map((creator, i) => {
-            const isExpanded = expanded === creator.id
-            const isLast = i === filtered.length - 1
+            const isExpanded    = expanded === creator.id
+            const isLast        = i === filtered.length - 1
             const totalFollowers = (creator.follower_count ?? 0) + (creator.tiktok_follower_count ?? 0)
 
             return (
-              <div
-                key={creator.id}
-                style={{ borderBottom: (!isLast || isExpanded) ? '1px solid rgba(0,0,0,0.06)' : 'none' }}
-              >
-                {/* Main row */}
+              <div key={creator.id} style={{ borderBottom: (!isLast || isExpanded) ? '1px solid rgba(0,0,0,0.06)' : 'none' }}>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-4">
-                  {/* Avatar + info */}
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     {creator.avatar_url ? (
                       <img src={creator.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
@@ -128,8 +167,6 @@ export default function AdminCreators() {
                         {creator.display_name?.[0]?.toUpperCase()}
                       </div>
                     )}
-
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-semibold text-[#1C2B3A]">{creator.display_name}</p>
@@ -140,26 +177,22 @@ export default function AdminCreators() {
                       <p className="text-xs text-gray-400 mt-0.5 truncate">
                         {creator.instagram_handle ? `@${creator.instagram_handle}` : 'no instagram'}
                         {totalFollowers > 0 ? ` · ${formatFollowers(totalFollowers)} followers` : ''}
+                        {' · '}{creator.match_count} match{creator.match_count !== 1 ? 'es' : ''}
                       </p>
                     </div>
                   </div>
 
-                  {/* Actions */}
                   <div className="flex gap-2 flex-wrap items-center sm:shrink-0">
                     {creator.instagram_handle && (
-                      <a
-                        href={`https://instagram.com/${creator.instagram_handle}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <a href={`https://instagram.com/${creator.instagram_handle}`} target="_blank" rel="noopener noreferrer"
                         className="text-xs px-3 py-1.5 rounded-lg font-semibold text-gray-500 hover:text-gray-700 transition-colors"
-                        style={{ border: '1px solid rgba(0,0,0,0.1)' }}
-                      >
+                        style={{ border: '1px solid rgba(0,0,0,0.1)' }}>
                         Instagram
                       </a>
                     )}
                     {!creator.is_approved ? (
                       <>
-                        <Button size="sm" loading={actionLoading === creator.id} onClick={() => handleAction(creator.id, 'approve')}>
+                        <Button size="sm" loading={actionLoading === creator.id} onClick={() => setApproveId(creator.id)}>
                           Approve
                         </Button>
                         <button
@@ -195,12 +228,9 @@ export default function AdminCreators() {
                   </div>
                 </div>
 
-                {/* Expanded drawer */}
                 {isExpanded && (
                   <div className="px-4 pb-4 pt-1" style={{ background: 'rgba(0,0,0,0.015)' }}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-
-                      {/* Profile details */}
                       <div className="rounded-xl bg-white p-3 flex flex-col gap-2" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Profile</p>
                         {creator.email && (
@@ -227,7 +257,6 @@ export default function AdminCreators() {
                         </div>
                       </div>
 
-                      {/* Reach */}
                       <div className="rounded-xl bg-white p-3 flex flex-col gap-2" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Reach</p>
                         {creator.instagram_handle && (
@@ -256,9 +285,7 @@ export default function AdminCreators() {
                         )}
                         <div className="mt-auto pt-1 border-t border-black/5">
                           <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Matches</p>
-                          <p className="text-sm font-bold text-[#1C2B3A]">
-                            {creator.match_count} {creator.match_count === 1 ? 'match' : 'matches'}
-                          </p>
+                          <p className="text-sm font-bold text-[#1C2B3A]">{creator.match_count} {creator.match_count === 1 ? 'match' : 'matches'}</p>
                         </div>
                       </div>
                     </div>
@@ -270,9 +297,30 @@ export default function AdminCreators() {
         </div>
       )}
 
+      {/* Approve confirmation */}
+      {approveId && (() => {
+        const target = creators.find(c => c.id === approveId)
+        return (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+              <h3 className="font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Approve creator</h3>
+              <p className="text-sm text-gray-500 mb-5">
+                Approving <strong>{target?.display_name}</strong> will let them claim collabs. A welcome email will be sent.
+              </p>
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setApproveId(null)} className="text-sm px-4 py-2 rounded-xl text-gray-500 hover:bg-gray-50">Cancel</button>
+                <Button loading={actionLoading === approveId} onClick={() => handleAction(approveId, 'approve')}>
+                  Approve
+                </Button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Reject/revoke modal */}
       {rejectId && (() => {
-        const target = creators.find(c => c.id === rejectId)
+        const target  = creators.find(c => c.id === rejectId)
         const isRevoke = target?.is_approved ?? false
         return (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -312,9 +360,7 @@ export default function AdminCreators() {
         return (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
-              <h3 className="font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                Delete creator
-              </h3>
+              <h3 className="font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Delete creator</h3>
               <p className="text-sm text-gray-500 mb-1">
                 Are you sure you want to delete <strong>{target?.display_name}</strong>?
               </p>

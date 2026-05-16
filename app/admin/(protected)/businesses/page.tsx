@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { toast } from 'sonner'
+import { ArrowUpDown } from 'lucide-react'
 
 interface Business {
   id: string
@@ -19,6 +20,9 @@ interface Business {
   verified_matches: number
 }
 
+type SortKey = 'joined' | 'collabs' | 'matches'
+type SortDir = 'asc' | 'desc'
+
 export default function AdminBusinesses() {
   const [businesses, setBusinesses] = useState<Business[]>([])
   const [loading, setLoading] = useState(true)
@@ -26,6 +30,10 @@ export default function AdminBusinesses() {
   const [filter, setFilter] = useState<'all' | 'active' | 'suspended'>('all')
   const [search, setSearch] = useState('')
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [suspendId, setSuspendId] = useState<string | null>(null)
+  const [suspendNote, setSuspendNote] = useState('')
+  const [sortKey, setSortKey] = useState<SortKey>('joined')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
 
   async function load() {
     setLoading(true)
@@ -49,15 +57,17 @@ export default function AdminBusinesses() {
     setActionLoading(null)
   }
 
-  async function handleAction(id: string, action: 'suspend' | 'unsuspend') {
+  async function handleSuspend(id: string) {
     setActionLoading(id)
     const res = await fetch(`/api/admin/businesses/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action }),
+      body: JSON.stringify({ action: 'suspend', note: suspendNote.trim() || undefined }),
     })
     if (res.ok) {
-      toast.success(action === 'suspend' ? 'Business suspended' : 'Business reinstated')
+      toast.success('Business suspended')
+      setSuspendId(null)
+      setSuspendNote('')
       await load()
     } else {
       toast.error('Action failed')
@@ -65,22 +75,58 @@ export default function AdminBusinesses() {
     setActionLoading(null)
   }
 
-  const filtered = businesses.filter(b => {
-    const matchesFilter =
-      filter === 'all' ? true :
-      filter === 'suspended' ? b.is_suspended :
-      !b.is_suspended
-    if (!matchesFilter) return false
-    if (!search) return true
-    const q = search.toLowerCase()
-    return (
-      b.display_name?.toLowerCase().includes(q) ||
-      b.business_name?.toLowerCase().includes(q) ||
-      b.address_line?.toLowerCase().includes(q)
-    )
-  })
+  async function handleUnsuspend(id: string) {
+    setActionLoading(id)
+    const res = await fetch(`/api/admin/businesses/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'unsuspend' }),
+    })
+    if (res.ok) {
+      toast.success('Business reinstated')
+      await load()
+    } else {
+      toast.error('Action failed')
+    }
+    setActionLoading(null)
+  }
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('desc') }
+  }
+
+  const filtered = businesses
+    .filter(b => {
+      const matchesFilter =
+        filter === 'all' ? true :
+        filter === 'suspended' ? b.is_suspended :
+        !b.is_suspended
+      if (!matchesFilter) return false
+      if (!search) return true
+      const q = search.toLowerCase()
+      return (
+        b.display_name?.toLowerCase().includes(q) ||
+        b.business_name?.toLowerCase().includes(q) ||
+        b.address_line?.toLowerCase().includes(q)
+      )
+    })
+    .sort((a, b) => {
+      let v = 0
+      if (sortKey === 'joined') v = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      if (sortKey === 'collabs') v = a.active_invites - b.active_invites
+      if (sortKey === 'matches') v = a.total_matches - b.total_matches
+      return sortDir === 'asc' ? v : -v
+    })
 
   const suspendedCount = businesses.filter(b => b.is_suspended).length
+  const suspendTarget = businesses.find(b => b.id === suspendId)
+
+  const SORT_BTNS: { key: SortKey; label: string }[] = [
+    { key: 'joined', label: 'Joined' },
+    { key: 'collabs', label: 'Collabs' },
+    { key: 'matches', label: 'Matches' },
+  ]
 
   return (
     <div>
@@ -118,6 +164,29 @@ export default function AdminBusinesses() {
         </div>
       </div>
 
+      {/* Sort controls */}
+      <div className="flex items-center gap-1.5 mb-4">
+        <span className="text-xs text-gray-400 mr-1">Sort:</span>
+        {SORT_BTNS.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => toggleSort(key)}
+            className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
+            style={{
+              background: sortKey === key ? '#1C2B3A' : 'white',
+              color: sortKey === key ? 'white' : '#6b7280',
+              border: '1px solid rgba(0,0,0,0.1)',
+            }}
+          >
+            {label}
+            <ArrowUpDown className="w-3 h-3 opacity-60" />
+            {sortKey === key && (
+              <span className="text-[10px] opacity-75">{sortDir === 'desc' ? '↓' : '↑'}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <p className="text-sm text-gray-400">Loading…</p>
       ) : !filtered.length ? (
@@ -143,7 +212,6 @@ export default function AdminBusinesses() {
                   </div>
                 )}
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-semibold text-[#1C2B3A]">{biz.business_name ?? biz.display_name}</p>
@@ -166,6 +234,9 @@ export default function AdminBusinesses() {
                         {biz.verified_matches} verified
                       </span>
                     )}
+                    <span className="text-[10px] text-gray-300" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      {new Date(biz.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -199,18 +270,18 @@ export default function AdminBusinesses() {
                     size="sm"
                     variant="secondary"
                     loading={actionLoading === biz.id}
-                    onClick={() => handleAction(biz.id, 'unsuspend')}
+                    onClick={() => handleUnsuspend(biz.id)}
                   >
                     Reinstate
                   </Button>
                 ) : (
                   <button
-                    onClick={() => handleAction(biz.id, 'suspend')}
+                    onClick={() => { setSuspendId(biz.id); setSuspendNote('') }}
                     disabled={actionLoading === biz.id}
                     className="text-xs px-3 py-1.5 rounded-lg font-semibold text-red-500 hover:bg-red-50 transition-colors"
                     style={{ border: '1px solid rgba(239,68,68,0.2)' }}
                   >
-                    {actionLoading === biz.id ? '…' : 'Suspend'}
+                    Suspend
                   </button>
                 )}
                 <button
@@ -225,6 +296,47 @@ export default function AdminBusinesses() {
           ))}
         </div>
       )}
+
+      {/* Suspend confirmation modal */}
+      {suspendId && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <h3 className="font-bold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              Suspend business
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Suspend <strong>{suspendTarget?.business_name ?? suspendTarget?.display_name}</strong>? They will lose access until reinstated.
+            </p>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
+              Reason <span className="font-normal normal-case">(optional — internal only)</span>
+            </label>
+            <textarea
+              value={suspendNote}
+              onChange={e => setSuspendNote(e.target.value)}
+              placeholder="e.g. Breach of terms, no-show pattern…"
+              rows={3}
+              className="w-full text-sm px-3 py-2.5 rounded-xl border border-black/10 outline-none focus:border-[#F5B800] resize-none mb-5"
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => { setSuspendId(null); setSuspendNote('') }}
+                className="text-sm px-4 py-2 rounded-xl text-gray-500 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleSuspend(suspendId)}
+                disabled={actionLoading === suspendId}
+                className="text-sm px-4 py-2 rounded-xl font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-50"
+              >
+                {actionLoading === suspendId ? 'Suspending…' : 'Suspend'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
       {deleteId && (() => {
         const target = businesses.find(b => b.id === deleteId)
         return (

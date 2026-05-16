@@ -55,7 +55,7 @@ export default async function CreatorDashboard() {
               Your profile is under review
             </p>
             <p className="text-xs text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
-              We&apos;re reviewing your profile and will be in touch shortly. You can browse collabs in the meantime — claiming will be unlocked once you&apos;re approved.
+              We aim to review within 48 hours and will email you when approved. You can browse collabs in the meantime — claiming will be unlocked once you&apos;re approved. Questions? <a href="mailto:hello@puntandprominence.co.uk" className="underline text-[#1C2B3A] font-medium">Get in touch.</a>
             </p>
           </div>
         </div>

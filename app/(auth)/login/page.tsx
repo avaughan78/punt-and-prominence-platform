@@ -51,14 +51,21 @@ function LoginForm() {
           onChange={e => setEmail(e.target.value)}
           required
         />
-        <Input
-          label="Password"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        />
+        <div className="flex flex-col gap-1">
+          <Input
+            label="Password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+          <div className="flex justify-end">
+            <Link href="/forgot-password" className="text-xs text-gray-400 hover:text-[#1C2B3A] transition-colors">
+              Forgot password?
+            </Link>
+          </div>
+        </div>
         <Button type="submit" loading={loading} size="lg" className="w-full mt-2">
           Sign in
         </Button>

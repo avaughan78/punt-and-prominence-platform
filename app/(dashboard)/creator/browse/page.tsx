@@ -1,5 +1,6 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { InviteCard } from '@/components/invites/InviteCard'
 import { InstagramHandle } from '@/components/ui/InstagramHandle'
 import { Button } from '@/components/ui/Button'
@@ -30,10 +31,21 @@ function applyFilter(offer: Invite, filter: Filter): boolean {
   return true
 }
 
-export default function BrowsePage() {
+function BrowsePageInner() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [offers, setOffers] = useState<Invite[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<Filter>('all')
+  const urlFilter = searchParams.get('filter') as Filter | null
+  const [filter, setFilter] = useState<Filter>(urlFilter && FILTERS.some(f => f.value === urlFilter) ? urlFilter : 'all')
+
+  function handleSetFilter(f: Filter) {
+    setFilter(f)
+    const params = new URLSearchParams(searchParams.toString())
+    if (f === 'all') params.delete('filter')
+    else params.set('filter', f)
+    router.replace(`?${params.toString()}`, { scroll: false })
+  }
   const [claimed, setClaimed] = useState<ClaimedData | null>(null)
   const [claimedOfferIds, setClaimedOfferIds] = useState<Set<string>>(new Set())
   const [instagramHandle, setInstagramHandle] = useState<string | null>(null)
@@ -79,7 +91,7 @@ export default function BrowsePage() {
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Browse Collabs</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Claim a collab, visit the business, create content.</p>
+        <p className="text-sm text-gray-500 mt-0.5">Claim a collab, show your punt code on arrival, and post within 72 hours.</p>
       </div>
 
       {/* Claim success modal */}
@@ -119,9 +131,10 @@ export default function BrowsePage() {
               </div>
               <PuntQRCode puntCode={claimed.punt_code} size={96} />
             </div>
-            <p className="text-xs text-gray-400 text-center mb-4">
-              Show the QR or punt code to staff when you visit. You have 72 hours after visiting to post.
-            </p>
+            <div className="rounded-xl px-4 py-3 mb-4 text-center" style={{ background: 'rgba(245,184,0,0.06)', border: '1px solid rgba(245,184,0,0.2)' }}>
+              <p className="text-xs font-semibold text-[#1C2B3A] mb-0.5">Show the QR code or punt code to staff on arrival</p>
+              <p className="text-xs text-gray-400">You have <strong>72 hours</strong> after your visit to submit your post link</p>
+            </div>
             <Button className="w-full" onClick={() => setClaimed(null)}>Got it</Button>
           </div>
         </div>
@@ -174,7 +187,7 @@ export default function BrowsePage() {
               return (
                 <button
                   key={f.value}
-                  onClick={() => setFilter(f.value)}
+                  onClick={() => handleSetFilter(f.value)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                   style={{
                     background: active ? f.activeBg : f.bg,
@@ -198,7 +211,7 @@ export default function BrowsePage() {
           {filteredOffers.length === 0 ? (
             <div className="rounded-2xl p-12 text-center" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
               <p className="text-sm text-gray-400 mb-3">No collabs match this filter.</p>
-              <button onClick={() => setFilter('all')} className="text-xs text-gray-400 hover:text-[#1C2B3A] underline transition-colors">
+              <button onClick={() => handleSetFilter('all')} className="text-xs text-gray-400 hover:text-[#1C2B3A] underline transition-colors">
                 Show all collabs
               </button>
             </div>
@@ -219,5 +232,13 @@ export default function BrowsePage() {
         </>
       )}
     </div>
+  )
+}
+
+export default function BrowsePage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-16"><div className="w-6 h-6 rounded-full border-2 border-[#F5B800] border-t-transparent animate-spin" /></div>}>
+      <BrowsePageInner />
+    </Suspense>
   )
 }
