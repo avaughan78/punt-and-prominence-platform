@@ -10,12 +10,13 @@ export async function GET(request: NextRequest) {
   if (!key) return NextResponse.json({ error: 'API not configured' }, { status: 500 })
 
   const clean = handle.replace(/^@/, '').trim()
-  const url = `https://instagram-scraper-20253.p.rapidapi.com/user-info/?username_or_id_or_url=${encodeURIComponent(clean)}&include_about=false&url_embed_safe=false`
+  const url = `https://instagram-looter2.p.rapidapi.com/profile?username=${encodeURIComponent(clean)}`
 
   const res = await fetch(url, {
     headers: {
-      'X-RapidAPI-Key': key,
-      'X-RapidAPI-Host': 'instagram-scraper-20253.p.rapidapi.com',
+      'Content-Type': 'application/json',
+      'x-rapidapi-host': 'instagram-looter2.p.rapidapi.com',
+      'x-rapidapi-key': key,
     },
     cache: 'no-store',
   })
@@ -25,12 +26,18 @@ export async function GET(request: NextRequest) {
   }
 
   const json = await res.json()
-  if (!json.data) {
+
+  // Response may be at top level or nested under data/user
+  const d = json?.data?.user ?? json?.data ?? json?.user ?? json
+  if (!d?.username) {
     return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
   }
 
-  const d = json.data
-  const instagramImageUrl = d.hd_profile_pic_url_info?.url ?? d.profile_pic_url ?? null
+  const instagramImageUrl =
+    d.hd_profile_pic_url_info?.url ??
+    d.profile_pic_url_hd ??
+    d.profile_pic_url ??
+    null
 
   // If userId provided, download and re-upload to Supabase so the URL doesn't expire
   let cachedImageUrl: string | null = instagramImageUrl
@@ -64,9 +71,9 @@ export async function GET(request: NextRequest) {
     name: d.full_name ?? null,
     image: cachedImageUrl,
     bio: d.biography ?? null,
-    followers: d.follower_count ?? null,
-    following: d.following_count ?? null,
-    posts: d.media_count ?? null,
+    followers: d.follower_count ?? d.edge_followed_by?.count ?? null,
+    following: d.following_count ?? d.edge_follow?.count ?? null,
+    posts: d.media_count ?? d.edge_owner_to_timeline_media?.count ?? null,
     verified: d.is_verified ?? false,
     isPrivate: d.is_private ?? false,
     website: d.external_url || null,
