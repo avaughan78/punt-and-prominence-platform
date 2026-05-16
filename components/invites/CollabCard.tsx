@@ -37,12 +37,14 @@ interface CreatorRowProps {
   collabTitle: string
   currentUserId: string
   initialPostsOpen?: boolean
+  expandPostsTrigger?: number
+  expandMsgsTrigger?: number
   onStatusUpdated: (matchId: string, status: string) => void
   onDeliverableVerified: (matchId: string, deliverableId: string) => void
   onUnreadChange?: (matchId: string, count: number) => void
 }
 
-function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPostsOpen, onStatusUpdated, onDeliverableVerified, onUnreadChange }: CreatorRowProps) {
+function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPostsOpen, expandPostsTrigger, expandMsgsTrigger, onStatusUpdated, onDeliverableVerified, onUnreadChange }: CreatorRowProps) {
   const [msgOpen, setMsgOpen]           = useState(false)
   const [postsOpen, setPostsOpen]       = useState(initialPostsOpen ?? false)
   const [unread, setUnread]             = useState(0)
@@ -77,6 +79,19 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
       })
       .catch(() => {})
   }, [match.id])
+
+  useEffect(() => {
+    if ((expandPostsTrigger ?? 0) > 0 && match.status === 'posted') setPostsOpen(true)
+  }, [expandPostsTrigger])
+
+  useEffect(() => {
+    if ((expandMsgsTrigger ?? 0) > 0 && unread > 0) {
+      setMsgOpen(true)
+      setUnread(0)
+      onUnreadChange?.(match.id, 0)
+      window.dispatchEvent(new Event('badges-refresh'))
+    }
+  }, [expandMsgsTrigger])
 
   async function updateStatus(status: string) {
     setLoading(true)
@@ -260,6 +275,8 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
   const [deleting, setDeleting]       = useState(false)
   const [matches, setMatches]         = useState<MatchPreview[]>(invite.matches ?? [])
   const [unreadByMatch, setUnreadByMatch] = useState<Record<string, number>>({})
+  const [postsTrigger, setPostsTrigger]   = useState(0)
+  const [msgsTrigger, setMsgsTrigger]     = useState(0)
 
   useEffect(() => { setMatches(invite.matches ?? []) }, [invite.matches])
 
@@ -397,8 +414,8 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
             </div>
           </div>
 
-          {/* Stats row */}
-          <div className="flex items-center gap-3 flex-wrap">
+          {/* Stats row — fixed height so cards without badges stay the same size */}
+          <div className="flex items-center gap-3 h-6">
             {!isRetainer && (
               <span className="text-xs text-gray-500" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                 {invite.slots_claimed}/{invite.slots_total} slots
@@ -419,25 +436,31 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                 {verifiedCount} verified
               </span>
             )}
-          </div>
-
-          {/* Alert badges — separate row so they never affect the stats row height */}
-          {(verifyCount > 0 || totalUnread > 0) && (
-            <div className="flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-1.5">
               {verifyCount > 0 && (
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: '#9333ea' }}>
+                <button
+                  onClick={() => { setOpen(true); setPostsTrigger(t => t + 1) }}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold text-white hover:opacity-80 transition-opacity"
+                  style={{ background: '#9333ea' }}
+                  title="Show posts to verify"
+                >
                   <ImageIcon className="w-3 h-3" />
                   {verifyCount}
-                </span>
+                </button>
               )}
               {totalUnread > 0 && (
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: '#F5B800', color: '#1C2B3A' }}>
+                <button
+                  onClick={() => { setOpen(true); setMsgsTrigger(t => t + 1) }}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity"
+                  style={{ background: '#F5B800', color: '#1C2B3A' }}
+                  title="Show unread messages"
+                >
                   <MessageCircle className="w-3 h-3" />
                   {totalUnread}
-                </span>
+                </button>
               )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Action bar */}
@@ -485,6 +508,8 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                 collabTitle={invite.title}
                 currentUserId={currentUserId}
                 initialPostsOpen={initialOpenMatchId === m.id}
+                expandPostsTrigger={postsTrigger}
+                expandMsgsTrigger={msgsTrigger}
                 onStatusUpdated={handleStatusUpdated}
                 onDeliverableVerified={handleDeliverableVerified}
                 onUnreadChange={handleUnreadChange}
