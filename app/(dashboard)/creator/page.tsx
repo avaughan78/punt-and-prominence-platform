@@ -19,10 +19,9 @@ export default async function CreatorDashboard() {
 
   if (!profile?.instagram_handle) redirect('/creator/onboarding')
 
-  // Count invites that still have slots available
   const availableInvites = (invites ?? []).filter(o => o.slots_claimed < o.slots_total).length
-  const active = matches?.filter(m => ['accepted','posted'].includes(m.status)).length ?? 0
-  const verified = matches?.filter(m => m.status === 'verified').length ?? 0
+  const inProgress = matches?.filter(m => ['accepted', 'posted', 'active'].includes(m.status)).length ?? 0
+  const completed  = matches?.filter(m => ['verified', 'completed'].includes(m.status)).length ?? 0
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -74,8 +73,8 @@ export default async function CreatorDashboard() {
 
       <div className="grid grid-cols-3 gap-3 mb-8">
         <StatCard label="Available collabs" value={availableInvites} href="/creator/browse" />
-        <StatCard label="Active matches" value={active} accent="#C084FC" href="/creator/matches" />
-        <StatCard label="Verified" value={verified} accent="#22c55e" href="/creator/matches" />
+        <StatCard label="In progress" value={inProgress} accent="#C084FC" href="/creator/matches" />
+        <StatCard label="Completed" value={completed} accent="#22c55e" href="/creator/matches" />
       </div>
 
       <div className="rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"

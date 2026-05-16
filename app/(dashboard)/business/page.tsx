@@ -14,7 +14,7 @@ export default async function BusinessDashboard() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { data: offers }, { data: matches }, { data: unreadCount }, { data: postedMatchesRaw }] = await Promise.all([
+  const [{ data: profile }, { data: offers }, { data: matches }, { data: unreadCount }, { data: postedMatchesRaw }, { data: allMatchStatuses }] = await Promise.all([
     supabase.from('profiles').select('business_name').eq('id', user!.id).single(),
     supabase.from('offers').select('id, is_active').eq('business_id', user!.id),
     supabase.from('matches')
@@ -28,17 +28,18 @@ export default async function BusinessDashboard() {
       .eq('business_id', user!.id)
       .eq('status', 'posted')
       .order('created_at', { ascending: false }),
+    supabase.from('matches').select('status').eq('business_id', user!.id),
   ])
 
   if (!profile?.business_name) redirect('/business/onboarding')
 
-  // All posted matches need business attention (verify deliverables and/or mark fulfilled)
   const postedMatches = postedMatchesRaw ?? []
+  const allMatches = allMatchStatuses ?? []
 
-  const activeOffers = offers?.filter(o => o.is_active).length ?? 0
-  const totalMatches = matches?.length ?? 0
-  const pendingMatches = matches?.filter(m => m.status === 'accepted').length ?? 0
-  const verifiedMatches = matches?.filter(m => m.status === 'verified').length ?? 0
+  const activeOffers    = offers?.filter(o => o.is_active).length ?? 0
+  const creatorsMatched = allMatches.length
+  const inProgress      = allMatches.filter(m => ['accepted', 'posted', 'active'].includes(m.status)).length
+  const fulfilled       = allMatches.filter(m => m.status === 'verified').length
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -117,10 +118,10 @@ export default async function BusinessDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-        <StatCard label="Active collabs" value={activeOffers} href="/business/invites" />
-        <StatCard label="Total matches" value={totalMatches} accent="#6BE6B0" href="/business/invites" />
-        <StatCard label="In progress" value={pendingMatches} accent="#C084FC" href="/business/invites" />
-        <StatCard label="Verified" value={verifiedMatches} accent="#22c55e" href="/business/invites" />
+        <StatCard label="Open collabs" value={activeOffers} href="/business/invites" />
+        <StatCard label="Creators matched" value={creatorsMatched} accent="#6BE6B0" href="/business/invites" />
+        <StatCard label="In progress" value={inProgress} accent="#C084FC" href="/business/invites" />
+        <StatCard label="Fulfilled" value={fulfilled} accent="#22c55e" href="/business/invites" />
       </div>
 
       {/* Recent activity */}
