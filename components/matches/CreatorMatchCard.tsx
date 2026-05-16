@@ -553,15 +553,15 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
             <div className="flex items-center gap-4">
               <div
                 className="flex-1 rounded-xl px-4 py-3"
-                style={{ background: '#1C2B3A' }}
+                style={{ background: 'rgba(245,184,0,0.06)', border: '1.5px solid rgba(245,184,0,0.2)' }}
               >
-                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'JetBrains Mono', monospace" }}>
+                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: '#b45309', fontFamily: "'JetBrains Mono', monospace" }}>
                   Punt code
                 </p>
-                <p className="font-bold tracking-widest" style={{ color: '#F5B800', fontFamily: "'JetBrains Mono', monospace", fontSize: '18px', letterSpacing: '0.12em' }}>
+                <p className="font-bold tracking-widest" style={{ color: '#1C2B3A', fontFamily: "'JetBrains Mono', monospace", fontSize: '18px', letterSpacing: '0.12em' }}>
                   {match.punt_code}
                 </p>
-                <p className="text-[9px] mt-2" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: "'Inter', sans-serif" }}>
+                <p className="text-[9px] mt-2" style={{ color: '#9ca3af', fontFamily: "'Inter', sans-serif" }}>
                   Show to staff on arrival
                 </p>
               </div>
