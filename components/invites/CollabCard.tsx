@@ -409,13 +409,15 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
               </span>
             )}
             {verifyCount > 0 && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(192,132,252,0.2)', color: '#9333ea', fontFamily: "'Inter', sans-serif" }}>
-                New posts!
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: '#9333ea' }}>
+                <ImageIcon className="w-3 h-3" />
+                {verifyCount}
               </span>
             )}
             {totalUnread > 0 && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,184,0,0.2)', color: '#92400e', fontFamily: "'Inter', sans-serif" }}>
-                New DMs!
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: '#F5B800', color: '#1C2B3A' }}>
+                <MessageCircle className="w-3 h-3" />
+                {totalUnread}
               </span>
             )}
           </div>
