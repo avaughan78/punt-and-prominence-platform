@@ -380,14 +380,14 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
 
       <div className="rounded-2xl flex flex-col" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', ...cardBorderStyle }}>
 
-        {/* Card face */}
-        <div className="p-4 flex flex-col gap-3 flex-1">
-          {/* Title row — entire row is clickable when there are matches */}
-          <div
-            className="flex items-start justify-between gap-3"
-            onClick={() => matches.length > 0 && setOpen(o => !o)}
-            style={{ cursor: matches.length > 0 ? 'pointer' : 'default' }}
-          >
+        {/* Card face — entire face is clickable to expand/collapse */}
+        <div
+          className="p-4 flex flex-col gap-3 flex-1"
+          onClick={() => matches.length > 0 && setOpen(o => !o)}
+          style={{ cursor: matches.length > 0 ? 'pointer' : 'default' }}
+        >
+          {/* Title row */}
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <p className="font-bold text-[#1C2B3A] leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: '15px' }}>
@@ -481,7 +481,7 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
           <div className="flex items-center gap-2 h-6">
             {matches.length > 0 && (
               <button
-                onClick={() => setOpen(o => !o)}
+                onClick={e => { e.stopPropagation(); setOpen(o => !o) }}
                 className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold transition-colors shrink-0"
                 style={{ background: open ? '#1C2B3A' : 'rgba(28,43,58,0.08)', color: open ? 'white' : '#1C2B3A' }}
               >
@@ -501,14 +501,14 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
               </span>
             )}
             {onViewDetail && (
-              <button onClick={() => onViewDetail(invite)} title="View stats" className="shrink-0 hover:opacity-70 transition-opacity">
+              <button onClick={e => { e.stopPropagation(); onViewDetail(invite) }} title="View stats" className="shrink-0 hover:opacity-70 transition-opacity">
                 <Info className="w-4 h-4" style={{ color: '#3b82f6' }} />
               </button>
             )}
             <div className="ml-auto flex items-center gap-1.5">
               {verifyCount > 0 && (
                 <button
-                  onClick={() => { if (open) { setOpen(false) } else { setOpen(true); setPostsTrigger(t => t + 1) } }}
+                  onClick={e => { e.stopPropagation(); if (open) { setOpen(false) } else { setOpen(true); setPostsTrigger(t => t + 1) } }}
                   className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold text-white hover:opacity-80 transition-opacity"
                   style={{ background: '#9333ea' }}
                   title={open ? 'Collapse' : 'Show posts to verify'}
@@ -519,7 +519,7 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
               )}
               {totalUnread > 0 && (
                 <button
-                  onClick={() => { if (open) { setOpen(false) } else { setOpen(true); setMsgsTrigger(t => t + 1) } }}
+                  onClick={e => { e.stopPropagation(); if (open) { setOpen(false) } else { setOpen(true); setMsgsTrigger(t => t + 1) } }}
                   className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity"
                   style={{ background: '#F5B800', color: '#1C2B3A' }}
                   title={open ? 'Collapse' : 'Show unread messages'}
