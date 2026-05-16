@@ -2,9 +2,11 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { formatGBP, formatDate } from '@/lib/utils'
-import { ChevronDown, ExternalLink, Search, AlertCircle } from 'lucide-react'
+import { ChevronDown, ExternalLink, Search, AlertCircle, X } from 'lucide-react'
 
 type MatchStatus = 'accepted' | 'posted' | 'verified' | 'active' | 'completed'
+type CollabFilter = 'all' | 'attention' | 'open' | 'closed'
+type StatusFilter = 'any' | MatchStatus
 
 interface Deliverable {
   id: string
@@ -79,20 +81,14 @@ function fmtDate(dt: string) {
 
 // ── Stats bar ──────────────────────────────────────────────────────────────────
 
-interface StatCardAction {
-  collabFilter?: CollabFilter
-  statusFilter?: StatusFilter
-}
-
 interface StatsBarProps {
   groups: CollabGroup[]
   collabFilter: CollabFilter
   statusFilter: StatusFilter
-  onCollabFilter: (f: CollabFilter) => void
-  onStatusFilter: (f: StatusFilter) => void
+  onFilter: (cf: CollabFilter, sf: StatusFilter) => void
 }
 
-function StatsBar({ groups, collabFilter, statusFilter, onCollabFilter, onStatusFilter }: StatsBarProps) {
+function StatsBar({ groups, collabFilter, statusFilter, onFilter }: StatsBarProps) {
   const activeCollabs   = groups.filter(g => g.is_active).length
   const postsToVerify   = groups.reduce((s, g) => s + g.matches.filter(m => m.status === 'posted').length, 0)
   const activeRetainers = groups.reduce((s, g) => s + g.matches.filter(m => m.status === 'active').length, 0)
@@ -100,60 +96,57 @@ function StatsBar({ groups, collabFilter, statusFilter, onCollabFilter, onStatus
     .filter(g => g.is_active)
     .reduce((s, g) => s + (g.invite_type === 'retainer' ? (g.fee_gbp ?? 0) : (g.value_gbp ?? 0)) * g.slots_claimed, 0)
 
-  const stats: { label: string; value: string | number; accent: string; action: StatCardAction; isActive: boolean }[] = [
+  const stats: {
+    label: string
+    value: string | number
+    accent: string
+    onClick: (() => void) | null
+    isActive: boolean
+  }[] = [
     {
       label: 'Active collabs', value: activeCollabs, accent: '#F5B800',
-      action: { collabFilter: 'open', statusFilter: 'any' },
+      onClick: () => onFilter('open', 'any'),
       isActive: collabFilter === 'open' && statusFilter === 'any',
     },
     {
       label: 'Value in market', value: formatGBP(gmv), accent: '#6BE6B0',
-      action: {},
+      onClick: null,
       isActive: false,
     },
     {
       label: 'Posts to verify', value: postsToVerify, accent: postsToVerify > 0 ? '#C084FC' : '#94a3b8',
-      action: { collabFilter: 'attention', statusFilter: 'any' },
+      onClick: () => onFilter('attention', 'any'),
       isActive: collabFilter === 'attention',
     },
     {
       label: 'Live retainers', value: activeRetainers, accent: '#60a5fa',
-      action: { collabFilter: 'all', statusFilter: 'active' },
-      isActive: statusFilter === 'active',
+      onClick: () => onFilter('all', 'active'),
+      isActive: statusFilter === 'active' && collabFilter !== 'attention',
     },
   ]
 
-  function handleClick(action: StatCardAction) {
-    if (Object.keys(action).length === 0) return
-    if (action.collabFilter != null) onCollabFilter(action.collabFilter)
-    if (action.statusFilter != null) onStatusFilter(action.statusFilter)
-  }
-
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-      {stats.map(s => {
-        const clickable = Object.keys(s.action).length > 0
-        return (
-          <button
-            key={s.label}
-            onClick={() => handleClick(s.action)}
-            disabled={!clickable}
-            className="rounded-xl bg-white px-4 py-3 text-left transition-all"
-            style={{
-              border: s.isActive ? `1.5px solid ${s.accent}` : '1px solid rgba(0,0,0,0.07)',
-              boxShadow: s.isActive ? `0 0 0 3px ${s.accent}22` : 'none',
-              cursor: clickable ? 'pointer' : 'default',
-            }}
-          >
-            <p className="text-2xl font-extrabold leading-none" style={{ color: s.accent, fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-              {s.value}
-            </p>
-            <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {s.label}{clickable && !s.isActive ? ' →' : ''}
-            </p>
-          </button>
-        )
-      })}
+      {stats.map(s => (
+        <button
+          key={s.label}
+          onClick={s.onClick ?? undefined}
+          disabled={!s.onClick}
+          className="rounded-xl bg-white px-4 py-3 text-left transition-all"
+          style={{
+            border: s.isActive ? `1.5px solid ${s.accent}` : '1px solid rgba(0,0,0,0.07)',
+            boxShadow: s.isActive ? `0 0 0 3px ${s.accent}22` : 'none',
+            cursor: s.onClick ? 'pointer' : 'default',
+          }}
+        >
+          <p className="text-2xl font-extrabold leading-none" style={{ color: s.accent, fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+            {s.value}
+          </p>
+          <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            {s.label}{s.onClick && !s.isActive ? ' →' : ''}
+          </p>
+        </button>
+      ))}
     </div>
   )
 }
@@ -190,11 +183,15 @@ function CreatorRow({ match, isRetainer }: { match: MatchEntry; isRetainer: bool
   const handle  = match.creator?.instagram_handle
   const initial = name[0]?.toUpperCase() ?? '?'
 
-  const deliverables = match.deliverables ?? []
-  const legacyUrl    = match.post_url && deliverables.length === 0 ? match.post_url : null
-  const allPosts     = [...deliverables, ...(legacyUrl ? [{ id: 'legacy', status: 'verified' as const, post_url: legacyUrl, verified_at: null, month_number: null, created_at: match.created_at }] : [])]
+  const deliverables  = match.deliverables ?? []
+  const legacyUrl     = match.post_url && deliverables.length === 0 ? match.post_url : null
+  // Legacy posts are shown as pending (not auto-verified) since we can't confirm status
+  const legacyEntry   = legacyUrl
+    ? [{ id: 'legacy', status: 'pending' as const, post_url: legacyUrl, verified_at: null, month_number: null, created_at: match.created_at }]
+    : []
+  const allPosts      = [...deliverables, ...legacyEntry]
   const verifiedCount = deliverables.filter(d => d.status === 'verified').length
-  const hasPosts = allPosts.length > 0
+  const hasPosts      = allPosts.length > 0
 
   return (
     <div>
@@ -212,7 +209,7 @@ function CreatorRow({ match, isRetainer }: { match: MatchEntry; isRetainer: bool
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
             <Link
-              href={`/admin/creators?highlight=${match.creator?.id}`}
+              href="/admin/creators"
               className="text-xs font-semibold text-[#1C2B3A] hover:underline truncate"
               style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
             >
@@ -267,17 +264,12 @@ function CreatorRow({ match, isRetainer }: { match: MatchEntry; isRetainer: bool
             <div key={d.id} className="flex items-center gap-2.5">
               <div
                 className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
-                style={{ background: d.status === 'verified' ? '#6BE6B0' : '#C084FC', color: '#1C2B3A' }}
+                style={{ background: d.status === 'verified' ? '#6BE6B0' : '#e5e7eb', color: '#1C2B3A' }}
               >
                 {d.month_number ?? idx + 1}
               </div>
               {d.post_url ? (
-                <a
-                  href={d.post_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs text-blue-500 hover:underline flex-1 truncate"
-                >
+                <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-blue-500 hover:underline flex-1 truncate">
                   <ExternalLink className="w-3 h-3 shrink-0" />
                   {isRetainer ? `Month ${d.month_number ?? idx + 1}` : `Post ${idx + 1}`}
                 </a>
@@ -332,8 +324,8 @@ function SlotBar({ total, claimed, inline }: { total: number; claimed: number; i
 
 function CollabDetail({ group }: { group: CollabGroup }) {
   const isRetainer = group.invite_type === 'retainer'
-  const value = isRetainer ? group.fee_gbp : group.value_gbp
-  const bizName = group.business?.business_name ?? group.business?.display_name ?? '—'
+  const value      = isRetainer ? group.fee_gbp : group.value_gbp
+  const bizName    = group.business?.business_name ?? group.business?.display_name ?? '—'
 
   return (
     <div className="flex flex-col gap-4 h-full">
@@ -355,10 +347,9 @@ function CollabDetail({ group }: { group: CollabGroup }) {
 
       <SlotBar total={group.slots_total} claimed={group.slots_claimed} />
 
-      {/* Business link */}
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Business</p>
-        <Link href={`/admin/businesses`} className="text-xs font-semibold text-[#1C2B3A] hover:underline" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+        <Link href="/admin/businesses" className="text-xs font-semibold text-[#1C2B3A] hover:underline" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
           {bizName}
         </Link>
         {group.business?.category && (
@@ -407,10 +398,7 @@ function CollabDetail({ group }: { group: CollabGroup }) {
   )
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
-
-type CollabFilter = 'all' | 'attention' | 'open' | 'closed'
-type StatusFilter = 'any' | MatchStatus
+// ── Filter config ──────────────────────────────────────────────────────────────
 
 const COLLAB_FILTERS: { value: CollabFilter; label: string }[] = [
   { value: 'all',       label: 'All' },
@@ -428,13 +416,15 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: 'completed', label: 'Completed' },
 ]
 
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function AdminCollabs() {
-  const [groups, setGroups]       = useState<CollabGroup[]>([])
-  const [loading, setLoading]     = useState(true)
+  const [groups, setGroups]           = useState<CollabGroup[]>([])
+  const [loading, setLoading]         = useState(true)
   const [collabFilter, setCollabFilter] = useState<CollabFilter>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('any')
-  const [search, setSearch]       = useState('')
-  const [expanded, setExpanded]   = useState<Set<string>>(new Set())
+  const [search, setSearch]           = useState('')
+  const [expanded, setExpanded]       = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetch('/api/admin/matches')
@@ -442,24 +432,32 @@ export default function AdminCollabs() {
       .then(d => { setGroups(Array.isArray(d) ? d : []); setLoading(false) })
   }, [])
 
+  // Collapse all cards when filters change so stale expanded state doesn't persist
+  useEffect(() => { setExpanded(new Set()) }, [collabFilter, statusFilter, search])
+
   const attentionCount = groups.reduce((s, g) => s + g.matches.filter(m => m.status === 'posted').length, 0)
+  const filtersActive  = collabFilter !== 'all' || statusFilter !== 'any' || search !== ''
+
+  function applyFilter(cf: CollabFilter, sf: StatusFilter) {
+    setCollabFilter(cf)
+    setStatusFilter(sf)
+  }
+
+  function clearFilters() {
+    setCollabFilter('all')
+    setStatusFilter('any')
+    setSearch('')
+  }
 
   const searchLower = search.toLowerCase()
 
   const filteredGroups = groups
-    .map(g => {
-      let matches = g.matches
-      if (statusFilter !== 'any') matches = matches.filter(m => m.status === statusFilter)
-      return { ...g, matches }
-    })
+    // Collab-level filter runs first, against original matches (before status filter)
     .filter(g => {
-      // Collab-level filter
       if (collabFilter === 'open'      && !g.is_active) return false
       if (collabFilter === 'closed'    && g.is_active)  return false
+      // Attention: check original matches so status sub-filter doesn't interfere
       if (collabFilter === 'attention' && !g.matches.some(m => m.status === 'posted')) return false
-      // Status filter: hide collab if no matches survive
-      if (statusFilter !== 'any' && g.matches.length === 0) return false
-      // Search: title, business name, or creator handle/name
       if (searchLower) {
         const bizName = g.business?.business_name ?? g.business?.display_name ?? ''
         const matchesCreator = g.matches.some(m =>
@@ -474,6 +472,14 @@ export default function AdminCollabs() {
       }
       return true
     })
+    // Then apply status sub-filter to the match list within each collab
+    .map(g => ({
+      ...g,
+      matches: statusFilter === 'any' ? g.matches : g.matches.filter(m => m.status === statusFilter),
+      originalMatchCount: g.matches.length,
+    }))
+    // Hide collab entirely only when status filter left zero matches AND it had matches to begin with
+    .filter(g => !(statusFilter !== 'any' && g.originalMatchCount > 0 && g.matches.length === 0))
     .sort((a, b) => {
       const pri = (g: CollabGroup) => {
         if (g.matches.some(m => m.status === 'posted')) return 0
@@ -514,31 +520,19 @@ export default function AdminCollabs() {
         </div>
       </div>
 
-      {!loading && (
-        <StatsBar
-          groups={groups}
-          collabFilter={collabFilter}
-          statusFilter={statusFilter}
-          onCollabFilter={f => { setCollabFilter(f) }}
-          onStatusFilter={f => { setStatusFilter(f) }}
-        />
-      )}
+      {!loading && <StatsBar groups={groups} collabFilter={collabFilter} statusFilter={statusFilter} onFilter={applyFilter} />}
 
       {/* Collab filter tabs */}
-      <div className="flex gap-1.5 flex-wrap mb-3">
+      <div className="flex items-center gap-1.5 flex-wrap mb-3">
         {COLLAB_FILTERS.map(f => {
           const active = collabFilter === f.value
           const badge  = f.value === 'attention' ? attentionCount : null
           return (
             <button
               key={f.value}
-              onClick={() => setCollabFilter(f.value)}
+              onClick={() => applyFilter(f.value, statusFilter === 'any' ? 'any' : f.value === 'attention' ? 'any' : statusFilter)}
               className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
-              style={{
-                background: active ? '#1C2B3A' : 'white',
-                color: active ? 'white' : '#6b7280',
-                border: '1px solid rgba(0,0,0,0.1)',
-              }}
+              style={{ background: active ? '#1C2B3A' : 'white', color: active ? 'white' : '#6b7280', border: '1px solid rgba(0,0,0,0.1)' }}
             >
               {f.value === 'attention' && <AlertCircle className="w-3 h-3" />}
               {f.label}
@@ -550,26 +544,44 @@ export default function AdminCollabs() {
             </button>
           )
         })}
+
+        {/* Clear all filters */}
+        {filtersActive && (
+          <button
+            onClick={clearFilters}
+            className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-medium text-gray-400 hover:text-gray-600 transition-colors ml-1"
+          >
+            <X className="w-3 h-3" />Clear
+          </button>
+        )}
       </div>
 
-      {/* Status sub-filter */}
+      {/* Status sub-filter — disabled when in Attention mode (redundant there) */}
       <div className="flex gap-1.5 flex-wrap mb-6">
         {STATUS_FILTERS.map(f => {
-          const active = statusFilter === f.value
+          const active   = statusFilter === f.value
+          const disabled = collabFilter === 'attention'
           return (
             <button
               key={f.value}
-              onClick={() => setStatusFilter(f.value)}
+              onClick={() => !disabled && applyFilter(collabFilter, f.value)}
+              disabled={disabled}
               className="text-[11px] px-2.5 py-1 rounded-md font-medium transition-colors"
               style={{
-                background: active ? 'rgba(28,43,58,0.08)' : 'transparent',
-                color: active ? '#1C2B3A' : '#9ca3af',
+                background: active && !disabled ? 'rgba(28,43,58,0.08)' : 'transparent',
+                color: disabled ? '#d1d5db' : active ? '#1C2B3A' : '#9ca3af',
+                cursor: disabled ? 'not-allowed' : 'pointer',
               }}
             >
               {f.label}
             </button>
           )
         })}
+        {collabFilter === 'attention' && (
+          <span className="text-[11px] text-gray-300 px-2.5 py-1 italic" style={{ fontFamily: "'Inter', sans-serif" }}>
+            Status filter paused in Attention mode
+          </span>
+        )}
       </div>
 
       {loading ? (
@@ -577,14 +589,21 @@ export default function AdminCollabs() {
           <div className="w-5 h-5 rounded-full border-2 border-[#F5B800] border-t-transparent animate-spin" />
         </div>
       ) : filteredGroups.length === 0 ? (
-        <p className="text-sm text-gray-400">No collabs found.</p>
+        <div className="rounded-2xl p-10 text-center" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
+          <p className="text-sm text-gray-400 mb-3">No collabs match your filters.</p>
+          {filtersActive && (
+            <button onClick={clearFilters} className="text-xs text-gray-400 hover:text-[#1C2B3A] underline transition-colors">
+              Clear all filters
+            </button>
+          )}
+        </div>
       ) : (
         <div className="rounded-2xl overflow-hidden bg-white" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
           {filteredGroups.map((group, gi) => {
-            const isRetainer = group.invite_type === 'retainer'
-            const bizName    = group.business?.business_name ?? group.business?.display_name ?? '—'
-            const isExpanded = expanded.has(group.id)
-            const isLast     = gi === filteredGroups.length - 1
+            const isRetainer     = group.invite_type === 'retainer'
+            const bizName        = group.business?.business_name ?? group.business?.display_name ?? '—'
+            const isExpanded     = expanded.has(group.id)
+            const isLast         = gi === filteredGroups.length - 1
             const needsAttention = group.matches.some(m => m.status === 'posted')
 
             return (
@@ -595,8 +614,12 @@ export default function AdminCollabs() {
                   className="w-full flex items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-gray-50/70"
                   onClick={() => toggleExpand(group.id)}
                 >
-                  {/* Attention dot */}
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: needsAttention ? '#C084FC' : group.is_active ? '#6BE6B0' : '#e5e7eb' }} />
+                  {/* Attention indicator — only shows when action is needed */}
+                  <div
+                    className="w-2 h-2 rounded-full shrink-0 transition-colors"
+                    style={{ background: needsAttention ? '#C084FC' : 'transparent', border: needsAttention ? 'none' : '1.5px solid #e5e7eb' }}
+                    title={needsAttention ? 'Awaiting review' : undefined}
+                  />
 
                   {/* Business avatar */}
                   {group.business?.avatar_url ? (
@@ -607,7 +630,7 @@ export default function AdminCollabs() {
                     </div>
                   )}
 
-                  {/* Title + business + status summary */}
+                  {/* Title + business + match summary */}
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-semibold text-[#1C2B3A]">{group.title}</span>
@@ -624,32 +647,30 @@ export default function AdminCollabs() {
                     </div>
                   </div>
 
-                  {/* Slot bar inline */}
+                  {/* Inline slot bar */}
                   <SlotBar total={group.slots_total} claimed={group.slots_claimed} inline />
 
-                  {/* Chevron */}
                   <ChevronDown className="w-4 h-4 shrink-0 transition-transform duration-200" style={{ color: '#d1d5db', transform: isExpanded ? 'rotate(180deg)' : 'none' }} />
                 </button>
 
                 {/* ── Expanded panel ── */}
                 {isExpanded && (
                   <div className="flex flex-col sm:flex-row" style={{ background: '#f8f9fb', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-                    {/* Left: collab detail */}
-                    <div className="p-5 sm:w-56 lg:w-64 sm:shrink-0 sm:border-r" style={{ borderColor: 'rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                    <div className="p-5 sm:w-56 lg:w-64 sm:shrink-0" style={{ borderRight: '1px solid rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                       <CollabDetail group={group} />
                     </div>
-
-                    {/* Right: creator rows */}
                     <div className="flex-1 py-3 min-w-0">
                       {group.matches.length === 0 ? (
-                        <p className="text-sm text-gray-400 px-4 py-2">No creators match this filter.</p>
+                        <p className="text-sm text-gray-400 px-4 py-2">
+                          {group.originalMatchCount > 0
+                            ? `No ${STATUS_META[statusFilter as MatchStatus]?.label.toLowerCase() ?? ''} matches.`
+                            : 'No creators matched yet.'}
+                        </p>
                       ) : (
                         <div className="flex flex-col gap-0.5 px-2">
                           {[...group.matches]
                             .sort((a, b) => (MATCH_ORDER[a.status] ?? 5) - (MATCH_ORDER[b.status] ?? 5))
-                            .map(match => (
-                              <CreatorRow key={match.id} match={match} isRetainer={isRetainer} />
-                            ))}
+                            .map(match => <CreatorRow key={match.id} match={match} isRetainer={isRetainer} />)}
                         </div>
                       )}
                     </div>
