@@ -339,6 +339,32 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
             )}
           </div>
 
+          {/* About this collab + requirements */}
+          {(invite?.description || invite?.requirements) && (
+            <div className="px-5 py-4 flex flex-col gap-4" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+              {invite?.description && (
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    About this collab
+                  </p>
+                  <p className="text-sm text-gray-600 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    {invite.description}
+                  </p>
+                </div>
+              )}
+              {invite?.requirements && (
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    Requirements
+                  </p>
+                  <p className="text-sm text-gray-600 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    {invite.requirements}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* One-off: deliverables */}
           {!isRetainer && (match.status === 'accepted' || match.status === 'posted' || match.status === 'verified') && (
             <div className="px-5 py-4 flex flex-col gap-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
@@ -569,28 +595,6 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
                 <PuntQRCode puntCode={match.punt_code} size={88} />
               )}
             </div>
-
-            {invite?.description && (
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  About this collab
-                </p>
-                <p className="text-sm text-gray-600 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
-                  {invite.description}
-                </p>
-              </div>
-            )}
-
-            {invite?.requirements && (
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  Requirements
-                </p>
-                <p className="text-sm text-gray-600 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
-                  {invite.requirements}
-                </p>
-              </div>
-            )}
 
             {isRetainer && (invite?.posts_per_month != null || invite?.duration_months != null) && (
               <div className="flex items-center gap-4">
