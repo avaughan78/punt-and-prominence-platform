@@ -9,14 +9,20 @@ export async function GET() {
   const role = user.user_metadata?.role
 
   // ── Posts to review (business only) ───────────────────────────────────────
+  // Count unverified deliverables (mirrors verifyCount logic in CollabCard)
   let posts = 0
   if (role === 'business') {
-    const { count } = await supabase
+    const { data: postedMatches } = await supabase
       .from('matches')
-      .select('*', { count: 'exact', head: true })
+      .select('id, post_url, deliverables:match_deliverables(id, status)')
       .eq('business_id', user.id)
       .eq('status', 'posted')
-    posts = count ?? 0
+
+    posts = (postedMatches ?? []).reduce((sum, m) => {
+      const delivs = (m.deliverables ?? []) as { id: string; status: string }[]
+      if (delivs.length === 0) return sum + (m.post_url ? 1 : 0)
+      return sum + delivs.filter(d => d.status !== 'verified').length
+    }, 0)
   }
 
   // ── Unread messages (both roles) ───────────────────────────────────────────
