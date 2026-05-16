@@ -99,7 +99,7 @@ export default function AdminInviteCodes() {
               </button>
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer mb-0.5">
+          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer self-end mb-2">
             <input
               type="checkbox"
               checked={reusable}
