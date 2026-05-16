@@ -74,17 +74,17 @@ export function InviteCard({ invite, mode, isApproved = true, isProfileComplete 
   return (
     <div
       className="rounded-2xl overflow-hidden flex flex-col"
-      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+      style={{ background: '#ffffff', border: `1.5px solid ${isRetainer ? 'rgba(107,230,176,0.4)' : 'rgba(245,184,0,0.35)'}`, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
     >
       {/* ── Header band ── */}
       <div className="relative shrink-0" style={{ height: '72px' }}>
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.07) 0%, rgba(253,29,29,0.06) 60%, rgba(252,176,69,0.04) 100%)' }} />
 
         {/* Title — right-justified in the band */}
         <div className="absolute inset-0 flex items-center justify-end pl-20 pr-4">
           <h3
-            className="font-bold text-white text-sm leading-snug text-right line-clamp-2"
-            style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+            className="font-bold text-sm leading-snug text-right line-clamp-2"
+            style={{ fontFamily: "'Bricolage Grotesque', sans-serif", color: '#1C2B3A' }}
           >
             {invite.title}
           </h3>
@@ -94,7 +94,7 @@ export function InviteCard({ invite, mode, isApproved = true, isProfileComplete 
         <div className="absolute left-4" style={{ bottom: 0, transform: 'translateY(50%)' }}>
           <div
             className="p-[2.5px] rounded-full"
-            style={{ background: biz?.instagram_handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(255,255,255,0.25)' }}
+            style={{ background: biz?.instagram_handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(0,0,0,0.1)' }}
           >
             <div className="p-[2px] bg-white rounded-full">
               {biz?.avatar_url ? (

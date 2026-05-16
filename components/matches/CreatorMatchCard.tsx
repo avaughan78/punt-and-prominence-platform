@@ -186,18 +186,18 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       >
         {/* Header band */}
         <div className="relative shrink-0" style={{ height: '64px' }}>
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)' }} />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.07) 0%, rgba(253,29,29,0.06) 60%, rgba(252,176,69,0.04) 100%)' }} />
 
           {/* Title + chevron */}
           <div className="absolute inset-0 flex items-center pl-20 pr-4 gap-3">
             <h3
-              className="font-bold text-white text-sm leading-snug line-clamp-2 flex-1 text-right"
-              style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+              className="font-bold text-sm leading-snug line-clamp-2 flex-1 text-right"
+              style={{ fontFamily: "'Bricolage Grotesque', sans-serif", color: '#1C2B3A' }}
             >
               {invite?.title ?? 'Collab'}
             </h3>
             <ChevronDown
-              className="w-4 h-4 text-white/50 flex-shrink-0 transition-transform duration-200"
+              className="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200"
               style={{ transform: open ? 'rotate(180deg)' : 'none' }}
             />
           </div>
@@ -206,7 +206,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
           <div className="absolute left-4" style={{ bottom: 0, transform: 'translateY(50%)' }}>
             <div
               className="p-[2.5px] rounded-full"
-              style={{ background: bizInstagram ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(255,255,255,0.25)' }}
+              style={{ background: bizInstagram ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(0,0,0,0.1)' }}
             >
               <div className="p-[2px] bg-white rounded-full">
                 {bizAvatarUrl ? (
