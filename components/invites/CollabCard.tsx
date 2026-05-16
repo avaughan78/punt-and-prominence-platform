@@ -419,19 +419,25 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                 {verifiedCount} verified
               </span>
             )}
-            {verifyCount > 0 && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: '#9333ea' }}>
-                <ImageIcon className="w-3 h-3" />
-                {verifyCount}
-              </span>
-            )}
-            {totalUnread > 0 && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: '#F5B800', color: '#1C2B3A' }}>
-                <MessageCircle className="w-3 h-3" />
-                {totalUnread}
-              </span>
-            )}
           </div>
+
+          {/* Alert badges — separate row so they never affect the stats row height */}
+          {(verifyCount > 0 || totalUnread > 0) && (
+            <div className="flex items-center gap-2">
+              {verifyCount > 0 && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: '#9333ea' }}>
+                  <ImageIcon className="w-3 h-3" />
+                  {verifyCount}
+                </span>
+              )}
+              {totalUnread > 0 && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: '#F5B800', color: '#1C2B3A' }}>
+                  <MessageCircle className="w-3 h-3" />
+                  {totalUnread}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Action bar */}
