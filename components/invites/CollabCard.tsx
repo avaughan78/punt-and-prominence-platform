@@ -39,12 +39,13 @@ interface CreatorRowProps {
   initialPostsOpen?: boolean
   expandPostsTrigger?: number
   expandMsgsTrigger?: number
+  hasUnreadMessages?: boolean
   onStatusUpdated: (matchId: string, status: string) => void
   onDeliverableVerified: (matchId: string, deliverableId: string) => void
   onUnreadChange?: (matchId: string, count: number) => void
 }
 
-function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPostsOpen, expandPostsTrigger, expandMsgsTrigger, onStatusUpdated, onDeliverableVerified, onUnreadChange }: CreatorRowProps) {
+function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPostsOpen, expandPostsTrigger, expandMsgsTrigger, hasUnreadMessages, onStatusUpdated, onDeliverableVerified, onUnreadChange }: CreatorRowProps) {
   const [msgOpen, setMsgOpen]           = useState(false)
   const [postsOpen, setPostsOpen]       = useState(initialPostsOpen ?? false)
   const [unread, setUnread]             = useState(0)
@@ -85,7 +86,7 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
   }, [expandPostsTrigger])
 
   useEffect(() => {
-    if ((expandMsgsTrigger ?? 0) > 0 && unread > 0) {
+    if ((expandMsgsTrigger ?? 0) > 0 && hasUnreadMessages) {
       setMsgOpen(true)
       setUnread(0)
       onUnreadChange?.(match.id, 0)
@@ -510,6 +511,7 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                 initialPostsOpen={initialOpenMatchId === m.id}
                 expandPostsTrigger={postsTrigger}
                 expandMsgsTrigger={msgsTrigger}
+                hasUnreadMessages={(unreadByMatch[m.id] ?? 0) > 0}
                 onStatusUpdated={handleStatusUpdated}
                 onDeliverableVerified={handleDeliverableVerified}
                 onUnreadChange={handleUnreadChange}
