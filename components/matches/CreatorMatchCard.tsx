@@ -44,7 +44,6 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
   const [msgOpen, setMsgOpen]               = useState(false)
   const [unread, setUnread]                 = useState(0)
   const msgRef = useRef<HTMLDivElement>(null)
-  const [loading, setLoading]               = useState(false)
   const [deliverableLoading, setDeliverableLoading] = useState<string | null>(null)
   const [showSubmitMonth, setShowSubmitMonth]       = useState<number | null>(null)
   const [submitUrl, setSubmitUrl]                   = useState('')
@@ -57,16 +56,22 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
   const [addPostUrlError, setAddPostUrlError]       = useState('')
   const [addPostLoading, setAddPostLoading]         = useState(false)
 
-  const isRetainer = match.invite?.invite_type === 'retainer'
-  const isDone     = match.status === 'verified' || match.status === 'completed'
+  const isRetainer  = match.invite?.invite_type === 'retainer'
+  const isDone      = match.status === 'verified' || match.status === 'completed'
   const borderColor = BORDER_COLOR[match.status] ?? '#94a3b8'
-  const pill       = STATUS_PILL[match.status] ?? STATUS_PILL.accepted
+  const pill        = STATUS_PILL[match.status] ?? STATUS_PILL.accepted
 
-  const invite     = match.invite
-  const business   = invite?.business ?? match.business
-  const bizName    = business?.business_name ?? business?.display_name ?? 'Business'
-  const bizAddress = business?.address_line ?? null
-  const bizInitial = bizName[0]?.toUpperCase() ?? 'B'
+  const invite       = match.invite
+  const business     = invite?.business ?? match.business
+  const bizName      = business?.business_name ?? business?.display_name ?? 'Business'
+  const bizAddress   = business?.address_line ?? null
+  const bizAvatarUrl = invite?.business?.avatar_url ?? null
+  const bizInstagram = invite?.business?.instagram_handle ?? null
+  const bizLat       = invite?.business?.latitude ?? null
+  const bizLng       = invite?.business?.longitude ?? null
+  const bizInitial   = bizName[0]?.toUpperCase() ?? 'B'
+
+  const needsAction = (!isRetainer && match.status === 'accepted') || (isRetainer && match.status === 'active')
 
   useEffect(() => {
     fetch(`/api/matches/${match.id}/messages/unread`)
@@ -74,19 +79,6 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       .then(d => setUnread(d.count ?? 0))
       .catch(() => {})
   }, [match.id])
-
-  async function updateStatus(status: string, extra?: Record<string, string>) {
-    setLoading(true)
-    const res = await fetch(`/api/matches/${match.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, ...extra }),
-    })
-    const data = await res.json()
-    if (!res.ok) toast.error(data.error ?? 'Failed to update')
-    else { toast.success('Updated'); onUpdated(data) }
-    setLoading(false)
-  }
 
   async function submitOneOffPost() {
     const normalized = normalizeUrl(addPostUrl)
@@ -186,72 +178,142 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       className="rounded-2xl overflow-hidden"
       style={{ background: '#ffffff', border: `1.5px solid ${borderColor}`, boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}
     >
-
-      {/* Compact header row — always visible, click to expand */}
+      {/* ── Clickable card face ── */}
       <div
         role="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-gray-50 cursor-pointer"
+        className="cursor-pointer hover:brightness-[0.985] transition-all"
       >
-        {/* Business initial avatar */}
-        <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white flex-shrink-0 text-sm"
-          style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)', fontFamily: "'Bricolage Grotesque', sans-serif" }}
-        >
-          {bizInitial}
+        {/* Header band */}
+        <div className="relative shrink-0" style={{ height: '64px' }}>
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #2d4a63 100%)' }} />
+
+          {/* Title + chevron */}
+          <div className="absolute inset-0 flex items-center pl-20 pr-4 gap-3">
+            <h3
+              className="font-bold text-white text-sm leading-snug line-clamp-2 flex-1 text-right"
+              style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+            >
+              {invite?.title ?? 'Collab'}
+            </h3>
+            <ChevronDown
+              className="w-4 h-4 text-white/50 flex-shrink-0 transition-transform duration-200"
+              style={{ transform: open ? 'rotate(180deg)' : 'none' }}
+            />
+          </div>
+
+          {/* Business avatar — overlaps band/body boundary */}
+          <div className="absolute left-4" style={{ bottom: 0, transform: 'translateY(50%)' }}>
+            <div
+              className="p-[2.5px] rounded-full"
+              style={{ background: bizInstagram ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(255,255,255,0.25)' }}
+            >
+              <div className="p-[2px] bg-white rounded-full">
+                {bizAvatarUrl ? (
+                  <img src={bizAvatarUrl} alt={bizName} className="w-12 h-12 rounded-full object-cover block" />
+                ) : (
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                    style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}
+                  >
+                    {bizInitial}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Biz name + collab title */}
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-[#1C2B3A] text-sm leading-tight truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {bizName}
-          </p>
-          <p className="text-xs text-gray-500 mt-0.5 truncate" style={{ fontFamily: "'Inter', sans-serif" }}>
-            {invite?.title ?? 'Collab'}
-          </p>
+        {/* Always-visible info body */}
+        <div className="px-4 pt-9 pb-3 flex flex-col gap-2">
+
+          {/* Business name + value badge */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-semibold text-sm text-[#1C2B3A] truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                {bizName}
+              </p>
+              {bizAddress && (
+                <div className="flex items-center gap-1 mt-0.5" onClick={e => e.stopPropagation()}>
+                  <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
+                  {bizLat && bizLng ? (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${bizLat},${bizLng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-500 hover:underline truncate"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      {bizAddress}
+                    </a>
+                  ) : (
+                    <span className="text-xs text-gray-400 truncate">{bizAddress}</span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div
+              className="shrink-0 px-3 py-1.5 rounded-xl text-right"
+              style={{
+                background: isRetainer ? 'rgba(107,230,176,0.08)' : 'rgba(245,184,0,0.08)',
+                border: `1px solid ${isRetainer ? 'rgba(107,230,176,0.25)' : 'rgba(245,184,0,0.25)'}`,
+              }}
+            >
+              <p className="font-bold text-lg leading-none" style={{ color: isRetainer ? '#059669' : '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                {isRetainer ? formatGBP(invite?.fee_gbp ?? 0) : formatGBP(invite?.value_gbp ?? 0)}
+              </p>
+              <p className="text-[10px] text-gray-400 mt-0.5">{isRetainer ? '/month' : 'value'}</p>
+            </div>
+          </div>
+
+          {/* Pills + badges row */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
+              style={{
+                background: isRetainer ? 'rgba(107,230,176,0.15)' : 'rgba(245,184,0,0.1)',
+                color: isRetainer ? '#059669' : '#b45309',
+              }}
+            >
+              {isRetainer ? 'Retainer' : 'One-off'}
+            </span>
+
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+              style={{ background: pill.bg, color: pill.text, fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {pill.label}
+            </span>
+
+            {needsAction && (
+              <span
+                className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
+              >
+                {!isRetainer && match.status === 'accepted' ? 'Visit & post ↗' : 'Submit post ↗'}
+              </span>
+            )}
+
+            {unread > 0 && (
+              <button
+                onClick={e => {
+                  e.stopPropagation()
+                  setOpen(true)
+                  if (!msgOpen) { setMsgOpen(true); setUnread(0); window.dispatchEvent(new Event('badges-refresh')) }
+                }}
+                className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 hover:opacity-80 transition-opacity"
+                style={{ background: '#F5B800', color: '#1C2B3A' }}
+              >
+                <MessageCircle className="w-3 h-3" />
+                {unread}
+              </button>
+            )}
+          </div>
         </div>
-
-        {/* Value */}
-        <div className="shrink-0 text-right">
-          <p className="font-bold text-sm leading-tight" style={{ color: isRetainer ? '#059669' : '#b45309', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {isRetainer ? formatGBP(invite?.fee_gbp ?? 0) : formatGBP(invite?.value_gbp ?? 0)}
-          </p>
-          <p className="text-[9px] text-gray-400 mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            {isRetainer ? '/mo' : 'value'}
-          </p>
-        </div>
-
-        {/* Status pill */}
-        <span
-          className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0"
-          style={{ background: pill.bg, color: pill.text, fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          {pill.label}
-        </span>
-
-        {/* Unread message badge — click to jump straight to messages */}
-        {unread > 0 && (
-          <button
-            onClick={e => {
-              e.stopPropagation()
-              setOpen(true)
-              if (!msgOpen) { setMsgOpen(true); setUnread(0); window.dispatchEvent(new Event('badges-refresh')) }
-            }}
-            className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 hover:opacity-80 transition-opacity"
-            style={{ background: '#F5B800', color: '#1C2B3A' }}
-          >
-            <MessageCircle className="w-3 h-3" />
-            {unread}
-          </button>
-        )}
-
-        <ChevronDown
-          className="w-3.5 h-3.5 text-gray-400 transition-transform duration-200 flex-shrink-0"
-          style={{ transform: open ? 'rotate(180deg)' : 'none' }}
-        />
       </div>
 
-      {/* Expanded body */}
+      {/* ── Expanded body ── */}
       {open && (
         <div>
           {/* Next step label */}
@@ -269,22 +331,6 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
               </div>
             )}
           </div>
-
-          {/* Address */}
-          {bizAddress && (
-            <div className="px-5 pb-3" style={{ marginTop: '-6px' }}>
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bizAddress)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-medium hover:underline"
-                style={{ color: '#6BE6B0' }}
-              >
-                <MapPin className="w-3 h-3 flex-shrink-0" />
-                {bizAddress}
-              </a>
-            </div>
-          )}
 
           {/* One-off: deliverables */}
           {!isRetainer && (match.status === 'accepted' || match.status === 'posted' || match.status === 'verified') && (
