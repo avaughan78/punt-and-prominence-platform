@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { MessageCircle, Pencil, Trash2, Check, ChevronDown, ImageIcon, ExternalLink, Info, Users, MoreVertical } from 'lucide-react'
+import { MessageCircle, Pencil, Trash2, Check, ChevronDown, ImageIcon, ExternalLink, Info, Users, MoreVertical, Lock, LockOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { EditInviteModal } from '@/components/invites/EditInviteModal'
@@ -459,6 +459,7 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                       className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
+                      {isActive ? <Lock className="w-3.5 h-3.5" /> : <LockOpen className="w-3.5 h-3.5" />}
                       {isActive ? 'Close' : 'Reopen'}
                     </button>
                     <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }} />
