@@ -28,7 +28,7 @@ export default async function BusinessDashboard() {
       .eq('business_id', user!.id)
       .eq('status', 'posted')
       .order('created_at', { ascending: false }),
-    supabase.from('matches').select('status').eq('business_id', user!.id),
+    supabase.from('matches').select('status, scan_count').eq('business_id', user!.id),
   ])
 
   if (!profile?.business_name) redirect('/business/onboarding')
@@ -40,6 +40,7 @@ export default async function BusinessDashboard() {
   const creatorsMatched = allMatches.length
   const inProgress      = allMatches.filter(m => ['accepted', 'posted', 'active'].includes(m.status)).length
   const fulfilled       = allMatches.filter(m => m.status === 'verified').length
+  const visits          = allMatches.filter(m => (m.scan_count ?? 0) > 0).length
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -117,10 +118,11 @@ export default async function BusinessDashboard() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
         <StatCard label="Open collabs" value={activeOffers} href="/business/invites" />
         <StatCard label="Creators matched" value={creatorsMatched} accent="#6BE6B0" href="/business/invites" />
         <StatCard label="In progress" value={inProgress} accent="#C084FC" href="/business/invites" />
+        <StatCard label="Visits confirmed" value={visits} accent="#F5B800" href="/business/invites" />
         <StatCard label="Fulfilled" value={fulfilled} accent="#22c55e" href="/business/invites" />
       </div>
 

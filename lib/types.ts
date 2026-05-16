@@ -82,6 +82,8 @@ export interface Match {
   punt_code: string
   post_url: string | null
   notes: string | null
+  scan_count: number
+  first_scanned_at: string | null
   created_at: string
   updated_at: string
   // Joined

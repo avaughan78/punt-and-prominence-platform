@@ -12,16 +12,18 @@ export default async function CreatorDashboard() {
 
   const [{ data: profile }, { data: invites }, { data: matches }, { data: unreadCount }] = await Promise.all([
     supabase.from('profiles').select('instagram_handle, is_approved').eq('id', user!.id).single(),
-    supabase.from('offers').select('slots_total, slots_claimed').eq('is_active', true),
-    supabase.from('matches').select('id, status').eq('creator_id', user!.id),
+    supabase.from('offers').select('id, slots_total, slots_claimed').eq('is_active', true),
+    supabase.from('matches').select('id, offer_id, status, scan_count').eq('creator_id', user!.id),
     supabase.rpc('get_unread_message_count'),
   ])
 
   if (!profile?.instagram_handle) redirect('/creator/onboarding')
 
-  const availableInvites = (invites ?? []).filter(o => o.slots_claimed < o.slots_total).length
+  const claimedOfferIds  = new Set((matches ?? []).map(m => m.offer_id).filter(Boolean))
+  const availableInvites = (invites ?? []).filter(o => o.slots_claimed < o.slots_total && !claimedOfferIds.has(o.id)).length
   const inProgress = matches?.filter(m => ['accepted', 'posted', 'active'].includes(m.status)).length ?? 0
   const completed  = matches?.filter(m => ['verified', 'completed'].includes(m.status)).length ?? 0
+  const visits     = matches?.filter(m => (m.scan_count ?? 0) > 0).length ?? 0
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -71,10 +73,11 @@ export default async function CreatorDashboard() {
         </Link>
       )}
 
-      <div className="grid grid-cols-3 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <StatCard label="Available collabs" value={availableInvites} href="/creator/browse" />
         <StatCard label="In progress" value={inProgress} accent="#C084FC" href="/creator/matches" />
         <StatCard label="Completed" value={completed} accent="#22c55e" href="/creator/matches" />
+        <StatCard label="Visits confirmed" value={visits} accent="#6BE6B0" href="/creator/matches" />
       </div>
 
       <div className="rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"

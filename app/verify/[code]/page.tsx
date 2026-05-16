@@ -23,6 +23,9 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
 
   if (!data) notFound()
 
+  // Record the scan — atomic, deduplicated to one per 5-minute window
+  try { await supabase.rpc('record_punt_scan', { p_punt_code: code.toUpperCase() }) } catch { }
+
   const creator = data.creator as unknown as { display_name: string; instagram_handle: string | null; avatar_url: string | null } | null
   const invite  = data.invite  as unknown as { title: string; invite_type: string; business: { business_name: string | null; display_name: string } | null } | null
   const biz     = invite?.business
