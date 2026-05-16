@@ -374,9 +374,18 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
           {/* Title row */}
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-[#1C2B3A] leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: '15px' }}>
-                {invite.title}
-              </p>
+              <button
+                onClick={() => matches.length > 0 && setOpen(o => !o)}
+                className="flex items-center gap-1.5 text-left group"
+                style={{ cursor: matches.length > 0 ? 'pointer' : 'default' }}
+              >
+                <p className="font-bold text-[#1C2B3A] leading-tight group-hover:underline underline-offset-2" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: '15px' }}>
+                  {invite.title}
+                </p>
+                {matches.length > 0 && (
+                  <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform duration-150 mt-0.5" style={{ transform: open ? 'rotate(180deg)' : 'none' }} />
+                )}
+              </button>
               <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                 <span
                   className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md"
