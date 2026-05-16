@@ -135,14 +135,13 @@ export default function BrowsePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {offers.map(invite => (
+          {offers.filter(o => !claimedOfferIds.has(o.id)).map(invite => (
             <InviteCard
               key={invite.id}
               invite={invite}
               mode="browse"
               isApproved={isApproved}
               isProfileComplete={isProfileComplete}
-              alreadyClaimed={claimedOfferIds.has(invite.id)}
               onClaimed={data => handleClaimed(data, invite.id)}
             />
           ))}
