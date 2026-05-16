@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { emailMatchPosted } from '@/lib/email'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -85,6 +86,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       .from('matches')
       .update({ status: 'posted' })
       .eq('id', id)
+
+    // Notify the business
+    const business = match.business as unknown as { display_name: string; business_name: string | null; email: string } | null
+    const inviteTitle = match.invite_title as unknown as { title: string } | null
+    if (business?.email) {
+      emailMatchPosted({
+        businessEmail: business.email,
+        businessName: business.business_name ?? business.display_name,
+        creatorName: user.user_metadata?.display_name ?? 'A creator',
+        offerTitle: inviteTitle?.title ?? 'Collab',
+        postUrl: post_url,
+      })
+    }
   }
 
   return NextResponse.json({ deliverable: data, matchStatus: !isRetainer && match.status === 'accepted' ? 'posted' : match.status }, { status: 201 })

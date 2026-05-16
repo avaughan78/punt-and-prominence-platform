@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import {
   emailMatchPosted,
+  emailMatchVisited,
   emailMatchVerified,
 } from '@/lib/email'
 
@@ -68,7 +69,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const businessName = business?.business_name ?? business?.display_name ?? ''
   const offerTitle = offer?.title ?? 'Offer'
 
-  if (update.status === 'verified' && creator?.email) {
+  if (update.status === 'active' && creator?.email) {
+    // Business confirmed the visit — notify the creator
+    emailMatchVisited({
+      creatorEmail: creator.email,
+      creatorName: creator.display_name,
+      businessName,
+      offerTitle,
+      puntCode: match.punt_code ?? '',
+    })
+  } else if (update.status === 'verified' && creator?.email) {
     emailMatchVerified({
       creatorEmail: creator.email,
       creatorName: creator.display_name,
@@ -76,12 +86,21 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       offerTitle,
     })
   } else if (update.status === 'posted' && business?.email) {
+    // Fallback: if status is manually advanced to posted via PATCH,
+    // fetch the most recent deliverable URL
+    const { data: latestDeliverable } = await supabase
+      .from('match_deliverables')
+      .select('post_url')
+      .eq('match_id', id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
     emailMatchPosted({
       businessEmail: business.email,
       businessName,
       creatorName: creator?.display_name ?? '',
       offerTitle,
-      postUrl: (update.post_url as string) ?? match.post_url ?? '',
+      postUrl: latestDeliverable?.post_url ?? match.post_url ?? '',
     })
   }
 

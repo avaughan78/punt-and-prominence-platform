@@ -196,7 +196,7 @@ export async function emailMatchVerified(opts: {
       <div style="background:rgba(107,230,176,0.1);border:1px solid rgba(107,230,176,0.3);border-radius:10px;padding:14px 18px;margin-bottom:28px;">
         <p style="font-size:14px;color:#059669;font-weight:700;margin:0;">&#10003; &nbsp;Match complete</p>
       </div>
-      ${cta(`${APP_URL}/creator/browse`, 'Browse more collabs')}
+      ${cta(`${APP_URL}/creator/matches`, 'View your matches')}
     `)
   )
 }
