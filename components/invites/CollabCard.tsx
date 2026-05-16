@@ -39,9 +39,10 @@ interface CreatorRowProps {
   initialPostsOpen?: boolean
   onStatusUpdated: (matchId: string, status: string) => void
   onDeliverableVerified: (matchId: string, deliverableId: string) => void
+  onUnreadChange?: (matchId: string, count: number) => void
 }
 
-function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPostsOpen, onStatusUpdated, onDeliverableVerified }: CreatorRowProps) {
+function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPostsOpen, onStatusUpdated, onDeliverableVerified, onUnreadChange }: CreatorRowProps) {
   const [msgOpen, setMsgOpen]           = useState(false)
   const [postsOpen, setPostsOpen]       = useState(initialPostsOpen ?? false)
   const [unread, setUnread]             = useState(0)
@@ -69,7 +70,11 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
   useEffect(() => {
     fetch(`/api/matches/${match.id}/messages/unread`)
       .then(r => r.json())
-      .then(d => setUnread(d.count ?? 0))
+      .then(d => {
+        const count = d.count ?? 0
+        setUnread(count)
+        onUnreadChange?.(match.id, count)
+      })
       .catch(() => {})
   }, [match.id])
 
@@ -82,7 +87,11 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
     })
     const data = await res.json()
     if (!res.ok) toast.error(data.error ?? 'Failed to update')
-    else { toast.success('Updated'); onStatusUpdated(match.id, status) }
+    else {
+      toast.success('Updated')
+      onStatusUpdated(match.id, status)
+      window.dispatchEvent(new Event('badges-refresh'))
+    }
     setLoading(false)
   }
 
@@ -109,7 +118,11 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
 
   function toggleMsg() {
     setMsgOpen(o => !o)
-    if (!msgOpen) setUnread(0)
+    if (!msgOpen) {
+      setUnread(0)
+      onUnreadChange?.(match.id, 0)
+      window.dispatchEvent(new Event('badges-refresh'))
+    }
   }
 
   const statusLabel = match.status === 'accepted' && isRetainer ? 'Awaiting activation' : meta.label
@@ -241,11 +254,12 @@ interface Props {
 }
 
 export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatchId, onToggle, onDelete, onUpdated, onViewDetail }: Props) {
-  const [open, setOpen]         = useState(initialOpen ?? false)
-  const [editing, setEditing]   = useState(false)
-  const [toggling, setToggling] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [matches, setMatches]   = useState<MatchPreview[]>(invite.matches ?? [])
+  const [open, setOpen]               = useState(initialOpen ?? false)
+  const [editing, setEditing]         = useState(false)
+  const [toggling, setToggling]       = useState(false)
+  const [deleting, setDeleting]       = useState(false)
+  const [matches, setMatches]         = useState<MatchPreview[]>(invite.matches ?? [])
+  const [unreadByMatch, setUnreadByMatch] = useState<Record<string, number>>({})
 
   useEffect(() => { setMatches(invite.matches ?? []) }, [invite.matches])
 
@@ -300,6 +314,12 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
     } : m))
     window.dispatchEvent(new Event('deliverable-verified'))
   }
+
+  function handleUnreadChange(matchId: string, count: number) {
+    setUnreadByMatch(prev => ({ ...prev, [matchId]: count }))
+  }
+
+  const totalUnread = Object.values(unreadByMatch).reduce((a, b) => a + b, 0)
 
   const sortedMatches = [...matches].sort((a, b) => (STATUS_PRIORITY[a.status] ?? 3) - (STATUS_PRIORITY[b.status] ?? 3))
 
@@ -389,8 +409,13 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
               </span>
             )}
             {verifyCount > 0 && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(192,132,252,0.15)', color: '#9333ea', fontFamily: "'JetBrains Mono', monospace" }}>
-                {verifyCount} to verify
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(192,132,252,0.2)', color: '#9333ea', fontFamily: "'Inter', sans-serif" }}>
+                New posts!
+              </span>
+            )}
+            {totalUnread > 0 && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,184,0,0.2)', color: '#92400e', fontFamily: "'Inter', sans-serif" }}>
+                New DMs!
               </span>
             )}
           </div>
@@ -443,6 +468,7 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                 initialPostsOpen={initialOpenMatchId === m.id}
                 onStatusUpdated={handleStatusUpdated}
                 onDeliverableVerified={handleDeliverableVerified}
+                onUnreadChange={handleUnreadChange}
               />
             ))}
           </div>

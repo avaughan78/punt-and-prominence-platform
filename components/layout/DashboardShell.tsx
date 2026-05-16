@@ -59,7 +59,11 @@ export function DashboardShell({ children, role, displayName }: Props) {
 
   useEffect(() => {
     window.addEventListener('deliverable-verified', refreshUnread)
-    return () => window.removeEventListener('deliverable-verified', refreshUnread)
+    window.addEventListener('badges-refresh', refreshUnread)
+    return () => {
+      window.removeEventListener('deliverable-verified', refreshUnread)
+      window.removeEventListener('badges-refresh', refreshUnread)
+    }
   }, [])
 
   async function handleSignOut() {
