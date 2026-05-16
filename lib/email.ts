@@ -4,12 +4,9 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 const FROM = 'Punt & Prominence <hello@puntandprominence.co.uk>'
 const APP_URL = process.env.APP_URL ?? 'https://puntandprominence.co.uk'
 
-const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL ?? null
-
 async function send(to: string, subject: string, html: string) {
   if (!resend) return
-  const bcc = NOTIFY_EMAIL && NOTIFY_EMAIL !== to ? [NOTIFY_EMAIL] : undefined
-  await resend.emails.send({ from: FROM, to, subject, html, bcc }).catch(console.error)
+  await resend.emails.send({ from: FROM, to, subject, html }).catch(console.error)
 }
 
 function wrap(body: string) {
