@@ -64,9 +64,9 @@ export async function emailMatchClaimed(opts: {
     wrap(`
       <h2 style="font-size:22px;font-weight:800;color:#1C2B3A;margin:0 0 8px;font-family:Georgia,'Times New Roman',serif;">Someone claimed your offer</h2>
       <p style="color:#6b7280;margin:0 0 24px;font-size:14px;line-height:1.6;"><strong style="color:#1C2B3A;">${opts.creatorName}</strong> has claimed <strong style="color:#1C2B3A;">${opts.offerTitle}</strong>. When they visit, ask for their punt code below.</p>
-      <div style="background:#1C2B3A;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
-        <p style="color:rgba(255,255,255,0.4);font-size:10px;font-family:'Courier New',Courier,monospace;margin:0 0 6px;letter-spacing:0.15em;text-transform:uppercase;">Punt Code</p>
-        <p style="color:#F5B800;font-size:28px;font-weight:700;font-family:'Courier New',Courier,monospace;letter-spacing:6px;margin:0;">${opts.puntCode}</p>
+      <div style="background:rgba(245,184,0,0.08);border:1.5px solid rgba(245,184,0,0.25);border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
+        <p style="color:#b45309;font-size:10px;font-family:'Courier New',Courier,monospace;margin:0 0 6px;letter-spacing:0.15em;text-transform:uppercase;">Punt Code</p>
+        <p style="color:#1C2B3A;font-size:28px;font-weight:700;font-family:'Courier New',Courier,monospace;letter-spacing:6px;margin:0;">${opts.puntCode}</p>
       </div>
       <p style="color:#9ca3af;font-size:13px;margin:0;">Mark the match as visited in your dashboard once they arrive.</p>
     `)
@@ -89,9 +89,9 @@ export async function emailMatchVisited(opts: {
       <div style="background:rgba(107,230,176,0.1);border:1px solid rgba(107,230,176,0.3);border-radius:10px;padding:14px 18px;margin-bottom:24px;">
         <p style="font-size:14px;font-weight:700;color:#1C2B3A;margin:0;">You have <span style="color:#059669;">72 hours</span> to post and submit your link.</p>
       </div>
-      <div style="background:#1C2B3A;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
-        <p style="color:rgba(255,255,255,0.4);font-size:10px;font-family:'Courier New',Courier,monospace;margin:0 0 6px;letter-spacing:0.15em;text-transform:uppercase;">Your Punt Code</p>
-        <p style="color:#F5B800;font-size:28px;font-weight:700;font-family:'Courier New',Courier,monospace;letter-spacing:6px;margin:0;">${opts.puntCode}</p>
+      <div style="background:rgba(245,184,0,0.08);border:1.5px solid rgba(245,184,0,0.25);border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
+        <p style="color:#b45309;font-size:10px;font-family:'Courier New',Courier,monospace;margin:0 0 6px;letter-spacing:0.15em;text-transform:uppercase;">Your Punt Code</p>
+        <p style="color:#1C2B3A;font-size:28px;font-weight:700;font-family:'Courier New',Courier,monospace;letter-spacing:6px;margin:0;">${opts.puntCode}</p>
       </div>
       <div style="margin-bottom:8px;">${cta(`${APP_URL}/creator/matches`, 'Submit your post')}</div>
     `)
