@@ -32,12 +32,8 @@ export default async function BusinessDashboard() {
 
   if (!profile?.business_name) redirect('/business/onboarding')
 
-  // Only show matches that still have unverified content
-  const postedMatches = (postedMatchesRaw ?? []).filter(m => {
-    const delivs = (m.deliverables as { status: string }[]) ?? []
-    if (delivs.length === 0) return !!m.post_url
-    return delivs.some(d => d.status !== 'verified')
-  })
+  // All posted matches need business attention (verify deliverables and/or mark fulfilled)
+  const postedMatches = postedMatchesRaw ?? []
 
   const activeOffers = offers?.filter(o => o.is_active).length ?? 0
   const totalMatches = matches?.length ?? 0
