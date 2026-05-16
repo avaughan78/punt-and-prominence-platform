@@ -9,9 +9,31 @@ import type { Invite } from '@/lib/types'
 
 interface ClaimedData { id: string; punt_code: string }
 
+type Filter = 'all' | 'one_off' | 'retainer' | 'dining' | 'retail' | 'experience' | 'fitness' | 'beauty' | 'other'
+
+const FILTERS: { value: Filter; label: string; bg: string; text: string; activeBg: string; activeText: string }[] = [
+  { value: 'all',        label: 'All',        bg: 'rgba(28,43,58,0.06)',    text: '#6b7280', activeBg: '#1C2B3A',  activeText: '#ffffff' },
+  { value: 'one_off',    label: 'One-off',    bg: 'rgba(245,184,0,0.1)',    text: '#b45309', activeBg: '#F5B800',  activeText: '#1C2B3A' },
+  { value: 'retainer',   label: 'Retainer',   bg: 'rgba(96,165,250,0.12)',  text: '#1d4ed8', activeBg: '#60a5fa',  activeText: '#ffffff' },
+  { value: 'dining',     label: 'Dining',     bg: 'rgba(251,146,60,0.14)',  text: '#c2410c', activeBg: '#f97316',  activeText: '#ffffff' },
+  { value: 'retail',     label: 'Retail',     bg: 'rgba(167,139,250,0.15)', text: '#6d28d9', activeBg: '#7c3aed',  activeText: '#ffffff' },
+  { value: 'experience', label: 'Experience', bg: 'rgba(96,165,250,0.15)',  text: '#1d4ed8', activeBg: '#2563eb',  activeText: '#ffffff' },
+  { value: 'fitness',    label: 'Fitness',    bg: 'rgba(74,222,128,0.15)',  text: '#15803d', activeBg: '#16a34a',  activeText: '#ffffff' },
+  { value: 'beauty',     label: 'Beauty',     bg: 'rgba(244,114,182,0.15)', text: '#be185d', activeBg: '#db2777',  activeText: '#ffffff' },
+  { value: 'other',      label: 'Other',      bg: 'rgba(0,0,0,0.06)',       text: '#6b7280', activeBg: '#6b7280',  activeText: '#ffffff' },
+]
+
+function applyFilter(offer: Invite, filter: Filter): boolean {
+  if (filter === 'one_off')  return offer.invite_type !== 'retainer'
+  if (filter === 'retainer') return offer.invite_type === 'retainer'
+  if (filter !== 'all')      return offer.category === filter
+  return true
+}
+
 export default function BrowsePage() {
   const [offers, setOffers] = useState<Invite[]>([])
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<Filter>('all')
   const [claimed, setClaimed] = useState<ClaimedData | null>(null)
   const [claimedOfferIds, setClaimedOfferIds] = useState<Set<string>>(new Set())
   const [instagramHandle, setInstagramHandle] = useState<string | null>(null)
@@ -47,6 +69,12 @@ export default function BrowsePage() {
     setOffers(prev => prev.map(o => o.id === inviteId ? { ...o, slots_claimed: o.slots_claimed + 1 } : o))
   }
 
+  const visibleOffers = offers.filter(o => !claimedOfferIds.has(o.id))
+  const filteredOffers = visibleOffers.filter(o => applyFilter(o, filter))
+  const counts = Object.fromEntries(
+    FILTERS.map(f => [f.value, f.value === 'all' ? visibleOffers.length : visibleOffers.filter(o => applyFilter(o, f.value)).length])
+  ) as Record<Filter, number>
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
@@ -63,7 +91,7 @@ export default function BrowsePage() {
               <p className="text-sm text-gray-500">Show this to the business when you visit.</p>
             </div>
 
-            {/* Creator identity — always show */}
+            {/* Creator identity */}
             <div className="flex justify-center mb-5">
               {instagramHandle ? (
                 <InstagramHandle handle={instagramHandle!} displayName={displayName} avatarUrl={avatarUrl} size="md" />
@@ -133,23 +161,62 @@ export default function BrowsePage() {
         <div className="flex justify-center py-16">
           <div className="w-6 h-6 rounded-full border-2 border-[#F5B800] border-t-transparent animate-spin" />
         </div>
-      ) : offers.length === 0 ? (
+      ) : visibleOffers.length === 0 ? (
         <div className="rounded-2xl p-12 text-center" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
           <p className="text-sm text-gray-400">No collabs available right now. Check back soon.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {offers.filter(o => !claimedOfferIds.has(o.id)).map(invite => (
-            <InviteCard
-              key={invite.id}
-              invite={invite}
-              mode="browse"
-              isApproved={isApproved}
-              isProfileComplete={isProfileComplete}
-              onClaimed={data => handleClaimed(data, invite.id)}
-            />
-          ))}
-        </div>
+        <>
+          {/* Filters */}
+          <div className="flex gap-1.5 flex-wrap mb-5">
+            {FILTERS.filter(f => counts[f.value] > 0 || f.value === 'all').map(f => {
+              const active = filter === f.value
+              return (
+                <button
+                  key={f.value}
+                  onClick={() => setFilter(f.value)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  style={{
+                    background: active ? f.activeBg : f.bg,
+                    color: active ? f.activeText : f.text,
+                  }}
+                >
+                  {f.label}
+                  {f.value !== 'all' && counts[f.value] > 0 && (
+                    <span
+                      className="text-[10px] font-bold px-1 py-0.5 rounded-md min-w-[18px] text-center"
+                      style={{ background: active ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.08)' }}
+                    >
+                      {counts[f.value]}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+
+          {filteredOffers.length === 0 ? (
+            <div className="rounded-2xl p-12 text-center" style={{ border: '1.5px dashed rgba(0,0,0,0.1)' }}>
+              <p className="text-sm text-gray-400 mb-3">No collabs match this filter.</p>
+              <button onClick={() => setFilter('all')} className="text-xs text-gray-400 hover:text-[#1C2B3A] underline transition-colors">
+                Show all collabs
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredOffers.map(invite => (
+                <InviteCard
+                  key={invite.id}
+                  invite={invite}
+                  mode="browse"
+                  isApproved={isApproved}
+                  isProfileComplete={isProfileComplete}
+                  onClaimed={data => handleClaimed(data, invite.id)}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   )

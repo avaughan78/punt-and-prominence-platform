@@ -81,12 +81,12 @@ export default async function CreatorDashboard() {
       </div>
 
       <div className="rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"
-        style={{ background: 'linear-gradient(135deg, #1C2B3A 0%, #253d54 100%)' }}>
+        style={{ border: '1.5px solid transparent', background: 'linear-gradient(#f9f6ff, #fff8f6) padding-box, linear-gradient(135deg, rgba(131,58,180,0.35) 0%, rgba(253,29,29,0.25) 60%, rgba(252,176,69,0.2) 100%) border-box' }}>
         <div className="flex-1">
-          <p className="font-semibold text-white mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+          <p className="font-semibold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
             {availableInvites > 0 ? `${availableInvites} collab${availableInvites !== 1 ? 's' : ''} available` : 'New collabs coming soon'}
           </p>
-          <p className="text-xs text-white/50">Cambridge businesses are waiting for creators like you.</p>
+          <p className="text-xs text-gray-400">Cambridge businesses are waiting for creators like you.</p>
         </div>
         <Link href="/creator/browse">
           <Button>
