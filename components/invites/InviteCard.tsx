@@ -12,12 +12,13 @@ interface Props {
   mode: 'browse' | 'manage'
   isApproved?: boolean
   isProfileComplete?: boolean
+  alreadyClaimed?: boolean
   onClaimed?: (matchData: { id: string; punt_code: string }) => void
   onToggle?: (id: string, active: boolean) => void
   onDelete?: (id: string) => void
 }
 
-export function InviteCard({ invite, mode, isApproved = true, isProfileComplete = true, onClaimed, onToggle, onDelete }: Props) {
+export function InviteCard({ invite, mode, isApproved = true, isProfileComplete = true, alreadyClaimed = false, onClaimed, onToggle, onDelete }: Props) {
   const [claiming, setClaiming] = useState(false)
   const [toggling, setToggling] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -205,8 +206,8 @@ export function InviteCard({ invite, mode, isApproved = true, isProfileComplete 
           </div>
 
           {mode === 'browse' && (
-            <Button size="sm" onClick={handleClaim} loading={claiming} disabled={slotsLeft === 0 || !isApproved || !isProfileComplete}>
-              {slotsLeft === 0 ? 'Full' : 'Claim collab'}
+            <Button size="sm" onClick={handleClaim} loading={claiming} disabled={slotsLeft === 0 || !isApproved || !isProfileComplete || alreadyClaimed}>
+              {slotsLeft === 0 ? 'Full' : alreadyClaimed ? 'Already claimed' : 'Claim collab'}
             </Button>
           )}
 

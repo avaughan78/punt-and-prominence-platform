@@ -12,6 +12,7 @@ export default function BrowsePage() {
   const [offers, setOffers] = useState<Invite[]>([])
   const [loading, setLoading] = useState(true)
   const [claimed, setClaimed] = useState<ClaimedData | null>(null)
+  const [claimedOfferIds, setClaimedOfferIds] = useState<Set<string>>(new Set())
   const [instagramHandle, setInstagramHandle] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState<string>('')
@@ -22,7 +23,8 @@ export default function BrowsePage() {
     Promise.all([
       fetch('/api/invites').then(r => r.json()),
       fetch('/api/profile').then(r => r.json()),
-    ]).then(([offersData, profile]) => {
+      fetch('/api/matches').then(r => r.json()),
+    ]).then(([offersData, profile, matchesData]) => {
       setOffers(Array.isArray(offersData) ? offersData : [])
       if (profile && !profile.error) {
         setInstagramHandle(profile.instagram_handle ?? null)
@@ -31,16 +33,17 @@ export default function BrowsePage() {
         setIsApproved(profile.is_approved ?? true)
         setIsProfileComplete(!!(profile.instagram_handle && profile.follower_count != null))
       }
+      if (Array.isArray(matchesData)) {
+        setClaimedOfferIds(new Set(matchesData.map((m: { offer_id: string }) => m.offer_id).filter(Boolean)))
+      }
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [])
 
   function handleClaimed(data: ClaimedData, inviteId: string) {
     setClaimed(data)
-    setOffers(prev => prev
-      .map(o => o.id === inviteId ? { ...o, slots_claimed: o.slots_claimed + 1 } : o)
-      .filter(o => o.slots_claimed < o.slots_total)
-    )
+    setClaimedOfferIds(prev => new Set([...prev, inviteId]))
+    setOffers(prev => prev.map(o => o.id === inviteId ? { ...o, slots_claimed: o.slots_claimed + 1 } : o))
   }
 
   return (
@@ -139,6 +142,7 @@ export default function BrowsePage() {
               mode="browse"
               isApproved={isApproved}
               isProfileComplete={isProfileComplete}
+              alreadyClaimed={claimedOfferIds.has(invite.id)}
               onClaimed={data => handleClaimed(data, invite.id)}
             />
           ))}
