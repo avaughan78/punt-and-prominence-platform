@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { InlineMessageThread } from '@/components/matches/InlineMessageThread'
 import { formatGBP, normalizeUrl } from '@/lib/utils'
+import { PuntQRCode } from '@/components/ui/PuntQRCode'
 import type { Match, MatchDeliverable } from '@/lib/types'
 
 const BORDER_COLOR: Record<string, string> = {
@@ -548,17 +549,25 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
 
           {/* Collab details */}
           <div className="px-5 py-4 flex flex-col gap-4" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-            {/* Punt code */}
-            <div
-              className="rounded-xl px-4 py-3"
-              style={{ background: 'white', border: '1.5px solid #1C2B3A' }}
-            >
-              <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
-                Punt code
-              </p>
-              <p className="font-bold tracking-widest" style={{ color: '#1C2B3A', fontFamily: "'JetBrains Mono', monospace", fontSize: '18px', letterSpacing: '0.12em' }}>
-                {match.punt_code}
-              </p>
+            {/* Punt code + QR */}
+            <div className="flex items-center gap-4">
+              <div
+                className="flex-1 rounded-xl px-4 py-3"
+                style={{ background: '#1C2B3A' }}
+              >
+                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  Punt code
+                </p>
+                <p className="font-bold tracking-widest" style={{ color: '#F5B800', fontFamily: "'JetBrains Mono', monospace", fontSize: '18px', letterSpacing: '0.12em' }}>
+                  {match.punt_code}
+                </p>
+                <p className="text-[9px] mt-2" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: "'Inter', sans-serif" }}>
+                  Show to staff on arrival
+                </p>
+              </div>
+              {(match.status === 'accepted' || (isRetainer && match.status === 'active')) && (
+                <PuntQRCode puntCode={match.punt_code} size={88} />
+              )}
             </div>
 
             {invite?.description && (

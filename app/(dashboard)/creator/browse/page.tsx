@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { InviteCard } from '@/components/invites/InviteCard'
 import { InstagramHandle } from '@/components/ui/InstagramHandle'
 import { Button } from '@/components/ui/Button'
+import { PuntQRCode } from '@/components/ui/PuntQRCode'
 import { Clock, AlertCircle } from 'lucide-react'
 import type { Invite } from '@/lib/types'
 
@@ -81,14 +82,17 @@ export default function BrowsePage() {
               )}
             </div>
 
-            <div className="rounded-xl p-4 text-center mb-4" style={{ background: '#1C2B3A' }}>
-              <p className="text-xs text-white/40 mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>YOUR PUNT CODE</p>
-              <p className="text-3xl font-bold tracking-widest text-[#F5B800]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {claimed.punt_code}
-              </p>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 rounded-xl p-4 text-center" style={{ background: '#1C2B3A' }}>
+                <p className="text-xs text-white/40 mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>YOUR PUNT CODE</p>
+                <p className="text-3xl font-bold tracking-widest text-[#F5B800]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  {claimed.punt_code}
+                </p>
+              </div>
+              <PuntQRCode puntCode={claimed.punt_code} size={96} />
             </div>
             <p className="text-xs text-gray-400 text-center mb-4">
-              You&apos;ll also find this in your matches. You have 72 hours after visiting to post.
+              Show the QR or punt code to staff when you visit. You have 72 hours after visiting to post.
             </p>
             <Button className="w-full" onClick={() => setClaimed(null)}>Got it</Button>
           </div>
