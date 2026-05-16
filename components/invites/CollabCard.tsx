@@ -378,7 +378,7 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
     <>
       {editing && <EditInviteModal invite={invite} onClose={() => setEditing(false)} onSaved={onUpdated} />}
 
-      <div className="rounded-2xl overflow-hidden flex flex-col" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', ...cardBorderStyle }}>
+      <div className="rounded-2xl flex flex-col" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', ...cardBorderStyle }}>
 
         {/* Card face */}
         <div className="p-4 flex flex-col gap-3 flex-1">
@@ -534,7 +534,7 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
 
         {/* Expandable creator rows */}
         {open && (
-          <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+          <div className="rounded-b-2xl overflow-hidden" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
             {sortedMatches.map(m => (
               <CreatorRow
                 key={m.id}
