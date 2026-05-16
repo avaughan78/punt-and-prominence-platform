@@ -33,15 +33,15 @@ interface StatCardProps {
 export function StatCard({ label, value, sub, accent = '#F5B800', href }: StatCardProps) {
   const isClickable = href && Number(value) > 0
   const inner = (
-    <div className="flex flex-col">
-      <p className="text-3xl font-bold mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", color: accent }}>
-        {value}
-      </p>
-      <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(28,43,58,0.4)', fontFamily: "'JetBrains Mono', monospace" }}>
+    <>
+      <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(28,43,58,0.4)', fontFamily: "'JetBrains Mono', monospace", minHeight: '2.5rem', display: 'flex', alignItems: 'flex-start' }}>
         {label}
       </p>
+      <p className="text-3xl font-bold" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", color: accent }}>
+        {value}
+      </p>
       {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
-    </div>
+    </>
   )
   if (isClickable) {
     return (
