@@ -83,11 +83,11 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
           </div>
 
           {/* Punt code */}
-          <div className="mx-4 mb-6 rounded-2xl px-4 py-3 text-center" style={{ background: '#1C2B3A' }}>
-            <p className="text-[10px] text-white/40 mb-1 uppercase tracking-widest" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          <div className="mx-4 mb-6 rounded-2xl px-4 py-3 text-center" style={{ background: 'rgba(245,184,0,0.06)', border: '1.5px solid rgba(245,184,0,0.2)' }}>
+            <p className="text-[10px] mb-1 uppercase tracking-widest font-bold" style={{ color: '#b45309', fontFamily: "'JetBrains Mono', monospace" }}>
               Punt code
             </p>
-            <p className="text-2xl font-bold tracking-widest" style={{ color: '#F5B800', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.15em' }}>
+            <p className="text-2xl font-bold tracking-widest" style={{ color: '#1C2B3A', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.15em' }}>
               {data.punt_code}
             </p>
           </div>
