@@ -11,20 +11,23 @@ async function send(to: string, subject: string, html: string) {
 
 function wrap(body: string) {
   return `
-    <div style="background:#f3f4f6;padding:40px 16px;font-family:Arial,Helvetica,sans-serif;">
-      <div style="max-width:520px;margin:0 auto;border-radius:16px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.10);">
+    <div style="background:#1C2B3A;padding:40px 16px;font-family:Arial,Helvetica,sans-serif;">
+      <div style="max-width:520px;margin:0 auto;">
 
-        <div style="background:#1C2B3A;padding:28px 36px;text-align:center;">
-          <p style="font-family:'Courier New',Courier,monospace;font-size:11px;font-weight:700;color:#F5B800;letter-spacing:0.18em;text-transform:uppercase;margin:0;">&#9733; &nbsp;Punt &amp; Prominence</p>
+        <div style="text-align:center;padding-bottom:24px;">
+          <p style="font-family:'Courier New',Courier,monospace;font-size:12px;font-weight:700;color:#F5B800;letter-spacing:0.2em;text-transform:uppercase;margin:0;">&#9733; &nbsp;Punt &amp; Prominence</p>
         </div>
 
-        <div style="background:#ffffff;padding:36px 36px 32px;">
-          ${body}
+        <div style="background:#ffffff;border-radius:16px;overflow:hidden;">
+          <div style="background:#F5B800;height:4px;"></div>
+          <div style="padding:36px 36px 32px;">
+            ${body}
+          </div>
         </div>
 
-        <div style="background:#1C2B3A;padding:20px 36px;text-align:center;">
-          <p style="font-size:9px;color:rgba(255,255,255,0.25);margin:0 0 6px;letter-spacing:0.14em;text-transform:uppercase;font-family:'Courier New',Courier,monospace;">&#9733; &nbsp;Punt &amp; Prominence &nbsp;&middot;&nbsp; Cambridge, UK</p>
-          <p style="font-size:11px;color:rgba(255,255,255,0.35);margin:0;"><a href="mailto:hello@puntandprominence.co.uk" style="color:rgba(255,255,255,0.35);text-decoration:none;">hello@puntandprominence.co.uk</a></p>
+        <div style="text-align:center;padding-top:20px;">
+          <p style="font-size:11px;color:rgba(255,255,255,0.28);margin:0;font-family:'Courier New',Courier,monospace;letter-spacing:0.1em;">Cambridge&apos;s local creator marketplace</p>
+          <p style="font-size:11px;color:rgba(255,255,255,0.28);margin:6px 0 0;"><a href="mailto:hello@puntandprominence.co.uk" style="color:rgba(255,255,255,0.28);text-decoration:none;">hello@puntandprominence.co.uk</a></p>
         </div>
 
       </div>
@@ -33,7 +36,7 @@ function wrap(body: string) {
 }
 
 function cta(href: string, label: string) {
-  return `<a href="${href}" style="display:inline-block;background:#1C2B3A;color:#F5B800;font-weight:700;padding:13px 26px;border-radius:10px;text-decoration:none;font-family:'Courier New',Courier,monospace;font-size:13px;letter-spacing:0.04em;">${label} &#8594;</a>`
+  return `<a href="${href}" style="display:inline-block;background:#F5B800;color:#1C2B3A;font-weight:700;padding:13px 26px;border-radius:10px;text-decoration:none;font-family:'Courier New',Courier,monospace;font-size:13px;letter-spacing:0.04em;">${label} &#8594;</a>`
 }
 
 export async function emailPasswordReset(opts: { email: string; resetUrl: string }) {
