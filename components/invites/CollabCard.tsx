@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { MessageCircle, Pencil, Trash2, Check, ChevronDown, ImageIcon, ExternalLink, Info, Users } from 'lucide-react'
+import { MessageCircle, Pencil, Trash2, Check, ChevronDown, ImageIcon, ExternalLink, Info, Users, MoreVertical } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { EditInviteModal } from '@/components/invites/EditInviteModal'
@@ -278,6 +278,17 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
   const [unreadByMatch, setUnreadByMatch] = useState<Record<string, number>>({})
   const [postsTrigger, setPostsTrigger]   = useState(0)
   const [msgsTrigger, setMsgsTrigger]     = useState(0)
+  const [menuOpen, setMenuOpen]           = useState(false)
+  const menuRef                           = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function handleOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [menuOpen])
 
   useEffect(() => { setMatches(invite.matches ?? []) }, [invite.matches])
 
@@ -414,45 +425,92 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                 )}
               </div>
             </div>
-            <div className="shrink-0 text-right">
-              <p className="font-bold leading-tight" style={{ color: isRetainer ? '#1d4ed8' : '#833ab4', fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: '16px' }}>
-                {formatGBP(value)}
-              </p>
-              <p className="text-[10px] text-gray-400 mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {isRetainer ? '/mo' : 'value'}
-              </p>
+            <div className="flex items-start gap-1.5 shrink-0">
+              <div className="text-right">
+                <p className="font-bold leading-tight" style={{ color: isRetainer ? '#1d4ed8' : '#833ab4', fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: '16px' }}>
+                  {formatGBP(value)}
+                </p>
+                <p className="text-[10px] text-gray-400 mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  {isRetainer ? '/mo' : 'value'}
+                </p>
+              </div>
+
+              {/* Three-dot menu */}
+              <div ref={menuRef} className="relative" onClick={e => e.stopPropagation()}>
+                <button
+                  onClick={() => setMenuOpen(o => !o)}
+                  className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-black/5 transition-colors"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 top-full mt-1 w-36 rounded-xl bg-white z-50 overflow-hidden" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.12)', border: '1px solid rgba(0,0,0,0.08)' }}>
+                    <button
+                      onClick={() => { setMenuOpen(false); setEditing(true) }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      <Pencil className="w-3.5 h-3.5" />Edit
+                    </button>
+                    <button
+                      onClick={() => { setMenuOpen(false); handleToggle() }}
+                      disabled={toggling || (isActive && hasLiveMatches)}
+                      title={isActive && hasLiveMatches ? 'Cannot close — creators still in progress' : undefined}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      {isActive ? 'Close' : 'Reopen'}
+                    </button>
+                    <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }} />
+                    <button
+                      onClick={() => { setMenuOpen(false); handleDelete() }}
+                      disabled={deleting}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />Delete
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Stats row — fixed height so cards without badges stay the same size */}
-          <div className="flex items-center gap-3 h-6">
-            {!isRetainer && (
-              <span className="text-xs text-gray-500" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {invite.slots_claimed}/{invite.slots_total} slots
-              </span>
+          {/* Stats + action row — fixed height so cards without badges stay the same size */}
+          <div className="flex items-center gap-2 h-6">
+            {matches.length > 0 && (
+              <button
+                onClick={() => setOpen(o => !o)}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold transition-colors shrink-0"
+                style={{ background: open ? '#1C2B3A' : 'rgba(28,43,58,0.08)', color: open ? 'white' : '#1C2B3A' }}
+              >
+                <Users className="w-3 h-3" />
+                {matches.length} creator{matches.length !== 1 ? 's' : ''}
+                <ChevronDown className="w-3 h-3 transition-transform duration-150" style={{ transform: open ? 'rotate(180deg)' : 'none' }} />
+              </button>
             )}
             {isRetainer && invite.posts_per_month != null && (
-              <span className="text-xs text-gray-500" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {invite.posts_per_month} post{invite.posts_per_month !== 1 ? 's' : ''}/mo
-              </span>
-            )}
-            {matches.length > 0 && (
-              <span className="text-xs text-gray-500" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {matches.length} creator{matches.length !== 1 ? 's' : ''}
+              <span className="text-xs text-gray-500 shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                {invite.posts_per_month}p/mo
               </span>
             )}
             {verifiedCount > 0 && (
-              <span className="text-xs font-semibold" style={{ color: '#16a34a', fontFamily: "'JetBrains Mono', monospace" }}>
+              <span className="text-xs font-semibold shrink-0" style={{ color: '#16a34a', fontFamily: "'JetBrains Mono', monospace" }}>
                 {verifiedCount} verified
               </span>
+            )}
+            {onViewDetail && (
+              <button onClick={() => onViewDetail(invite)} title="View stats" className="shrink-0 hover:opacity-70 transition-opacity">
+                <Info className="w-4 h-4" style={{ color: '#3b82f6' }} />
+              </button>
             )}
             <div className="ml-auto flex items-center gap-1.5">
               {verifyCount > 0 && (
                 <button
-                  onClick={() => { setOpen(true); setPostsTrigger(t => t + 1) }}
+                  onClick={() => { if (open) { setOpen(false) } else { setOpen(true); setPostsTrigger(t => t + 1) } }}
                   className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold text-white hover:opacity-80 transition-opacity"
                   style={{ background: '#9333ea' }}
-                  title="Show posts to verify"
+                  title={open ? 'Collapse' : 'Show posts to verify'}
                 >
                   <ImageIcon className="w-3 h-3" />
                   {verifyCount}
@@ -460,10 +518,10 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
               )}
               {totalUnread > 0 && (
                 <button
-                  onClick={() => { setOpen(true); setMsgsTrigger(t => t + 1) }}
+                  onClick={() => { if (open) { setOpen(false) } else { setOpen(true); setMsgsTrigger(t => t + 1) } }}
                   className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity"
                   style={{ background: '#F5B800', color: '#1C2B3A' }}
-                  title="Show unread messages"
+                  title={open ? 'Collapse' : 'Show unread messages'}
                 >
                   <MessageCircle className="w-3 h-3" />
                   {totalUnread}
@@ -471,40 +529,6 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
               )}
             </div>
           </div>
-        </div>
-
-        {/* Action bar */}
-        <div className="flex items-center gap-1.5 px-4 py-2.5" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: 'rgba(0,0,0,0.015)' }}>
-          <button onClick={() => setEditing(true)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-[#1C2B3A] hover:bg-white transition-colors">
-            <Pencil className="w-3 h-3" />Edit
-          </button>
-          <button
-            onClick={handleToggle}
-            disabled={toggling || (isActive && hasLiveMatches)}
-            title={isActive && hasLiveMatches ? 'Cannot close — creators still in progress' : undefined}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-[#1C2B3A] hover:bg-white transition-colors disabled:opacity-40"
-          >
-            {isActive ? 'Close' : 'Reopen'}
-          </button>
-          {onViewDetail && (
-            <button onClick={() => onViewDetail(invite)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-[#1C2B3A] hover:bg-white transition-colors" title="View stats">
-              <Info className="w-3 h-3" />Stats
-            </button>
-          )}
-          {matches.length > 0 && (
-            <button
-              onClick={() => setOpen(o => !o)}
-              className="ml-auto flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-              style={{ background: open ? '#1C2B3A' : 'rgba(28,43,58,0.08)', color: open ? 'white' : '#1C2B3A' }}
-            >
-              <Users className="w-3 h-3" />
-              {matches.length} creator{matches.length !== 1 ? 's' : ''}
-              <ChevronDown className="w-3 h-3 transition-transform duration-150" style={{ transform: open ? 'rotate(180deg)' : 'none' }} />
-            </button>
-          )}
-          <button onClick={handleDelete} disabled={deleting} className={`p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40 ${matches.length === 0 ? 'ml-auto' : ''}`}>
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
         </div>
 
         {/* Expandable creator rows */}
