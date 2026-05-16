@@ -263,6 +263,17 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
 
   useEffect(() => { setMatches(invite.matches ?? []) }, [invite.matches])
 
+  // Fetch unread message counts for all matches on mount so card badges show without expanding
+  useEffect(() => {
+    const ids = (invite.matches ?? []).map(m => m.id)
+    ids.forEach(id => {
+      fetch(`/api/matches/${id}/messages/unread`)
+        .then(r => r.json())
+        .then(d => setUnreadByMatch(prev => ({ ...prev, [id]: d.count ?? 0 })))
+        .catch(() => {})
+    })
+  }, [])
+
   const isRetainer     = invite.invite_type === 'retainer'
   const isFull         = invite.slots_claimed >= invite.slots_total
   const isActive       = invite.is_active
