@@ -175,7 +175,10 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
 
   function toggleMsg() {
     setMsgOpen(o => !o)
-    if (!msgOpen) setUnread(0)
+    if (!msgOpen) {
+      setUnread(0)
+      window.dispatchEvent(new Event('badges-refresh'))
+    }
   }
 
   return (
@@ -185,10 +188,10 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
     >
 
       {/* Compact header row — always visible, click to expand */}
-      <button
-        type="button"
+      <div
+        role="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-gray-50"
+        className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-gray-50 cursor-pointer"
       >
         {/* Business initial avatar */}
         <div
@@ -226,21 +229,27 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
           {pill.label}
         </span>
 
-        {/* Unread message badge */}
+        {/* Unread message badge — click to jump straight to messages */}
         {unread > 0 && (
-          <span
-            className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold px-1 flex-shrink-0"
-            style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'JetBrains Mono', monospace" }}
+          <button
+            onClick={e => {
+              e.stopPropagation()
+              setOpen(true)
+              if (!msgOpen) { setMsgOpen(true); setUnread(0); window.dispatchEvent(new Event('badges-refresh')) }
+            }}
+            className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 hover:opacity-80 transition-opacity"
+            style={{ background: '#F5B800', color: '#1C2B3A' }}
           >
+            <MessageCircle className="w-3 h-3" />
             {unread}
-          </span>
+          </button>
         )}
 
         <ChevronDown
           className="w-3.5 h-3.5 text-gray-400 transition-transform duration-200 flex-shrink-0"
           style={{ transform: open ? 'rotate(180deg)' : 'none' }}
         />
-      </button>
+      </div>
 
       {/* Expanded body */}
       {open && (
