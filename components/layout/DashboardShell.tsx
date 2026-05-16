@@ -117,7 +117,7 @@ export function DashboardShell({ children, role, displayName }: Props) {
                 {item.icon}
                 <span className="flex-1">{item.label}</span>
                 {showBadge && (
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold text-[#1C2B3A]" style={{ background: '#F5B800' }}>
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold text-[#1C2B3A]" style={{ background: '#F5B800' }} title="Posts awaiting your review">
                     {unread}
                   </span>
                 )}

@@ -7,21 +7,28 @@ import { CollabDetailModal } from '@/components/invites/CollabDetailModal'
 import { Button } from '@/components/ui/Button'
 import type { Invite } from '@/lib/types'
 
-type Filter = 'all' | 'open' | 'closed'
+type Filter = 'all' | 'open' | 'closed' | 'review'
 
 const FILTERS: { value: Filter; label: string }[] = [
   { value: 'all',    label: 'All' },
+  { value: 'review', label: 'Needs review' },
   { value: 'open',   label: 'Open' },
   { value: 'closed', label: 'Closed' },
 ]
 
 const EMPTY_MESSAGES: Record<Filter, string> = {
   all:    'No collabs yet. Post one to start getting matched with creators.',
+  review: 'Nothing to review right now.',
   open:   'No open collabs right now.',
   closed: 'No closed collabs yet.',
 }
 
+function needsReview(inv: Invite): boolean {
+  return (inv.matches ?? []).some(m => m.status === 'posted')
+}
+
 function matchesFilter(inv: Invite, filter: Filter): boolean {
+  if (filter === 'review') return needsReview(inv)
   if (filter === 'open')   return inv.is_active
   if (filter === 'closed') return !inv.is_active
   return true
@@ -32,12 +39,13 @@ interface Props {
   isProfileComplete: boolean
   openCollabId?: string
   openMatchId?: string
+  initialFilter?: Filter
 }
 
-export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, openMatchId }: Props) {
+export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, openMatchId, initialFilter }: Props) {
   const [collabs, setCollabs] = useState<Invite[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<Filter>('all')
+  const [filter, setFilter] = useState<Filter>(initialFilter ?? 'all')
   const [detailCollab, setDetailCollab] = useState<Invite | null>(null)
 
   useEffect(() => {
@@ -70,6 +78,7 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
 
   const counts = {
     all:    collabs.length,
+    review: collabs.filter(needsReview).length,
     open:   collabs.filter(i => i.is_active).length,
     closed: collabs.filter(i => !i.is_active).length,
   }
@@ -122,17 +131,18 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
       ) : (
         <>
           {collabs.length > 0 && (
-            <div className="flex gap-1.5 mb-5">
+            <div className="flex gap-1.5 mb-5 flex-wrap">
               {FILTERS.filter(f => f.value === 'all' || counts[f.value] > 0).map(f => {
-                const active = filter === f.value
+                const active  = filter === f.value
+                const isReview = f.value === 'review'
                 return (
                   <button
                     key={f.value}
                     onClick={() => setFilter(f.value)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                     style={{
-                      background: active ? '#1C2B3A' : 'rgba(28,43,58,0.06)',
-                      color: active ? 'white' : '#6b7280',
+                      background: active ? (isReview ? '#9333ea' : '#1C2B3A') : isReview ? 'rgba(192,132,252,0.1)' : 'rgba(28,43,58,0.06)',
+                      color: active ? 'white' : isReview ? '#9333ea' : '#6b7280',
                     }}
                   >
                     {f.label}
@@ -168,7 +178,7 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
                       key={invite.id}
                       invite={invite}
                       currentUserId={currentUserId}
-                      initialOpen={invite.id === openCollabId}
+                      initialOpen={invite.id === openCollabId || filter === 'review'}
                       initialOpenMatchId={invite.id === openCollabId ? openMatchId : undefined}
                       onToggle={handleToggle}
                       onDelete={handleDelete}
