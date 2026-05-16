@@ -61,7 +61,7 @@ interface CollabGroup {
 
 const STATUS_META: Record<MatchStatus, { bg: string; text: string; label: string }> = {
   accepted:  { bg: 'rgba(245,184,0,0.12)',   text: '#b45309', label: 'Awaiting content' },
-  posted:    { bg: 'rgba(192,132,252,0.15)', text: '#9333ea', label: 'Awaiting review' },
+  posted:    { bg: 'rgba(192,132,252,0.15)', text: '#9333ea', label: 'Posted' },
   verified:  { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a', label: 'Accepted' },
   active:    { bg: 'rgba(107,230,176,0.12)', text: '#059669', label: 'Active' },
   completed: { bg: 'rgba(148,163,184,0.12)', text: '#64748b', label: 'Completed' },
@@ -409,7 +409,7 @@ const COLLAB_FILTERS: { value: CollabFilter; label: string }[] = [
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: 'any',       label: 'Any status' },
-  { value: 'posted',    label: 'Awaiting review' },
+  { value: 'posted',    label: 'Posted' },
   { value: 'accepted',  label: 'Awaiting content' },
   { value: 'active',    label: 'Active' },
   { value: 'verified',  label: 'Accepted' },
@@ -618,7 +618,7 @@ export default function AdminCollabs() {
                   <div
                     className="w-2 h-2 rounded-full shrink-0 transition-colors"
                     style={{ background: needsAttention ? '#C084FC' : 'transparent', border: needsAttention ? 'none' : '1.5px solid #e5e7eb' }}
-                    title={needsAttention ? 'Awaiting review' : undefined}
+                    title={needsAttention ? 'Posted' : undefined}
                   />
 
                   {/* Business avatar */}

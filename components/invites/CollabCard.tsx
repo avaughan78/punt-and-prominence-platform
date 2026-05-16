@@ -11,7 +11,7 @@ import type { Invite, MatchPreview } from '@/lib/types'
 
 const STATUS_META: Record<string, { bg: string; text: string; label: string }> = {
   accepted:  { bg: 'rgba(245,184,0,0.12)',   text: '#b45309', label: 'Awaiting content' },
-  posted:    { bg: 'rgba(192,132,252,0.12)', text: '#9333ea', label: 'Awaiting review' },
+  posted:    { bg: 'rgba(192,132,252,0.12)', text: '#9333ea', label: 'Posted' },
   verified:  { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a', label: 'Accepted' },
   active:    { bg: 'rgba(107,230,176,0.12)', text: '#059669', label: 'Active' },
   completed: { bg: 'rgba(148,163,184,0.12)', text: '#64748b', label: 'Complete' },
