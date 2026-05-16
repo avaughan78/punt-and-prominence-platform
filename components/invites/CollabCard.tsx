@@ -73,11 +73,7 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
   useEffect(() => {
     fetch(`/api/matches/${match.id}/messages/unread`)
       .then(r => r.json())
-      .then(d => {
-        const count = d.count ?? 0
-        setUnread(count)
-        onUnreadChange?.(match.id, count)
-      })
+      .then(d => setUnread(d.count ?? 0))
       .catch(() => {})
   }, [match.id])
 
