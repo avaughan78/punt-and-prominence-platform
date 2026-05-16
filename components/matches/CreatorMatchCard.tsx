@@ -173,10 +173,16 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
     }
   }
 
+  const cardBorderStyle: React.CSSProperties = isDone
+    ? { background: '#ffffff', border: '1.5px solid #94a3b8' }
+    : isRetainer
+      ? { background: '#ffffff', border: '1.5px solid #60a5fa' }
+      : { border: '1.5px solid transparent', background: 'linear-gradient(#ffffff, #ffffff) padding-box, linear-gradient(90deg, #833ab4, #fd1d1d, #fcb045) border-box' }
+
   return (
     <div
       className="rounded-2xl overflow-hidden"
-      style={{ background: '#ffffff', border: `1.5px solid ${borderColor}`, boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}
+      style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)', ...cardBorderStyle }}
     >
       {/* ── Clickable card face ── */}
       <div

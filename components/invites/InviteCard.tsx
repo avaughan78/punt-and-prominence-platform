@@ -71,10 +71,14 @@ export function InviteCard({ invite, mode, isApproved = true, isProfileComplete 
     setToggling(false)
   }
 
+  const cardBorderStyle: React.CSSProperties = isRetainer
+    ? { background: '#ffffff', border: '1.5px solid #60a5fa' }
+    : { border: '1.5px solid transparent', background: 'linear-gradient(#ffffff, #ffffff) padding-box, linear-gradient(90deg, #833ab4, #fd1d1d, #fcb045) border-box' }
+
   return (
     <div
       className="rounded-2xl overflow-hidden flex flex-col"
-      style={{ background: '#ffffff', border: `1.5px solid ${isRetainer ? 'rgba(107,230,176,0.4)' : 'rgba(245,184,0,0.35)'}`, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+      style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', ...cardBorderStyle }}
     >
       {/* ── Header band ── */}
       <div className="relative shrink-0" style={{ height: '72px' }}>
