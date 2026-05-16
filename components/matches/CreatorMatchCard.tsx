@@ -550,28 +550,15 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
           <div className="px-5 py-4 flex flex-col gap-4" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
             {/* Punt code */}
             <div
-              className="flex items-center justify-between rounded-xl px-4 py-3"
+              className="rounded-xl px-4 py-3"
               style={{ background: 'white', border: '1.5px solid #1C2B3A' }}
             >
-              <div>
-                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
-                  Punt code
-                </p>
-                <p className="font-bold tracking-widest" style={{ color: '#1C2B3A', fontFamily: "'JetBrains Mono', monospace", fontSize: '18px', letterSpacing: '0.12em' }}>
-                  {match.punt_code}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {isRetainer ? 'Retainer' : 'One-off'}
-                </p>
-                <p className="font-bold" style={{ color: isRetainer ? '#059669' : '#b45309', fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: '15px' }}>
-                  {isRetainer ? formatGBP(invite?.fee_gbp ?? 0) : formatGBP(invite?.value_gbp ?? 0)}
-                </p>
-                <p className="text-[9px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {isRetainer ? '/month' : 'value'}
-                </p>
-              </div>
+              <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
+                Punt code
+              </p>
+              <p className="font-bold tracking-widest" style={{ color: '#1C2B3A', fontFamily: "'JetBrains Mono', monospace", fontSize: '18px', letterSpacing: '0.12em' }}>
+                {match.punt_code}
+              </p>
             </div>
 
             {invite?.description && (
