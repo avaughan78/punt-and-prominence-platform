@@ -1,23 +1,61 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import {
+  emailMatchClaimed,
+  emailMatchVisited,
+  emailMatchPosted,
+  emailMatchVerified,
+  emailWelcomeBusiness,
+  emailWelcomeCreator,
+  emailCreatorApproved,
+  emailCreatorRejected,
+  emailPasswordReset,
+  emailWaitlistConfirmation,
+} from '@/lib/email'
 
 export async function POST() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) return NextResponse.json({ error: 'RESEND_API_KEY not set' }, { status: 500 })
+  const to = user.email!
+  const APP_URL = process.env.APP_URL ?? 'https://puntandprominence.co.uk'
 
-  const resend = new Resend(apiKey)
-  const { data, error } = await resend.emails.send({
-    from: 'Punt & Prominence <hello@puntandprominence.co.uk>',
-    to: user.email!,
-    subject: 'Resend test — Punt & Prominence',
-    html: '<p>If you can read this, Resend is working correctly.</p>',
-  })
+  await Promise.all([
+    emailMatchClaimed({
+      businessEmail: to,
+      businessName: 'The Anchor',
+      creatorName: 'Sophie Williams',
+      offerTitle: 'Dinner for two — content collab',
+      puntCode: 'PNT4K2',
+    }),
+    emailMatchVisited({
+      creatorEmail: to,
+      creatorName: 'Sophie Williams',
+      businessName: 'The Anchor',
+      offerTitle: 'Dinner for two — content collab',
+      puntCode: 'PNT4K2',
+    }),
+    emailMatchPosted({
+      businessEmail: to,
+      businessName: 'The Anchor',
+      creatorName: 'Sophie Williams',
+      offerTitle: 'Dinner for two — content collab',
+      postUrl: 'https://www.instagram.com/p/example123/',
+    }),
+    emailMatchVerified({
+      creatorEmail: to,
+      creatorName: 'Sophie Williams',
+      businessName: 'The Anchor',
+      offerTitle: 'Dinner for two — content collab',
+    }),
+    emailWelcomeBusiness({ email: to, name: 'The Anchor' }),
+    emailWelcomeCreator({ email: to, name: 'Sophie' }),
+    emailCreatorApproved({ email: to, name: 'Sophie' }),
+    emailCreatorRejected({ email: to, name: 'Sophie' }),
+    emailPasswordReset({ email: to, resetUrl: `${APP_URL}/reset-password` }),
+    emailWaitlistConfirmation({ email: to }),
+  ])
 
-  if (error) return NextResponse.json({ error }, { status: 500 })
-  return NextResponse.json({ ok: true, id: data?.id })
+  return NextResponse.json({ ok: true, sent: 10, to })
 }
