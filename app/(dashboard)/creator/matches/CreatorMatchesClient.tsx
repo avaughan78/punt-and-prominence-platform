@@ -5,7 +5,7 @@ import { CreatorMatchCard } from '@/components/matches/CreatorMatchCard'
 import { Button } from '@/components/ui/Button'
 import type { Match } from '@/lib/types'
 
-type Filter = 'all' | 'todo' | 'submitted' | 'done' | 'one_off' | 'retainer'
+type Filter = 'all' | 'todo' | 'submitted' | 'done' | 'one_off' | 'retainer' | 'unread'
 
 function isTodo(m: Match) {
   if (m.status === 'accepted') return true
@@ -15,19 +15,21 @@ function isTodo(m: Match) {
   return false
 }
 
-function matchesFilter(m: Match, f: Filter): boolean {
+function matchesFilter(m: Match, f: Filter, unreadMatchIds: Set<string>): boolean {
   switch (f) {
-    case 'todo':     return isTodo(m)
+    case 'unread':    return unreadMatchIds.has(m.id)
+    case 'todo':      return isTodo(m)
     case 'submitted': return m.status === 'posted'
-    case 'done':     return m.status === 'verified' || m.status === 'completed'
-    case 'one_off':  return m.invite?.invite_type !== 'retainer'
-    case 'retainer': return m.invite?.invite_type === 'retainer'
-    default:         return true
+    case 'done':      return m.status === 'verified' || m.status === 'completed'
+    case 'one_off':   return m.invite?.invite_type !== 'retainer'
+    case 'retainer':  return m.invite?.invite_type === 'retainer'
+    default:          return true
   }
 }
 
 const FILTERS: { value: Filter; label: string }[] = [
   { value: 'all',       label: 'All' },
+  { value: 'unread',    label: 'Unread' },
   { value: 'todo',      label: 'To do' },
   { value: 'submitted', label: 'Submitted' },
   { value: 'done',      label: 'Done' },
@@ -37,6 +39,7 @@ const FILTERS: { value: Filter; label: string }[] = [
 
 const EMPTY: Record<Filter, string> = {
   all:       'No matches yet.',
+  unread:    'No unread messages right now.',
   todo:      'Nothing to action right now.',
   submitted: 'No posts awaiting verification.',
   done:      'No completed matches yet.',
@@ -44,16 +47,21 @@ const EMPTY: Record<Filter, string> = {
   retainer:  'No retainer matches.',
 }
 
-export function CreatorMatchesClient({ currentUserId }: { currentUserId: string }) {
+export function CreatorMatchesClient({ currentUserId, initialFilter }: { currentUserId: string; initialFilter?: Filter }) {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter]   = useState<Filter>('all')
+  const [filter, setFilter]   = useState<Filter>(initialFilter ?? 'all')
+  const [unreadMatchIds, setUnreadMatchIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    fetch('/api/matches')
-      .then(r => r.json())
-      .then(data => { setMatches(Array.isArray(data) ? data : []); setLoading(false) })
-      .catch(() => setLoading(false))
+    Promise.all([
+      fetch('/api/matches').then(r => r.json()),
+      fetch('/api/messages/unread').then(r => r.json()),
+    ]).then(([matchData, unreadData]) => {
+      setMatches(Array.isArray(matchData) ? matchData : [])
+      setUnreadMatchIds(new Set(unreadData.unreadMatchIds ?? []))
+      setLoading(false)
+    }).catch(() => setLoading(false))
   }, [])
 
   function handleUpdated(updated: Match) {
@@ -66,10 +74,10 @@ export function CreatorMatchesClient({ currentUserId }: { currentUserId: string 
     return rank(a) - rank(b)
   })
 
-  const filtered = sorted.filter(m => matchesFilter(m, filter))
+  const filtered = sorted.filter(m => matchesFilter(m, filter, unreadMatchIds))
 
   const counts = Object.fromEntries(
-    FILTERS.map(f => [f.value, f.value === 'all' ? matches.length : matches.filter(m => matchesFilter(m, f.value)).length])
+    FILTERS.map(f => [f.value, f.value === 'all' ? matches.length : matches.filter(m => matchesFilter(m, f.value, unreadMatchIds)).length])
   ) as Record<Filter, number>
 
   const todoCount = counts.todo
@@ -99,15 +107,16 @@ export function CreatorMatchesClient({ currentUserId }: { currentUserId: string 
           {matches.length > 0 && (
             <div className="flex gap-1.5 flex-wrap mb-5">
               {FILTERS.filter(f => f.value === 'all' || counts[f.value] > 0).map(f => {
-                const active = filter === f.value
+                const active   = filter === f.value
+                const isUnread = f.value === 'unread'
                 return (
                   <button
                     key={f.value}
                     onClick={() => setFilter(f.value)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                     style={{
-                      background: active ? '#1C2B3A' : 'rgba(28,43,58,0.06)',
-                      color: active ? 'white' : '#6b7280',
+                      background: active ? (isUnread ? '#F5B800' : '#1C2B3A') : isUnread ? 'rgba(245,184,0,0.1)' : 'rgba(28,43,58,0.06)',
+                      color: active ? (isUnread ? '#1C2B3A' : 'white') : isUnread ? '#b45309' : '#6b7280',
                     }}
                   >
                     {f.label}

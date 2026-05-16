@@ -36,6 +36,7 @@ export async function GET() {
   const matchIds = (userMatches ?? []).map(m => m.id)
 
   let messages = 0
+  let unreadMatchIds: string[] = []
   if (matchIds.length > 0) {
     const [{ data: allMessages }, { data: reads }] = await Promise.all([
       supabase
@@ -51,11 +52,16 @@ export async function GET() {
     ])
 
     const readMap = Object.fromEntries((reads ?? []).map(r => [r.match_id, r.last_read_at]))
-    messages = (allMessages ?? []).filter(msg => {
+    const unreadMatchIdSet = new Set<string>()
+    ;(allMessages ?? []).forEach(msg => {
       const lastRead = readMap[msg.match_id] ?? '1970-01-01T00:00:00Z'
-      return msg.created_at > lastRead
-    }).length
+      if (msg.created_at > lastRead) {
+        messages++
+        unreadMatchIdSet.add(msg.match_id)
+      }
+    })
+    unreadMatchIds = [...unreadMatchIdSet]
   }
 
-  return NextResponse.json({ posts, messages })
+  return NextResponse.json({ posts, messages, unreadMatchIds })
 }

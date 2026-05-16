@@ -7,10 +7,11 @@ import { CollabDetailModal } from '@/components/invites/CollabDetailModal'
 import { Button } from '@/components/ui/Button'
 import type { Invite } from '@/lib/types'
 
-type Filter = 'all' | 'open' | 'closed' | 'review'
+type Filter = 'all' | 'open' | 'closed' | 'review' | 'unread'
 
 const FILTERS: { value: Filter; label: string }[] = [
   { value: 'all',    label: 'All' },
+  { value: 'unread', label: 'Unread' },
   { value: 'review', label: 'Needs review' },
   { value: 'open',   label: 'Open' },
   { value: 'closed', label: 'Closed' },
@@ -18,6 +19,7 @@ const FILTERS: { value: Filter; label: string }[] = [
 
 const EMPTY_MESSAGES: Record<Filter, string> = {
   all:    'No collabs yet. Post one to start getting matched with creators.',
+  unread: 'No unread messages right now.',
   review: 'Nothing to review right now.',
   open:   'No open collabs right now.',
   closed: 'No closed collabs yet.',
@@ -27,7 +29,8 @@ function needsReview(inv: Invite): boolean {
   return (inv.matches ?? []).some(m => m.status === 'posted')
 }
 
-function matchesFilter(inv: Invite, filter: Filter): boolean {
+function matchesFilter(inv: Invite, filter: Filter, unreadMatchIds: Set<string>): boolean {
+  if (filter === 'unread') return (inv.matches ?? []).some(m => unreadMatchIds.has(m.id))
   if (filter === 'review') return needsReview(inv)
   if (filter === 'open')   return inv.is_active
   if (filter === 'closed') return !inv.is_active
@@ -47,15 +50,17 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>(initialFilter ?? 'all')
   const [detailCollab, setDetailCollab] = useState<Invite | null>(null)
+  const [unreadMatchIds, setUnreadMatchIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    fetch('/api/invites')
-      .then(r => r.json())
-      .then(data => {
-        setCollabs(Array.isArray(data) ? data : [])
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+    Promise.all([
+      fetch('/api/invites').then(r => r.json()),
+      fetch('/api/messages/unread').then(r => r.json()),
+    ]).then(([inviteData, unreadData]) => {
+      setCollabs(Array.isArray(inviteData) ? inviteData : [])
+      setUnreadMatchIds(new Set(unreadData.unreadMatchIds ?? []))
+      setLoading(false)
+    }).catch(() => setLoading(false))
   }, [])
 
   function handleToggle(id: string, active: boolean) {
@@ -74,10 +79,11 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
     return 0
   })
 
-  const filtered = sorted.filter(inv => matchesFilter(inv, filter))
+  const filtered = sorted.filter(inv => matchesFilter(inv, filter, unreadMatchIds))
 
   const counts = {
     all:    collabs.length,
+    unread: collabs.filter(inv => (inv.matches ?? []).some(m => unreadMatchIds.has(m.id))).length,
     review: collabs.filter(needsReview).length,
     open:   collabs.filter(i => i.is_active).length,
     closed: collabs.filter(i => !i.is_active).length,
@@ -133,16 +139,19 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
           {collabs.length > 0 && (
             <div className="flex gap-1.5 mb-5 flex-wrap">
               {FILTERS.filter(f => f.value === 'all' || counts[f.value] > 0).map(f => {
-                const active  = filter === f.value
-                const isReview = f.value === 'review'
+                const active    = filter === f.value
+                const isReview  = f.value === 'review'
+                const isUnread  = f.value === 'unread'
                 return (
                   <button
                     key={f.value}
                     onClick={() => setFilter(f.value)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                     style={{
-                      background: active ? (isReview ? '#9333ea' : '#1C2B3A') : isReview ? 'rgba(192,132,252,0.1)' : 'rgba(28,43,58,0.06)',
-                      color: active ? 'white' : isReview ? '#9333ea' : '#6b7280',
+                      background: active
+                        ? (isReview ? '#9333ea' : isUnread ? '#F5B800' : '#1C2B3A')
+                        : isReview ? 'rgba(192,132,252,0.1)' : isUnread ? 'rgba(245,184,0,0.1)' : 'rgba(28,43,58,0.06)',
+                      color: active ? (isUnread ? '#1C2B3A' : 'white') : isReview ? '#9333ea' : isUnread ? '#b45309' : '#6b7280',
                     }}
                   >
                     {f.label}

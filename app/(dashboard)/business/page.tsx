@@ -90,7 +90,7 @@ export default async function BusinessDashboard() {
 
       {/* Unread messages banner */}
       {(unreadCount ?? 0) > 0 && (
-        <Link href="/business/invites">
+        <Link href="/business/invites?filter=unread">
           <div className="flex items-center gap-3 rounded-2xl px-4 py-3 mb-4 cursor-pointer hover:opacity-90 transition-opacity" style={{ background: 'rgba(245,184,0,0.1)', border: '1.5px solid rgba(245,184,0,0.3)' }}>
             <MessageCircle className="w-4 h-4 shrink-0" style={{ color: '#F5B800' }} />
             <p className="text-sm text-[#1C2B3A] flex-1" style={{ fontFamily: "'Inter', sans-serif" }}>

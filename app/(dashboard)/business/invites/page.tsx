@@ -17,7 +17,7 @@ export default async function BusinessCollabsPage({
     searchParams,
   ])
 
-  const validFilters = ['all', 'open', 'closed', 'review'] as const
+  const validFilters = ['all', 'open', 'closed', 'review', 'unread'] as const
   type Filter = typeof validFilters[number]
   const initialFilter = validFilters.includes(filter as Filter) ? (filter as Filter) : undefined
 
