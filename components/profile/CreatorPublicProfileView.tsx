@@ -39,7 +39,7 @@ function fmt(n: number): string {
 
 const STATUS_META: Record<string, { label: string; bg: string; text: string }> = {
   accepted:  { label: 'In progress', bg: 'rgba(245,184,0,0.12)',   text: '#b45309' },
-  posted:    { label: 'Post ready',  bg: 'rgba(192,132,252,0.12)', text: '#9333ea' },
+  posted:    { label: 'Awaiting review',  bg: 'rgba(192,132,252,0.12)', text: '#9333ea' },
   verified:  { label: 'Verified',    bg: 'rgba(34,197,94,0.1)',    text: '#16a34a' },
   active:    { label: 'Active',      bg: 'rgba(107,230,176,0.12)', text: '#059669' },
   completed: { label: 'Completed',   bg: 'rgba(148,163,184,0.12)', text: '#64748b' },
