@@ -79,7 +79,20 @@ function fmtDate(dt: string) {
 
 // ── Stats bar ──────────────────────────────────────────────────────────────────
 
-function StatsBar({ groups }: { groups: CollabGroup[] }) {
+interface StatCardAction {
+  collabFilter?: CollabFilter
+  statusFilter?: StatusFilter
+}
+
+interface StatsBarProps {
+  groups: CollabGroup[]
+  collabFilter: CollabFilter
+  statusFilter: StatusFilter
+  onCollabFilter: (f: CollabFilter) => void
+  onStatusFilter: (f: StatusFilter) => void
+}
+
+function StatsBar({ groups, collabFilter, statusFilter, onCollabFilter, onStatusFilter }: StatsBarProps) {
   const activeCollabs   = groups.filter(g => g.is_active).length
   const postsToVerify   = groups.reduce((s, g) => s + g.matches.filter(m => m.status === 'posted').length, 0)
   const activeRetainers = groups.reduce((s, g) => s + g.matches.filter(m => m.status === 'active').length, 0)
@@ -87,25 +100,60 @@ function StatsBar({ groups }: { groups: CollabGroup[] }) {
     .filter(g => g.is_active)
     .reduce((s, g) => s + (g.invite_type === 'retainer' ? (g.fee_gbp ?? 0) : (g.value_gbp ?? 0)) * g.slots_claimed, 0)
 
-  const stats = [
-    { label: 'Active collabs',   value: activeCollabs,            accent: '#F5B800' },
-    { label: 'Value in market',  value: formatGBP(gmv),           accent: '#6BE6B0' },
-    { label: 'Posts to verify',  value: postsToVerify,            accent: postsToVerify > 0 ? '#C084FC' : '#94a3b8' },
-    { label: 'Live retainers',   value: activeRetainers,          accent: '#60a5fa' },
+  const stats: { label: string; value: string | number; accent: string; action: StatCardAction; isActive: boolean }[] = [
+    {
+      label: 'Active collabs', value: activeCollabs, accent: '#F5B800',
+      action: { collabFilter: 'open', statusFilter: 'any' },
+      isActive: collabFilter === 'open' && statusFilter === 'any',
+    },
+    {
+      label: 'Value in market', value: formatGBP(gmv), accent: '#6BE6B0',
+      action: {},
+      isActive: false,
+    },
+    {
+      label: 'Posts to verify', value: postsToVerify, accent: postsToVerify > 0 ? '#C084FC' : '#94a3b8',
+      action: { collabFilter: 'attention', statusFilter: 'any' },
+      isActive: collabFilter === 'attention',
+    },
+    {
+      label: 'Live retainers', value: activeRetainers, accent: '#60a5fa',
+      action: { collabFilter: 'all', statusFilter: 'active' },
+      isActive: statusFilter === 'active',
+    },
   ]
+
+  function handleClick(action: StatCardAction) {
+    if (Object.keys(action).length === 0) return
+    if (action.collabFilter != null) onCollabFilter(action.collabFilter)
+    if (action.statusFilter != null) onStatusFilter(action.statusFilter)
+  }
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-      {stats.map(s => (
-        <div key={s.label} className="rounded-xl bg-white px-4 py-3" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
-          <p className="text-2xl font-extrabold leading-none" style={{ color: s.accent, fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-            {s.value}
-          </p>
-          <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            {s.label}
-          </p>
-        </div>
-      ))}
+      {stats.map(s => {
+        const clickable = Object.keys(s.action).length > 0
+        return (
+          <button
+            key={s.label}
+            onClick={() => handleClick(s.action)}
+            disabled={!clickable}
+            className="rounded-xl bg-white px-4 py-3 text-left transition-all"
+            style={{
+              border: s.isActive ? `1.5px solid ${s.accent}` : '1px solid rgba(0,0,0,0.07)',
+              boxShadow: s.isActive ? `0 0 0 3px ${s.accent}22` : 'none',
+              cursor: clickable ? 'pointer' : 'default',
+            }}
+          >
+            <p className="text-2xl font-extrabold leading-none" style={{ color: s.accent, fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              {s.value}
+            </p>
+            <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {s.label}{clickable && !s.isActive ? ' →' : ''}
+            </p>
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -466,7 +514,15 @@ export default function AdminCollabs() {
         </div>
       </div>
 
-      {!loading && <StatsBar groups={groups} />}
+      {!loading && (
+        <StatsBar
+          groups={groups}
+          collabFilter={collabFilter}
+          statusFilter={statusFilter}
+          onCollabFilter={f => { setCollabFilter(f) }}
+          onStatusFilter={f => { setStatusFilter(f) }}
+        />
+      )}
 
       {/* Collab filter tabs */}
       <div className="flex gap-1.5 flex-wrap mb-3">
