@@ -11,23 +11,22 @@ async function send(to: string, subject: string, html: string) {
 
 function wrap(body: string) {
   return `
-    <div style="background:#1C2B3A;padding:40px 16px;font-family:Arial,Helvetica,sans-serif;">
+    <div style="background:#f4f6f8;padding:40px 16px;font-family:Arial,Helvetica,sans-serif;">
       <div style="max-width:520px;margin:0 auto;">
 
-        <div style="text-align:center;padding-bottom:24px;">
-          <p style="font-family:'Courier New',Courier,monospace;font-size:12px;font-weight:700;color:#F5B800;letter-spacing:0.2em;text-transform:uppercase;margin:0;">&#9733; &nbsp;Punt &amp; Prominence</p>
+        <div style="text-align:center;padding-bottom:20px;">
+          <p style="font-family:'Courier New',Courier,monospace;font-size:12px;font-weight:700;color:#1C2B3A;letter-spacing:0.18em;text-transform:uppercase;margin:0;">&#9733; &nbsp;Punt &amp; Prominence</p>
         </div>
 
-        <div style="background:#ffffff;border-radius:16px;overflow:hidden;">
-          <div style="background:#F5B800;height:4px;"></div>
+        <div style="background:#ffffff;border-radius:16px;border:1px solid rgba(0,0,0,0.07);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+          <div style="height:3px;background:linear-gradient(90deg,#833ab4,#fd1d1d,#fcb045);"></div>
           <div style="padding:36px 36px 32px;">
             ${body}
           </div>
         </div>
 
         <div style="text-align:center;padding-top:20px;">
-          <p style="font-size:11px;color:rgba(255,255,255,0.28);margin:0;font-family:'Courier New',Courier,monospace;letter-spacing:0.1em;">Cambridge&apos;s local creator marketplace</p>
-          <p style="font-size:11px;color:rgba(255,255,255,0.28);margin:6px 0 0;"><a href="mailto:hello@puntandprominence.co.uk" style="color:rgba(255,255,255,0.28);text-decoration:none;">hello@puntandprominence.co.uk</a></p>
+          <p style="font-size:11px;color:#9ca3af;margin:0;">Cambridge&apos;s local creator marketplace &nbsp;&middot;&nbsp; <a href="mailto:hello@puntandprominence.co.uk" style="color:#9ca3af;text-decoration:none;">hello@puntandprominence.co.uk</a></p>
         </div>
 
       </div>
