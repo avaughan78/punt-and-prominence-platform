@@ -2,14 +2,14 @@
 import { X, Users, Calendar, QrCode, FileCheck, CheckCircle2 } from 'lucide-react'
 import { CategoryBadge } from '@/components/ui/Badge'
 import { formatGBP, formatDate } from '@/lib/utils'
+import { deriveMatchState } from '@/lib/types'
 import type { Invite } from '@/lib/types'
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  accepted:  { label: 'Awaiting visit',  color: '#F5B800' },
-  posted:    { label: 'Post submitted',  color: '#C084FC' },
-  verified:  { label: 'Verified',        color: '#22c55e' },
-  active:    { label: 'Active',          color: '#6BE6B0' },
-  completed: { label: 'Completed',       color: '#94a3b8' },
+const STATE_LABELS: Record<string, { label: string; color: string }> = {
+  in_progress:  { label: 'Awaiting posts', color: '#F5B800' },
+  needs_review: { label: 'Needs review',   color: '#C084FC' },
+  up_to_date:   { label: 'Up to date',     color: '#22c55e' },
+  closed:       { label: 'Closed',         color: '#94a3b8' },
 }
 
 interface Props {
@@ -24,8 +24,8 @@ export function CollabDetailModal({ invite, onClose }: Props) {
 
   const claimed  = invite.slots_claimed
   const visits   = matches.filter(m => (m.scan_count ?? 0) > 0).length
-  const toReview = matches.filter(m => m.status === 'posted').length
-  const verified = matches.filter(m => m.status === 'verified' || m.status === 'completed').length
+  const toReview = matches.filter(m => deriveMatchState(m) === 'needs_review').length
+  const verified = matches.filter(m => deriveMatchState(m) === 'closed').length
   const slotPct  = invite.slots_total > 0 ? Math.round((claimed / invite.slots_total) * 100) : 0
 
   function handleBackdrop(e: React.MouseEvent<HTMLDivElement>) {
@@ -177,7 +177,7 @@ export function CollabDetailModal({ invite, onClose }: Props) {
               <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
                 {matches.map((m, i) => {
                   const creator    = m.creator
-                  const statusMeta = STATUS_LABELS[m.status]
+                  const stateMeta  = STATE_LABELS[deriveMatchState(m)]
                   const wasVisited = (m.scan_count ?? 0) > 0
                   const initial    = creator?.display_name?.[0]?.toUpperCase() ?? '?'
                   return (
@@ -223,12 +223,12 @@ export function CollabDetailModal({ invite, onClose }: Props) {
                             </span>
                           </div>
                         )}
-                        {statusMeta && (
+                        {stateMeta && (
                           <span
                             className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                            style={{ background: statusMeta.color + '18', color: statusMeta.color, fontFamily: "'JetBrains Mono', monospace" }}
+                            style={{ background: stateMeta.color + '18', color: stateMeta.color, fontFamily: "'JetBrains Mono', monospace" }}
                           >
-                            {statusMeta.label}
+                            {stateMeta.label}
                           </span>
                         )}
                       </div>

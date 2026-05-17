@@ -6,40 +6,35 @@ export const dynamic = 'force-dynamic'
 import { StatCard } from '@/components/ui/Card'
 import { StatusBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { BusinessDashboardAlerts } from '@/components/layout/BusinessDashboardAlerts'
 import { formatDate, formatGBP } from '@/lib/utils'
-import { Plus, AlertCircle, MessageCircle, FileCheck } from 'lucide-react'
+import { deriveMatchState } from '@/lib/types'
+import { Plus, AlertCircle } from 'lucide-react'
 
 export default async function BusinessDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { data: offers }, { data: matches }, { data: unreadCount }, { data: postedMatchesRaw }, { data: allMatchStatuses }] = await Promise.all([
+  const [{ data: profile }, { data: offers }, { data: matches }, { data: allMatchData }] = await Promise.all([
     supabase.from('profiles').select('business_name').eq('id', user!.id).single(),
     supabase.from('offers').select('id, is_active').eq('business_id', user!.id),
     supabase.from('matches')
-      .select('id, status, created_at, punt_code, offer_id, offer:offers(title,value_gbp), creator:profiles!matches_creator_id_fkey(id,display_name,instagram_handle)')
+      .select('id, closed_at, created_at, punt_code, offer_id, offer:offers(title,value_gbp), creator:profiles!matches_creator_id_fkey(id,display_name,instagram_handle), deliverables:match_deliverables(verified_at)')
       .eq('business_id', user!.id)
       .order('created_at', { ascending: false })
       .limit(5),
-    supabase.rpc('get_unread_message_count'),
-    supabase.from('matches')
-      .select('id, post_url, created_at, offer:offers(title), creator:profiles!matches_creator_id_fkey(id,display_name,instagram_handle), deliverables:match_deliverables(status)')
-      .eq('business_id', user!.id)
-      .eq('status', 'posted')
-      .order('created_at', { ascending: false }),
-    supabase.from('matches').select('status, scan_count').eq('business_id', user!.id),
+    supabase.from('matches').select('closed_at, scan_count').eq('business_id', user!.id),
   ])
 
   if (!profile?.business_name) redirect('/business/onboarding')
 
-  const postedMatches = postedMatchesRaw ?? []
-  const allMatches = allMatchStatuses ?? []
+  const allMatches = allMatchData ?? []
 
   const activeOffers    = offers?.filter(o => o.is_active).length ?? 0
   const creatorsMatched = allMatches.length
-  const inProgress      = allMatches.filter(m => ['accepted', 'posted', 'active'].includes(m.status)).length
-  const fulfilled       = allMatches.filter(m => m.status === 'verified').length
+  const inProgress      = allMatches.filter(m => !m.closed_at).length
+  const fulfilled       = allMatches.filter(m => !!m.closed_at).length
   const visits          = allMatches.filter(m => (m.scan_count ?? 0) > 0).length
 
   return (
@@ -57,52 +52,8 @@ export default async function BusinessDashboard() {
         </Link>
       </div>
 
-      {/* Posts ready to verify */}
-      {(postedMatches?.length ?? 0) > 0 && (
-        <Link href="/business/invites?filter=review">
-          <div
-            className="flex items-start gap-3 rounded-2xl px-4 py-3 mb-4 cursor-pointer hover:opacity-90 transition-opacity"
-            style={{ background: 'rgba(192,132,252,0.08)', border: '1.5px solid rgba(192,132,252,0.3)' }}
-          >
-            <FileCheck className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#9333ea' }} />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                {postedMatches!.length} post{postedMatches!.length !== 1 ? 's' : ''} ready to verify
-              </p>
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
-                {postedMatches!.slice(0, 3).map(m => {
-                  const c = m.creator as unknown as { display_name: string; instagram_handle: string | null } | null
-                  const o = m.offer as unknown as { title: string } | null
-                  return (
-                    <span key={m.id} className="text-xs text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
-                      {c?.instagram_handle ? `@${c.instagram_handle}` : c?.display_name} · {o?.title}
-                    </span>
-                  )
-                })}
-                {postedMatches!.length > 3 && (
-                  <span className="text-xs text-gray-400">+{postedMatches!.length - 3} more</span>
-                )}
-              </div>
-            </div>
-            <span className="text-xs font-semibold shrink-0" style={{ color: '#9333ea' }}>Review →</span>
-          </div>
-        </Link>
-      )}
-
-      {/* Unread messages banner */}
-      {(unreadCount ?? 0) > 0 && (
-        <Link href="/business/invites?filter=unread">
-          <div className="flex items-center gap-3 rounded-2xl px-4 py-3 mb-4 cursor-pointer hover:opacity-90 transition-opacity" style={{ background: 'rgba(245,184,0,0.1)', border: '1.5px solid rgba(245,184,0,0.3)' }}>
-            <MessageCircle className="w-4 h-4 shrink-0" style={{ color: '#F5B800' }} />
-            <p className="text-sm text-[#1C2B3A] flex-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-              <span className="font-semibold">
-                {unreadCount} unread message{(unreadCount ?? 0) !== 1 ? 's' : ''}
-              </span>{' '}from your creators
-            </p>
-            <span className="text-xs font-semibold text-[#F5B800] shrink-0">View →</span>
-          </div>
-        </Link>
-      )}
+      {/* Posts to verify + unread messages — client-side so counts stay fresh */}
+      <BusinessDashboardAlerts />
 
       {/* Incomplete profile banner */}
       {!profile?.business_name && (
@@ -147,7 +98,9 @@ export default async function BusinessDashboard() {
             {matches.map((match, i) => {
               const offer = (match.offer as unknown) as { title: string; value_gbp: number } | null
               const creator = (match.creator as unknown) as { id: string; display_name: string; instagram_handle: string | null } | null
+              const deliverables = (match.deliverables as unknown) as { verified_at: string | null }[] | null
               const offerId = (match as unknown as { offer_id: string }).offer_id
+              const state = deriveMatchState({ closed_at: match.closed_at, deliverables: deliverables ?? [] })
               return (
                 <div
                   key={match.id}
@@ -156,7 +109,7 @@ export default async function BusinessDashboard() {
                 >
                   <div className="flex-1 min-w-0">
                     <Link
-                      href={`/business/invites?open=${offerId}${match.status === 'posted' ? `&match=${match.id}` : ''}`}
+                      href={`/business/invites?open=${offerId}`}
                       className="text-sm font-medium text-[#1C2B3A] truncate block hover:underline"
                     >
                       {offer?.title}
@@ -175,7 +128,7 @@ export default async function BusinessDashboard() {
                   <div className="flex items-center gap-3 shrink-0">
                     <span className="text-xs font-mono text-gray-400">{match.punt_code}</span>
                     {offer && <span className="text-xs font-semibold" style={{ color: '#F5B800' }}>{formatGBP(offer.value_gbp)}</span>}
-                    <StatusBadge status={match.status} />
+                    <StatusBadge state={state} />
                   </div>
                 </div>
               )

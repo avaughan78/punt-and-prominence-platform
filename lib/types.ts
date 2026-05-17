@@ -1,6 +1,14 @@
 export type Role = 'business' | 'creator'
 
-export type MatchStatus = 'accepted' | 'posted' | 'verified' | 'active' | 'completed'
+export type MatchState = 'in_progress' | 'needs_review' | 'up_to_date' | 'closed'
+
+export function deriveMatchState(match: { closed_at: string | null; deliverables?: { verified_at: string | null }[] }): MatchState {
+  if (match.closed_at) return 'closed'
+  const deliverables = match.deliverables ?? []
+  if (deliverables.length === 0) return 'in_progress'
+  if (deliverables.some(d => !d.verified_at)) return 'needs_review'
+  return 'up_to_date'
+}
 
 export type InviteCategory = 'dining' | 'retail' | 'experience' | 'fitness' | 'beauty' | 'other'
 
@@ -11,7 +19,6 @@ export interface MatchDeliverable {
   match_id: string
   month_number: number | null
   post_url: string
-  status: 'submitted' | 'verified'
   verified_at: string | null
   created_at: string
 }
@@ -65,11 +72,11 @@ export interface Invite {
 
 export interface MatchPreview {
   id: string
-  status: MatchStatus
   punt_code: string
   created_at: string
-  post_url: string | null
+  closed_at: string | null
   scan_count: number
+  first_scanned_at: string | null
   creator: Pick<Profile, 'id' | 'display_name' | 'instagram_handle' | 'avatar_url' | 'follower_count'>
   deliverables?: MatchDeliverable[]
 }
@@ -79,12 +86,11 @@ export interface Match {
   offer_id: string
   creator_id: string
   business_id: string
-  status: MatchStatus
   punt_code: string
-  post_url: string | null
   notes: string | null
   scan_count: number
   first_scanned_at: string | null
+  closed_at: string | null
   created_at: string
   updated_at: string
   // Joined
@@ -110,8 +116,8 @@ export interface Database {
       }
       matches: {
         Row: Match
-        Insert: Omit<Match, 'id' | 'created_at' | 'updated_at' | 'offer' | 'creator' | 'business'>
-        Update: Partial<Pick<Match, 'status' | 'post_url' | 'notes'>>
+        Insert: Omit<Match, 'id' | 'created_at' | 'updated_at' | 'invite' | 'creator' | 'business'>
+        Update: Partial<Pick<Match, 'closed_at' | 'notes'>>
       }
       invite_codes: {
         Row: { id: string; code: string; used: boolean; used_by: string | null; created_at: string }

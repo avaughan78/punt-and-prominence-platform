@@ -3,26 +3,20 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { CreatorMatchCard } from '@/components/matches/CreatorMatchCard'
 import { Button } from '@/components/ui/Button'
+import { deriveMatchState } from '@/lib/types'
 import type { Match } from '@/lib/types'
 
 type Filter = 'all' | 'in_progress' | 'visited' | 'todo' | 'submitted' | 'done' | 'one_off' | 'retainer' | 'unread'
 
-function isTodo(m: Match) {
-  if (m.status === 'accepted') return true
-  if (m.invite?.invite_type === 'retainer' && m.status === 'active') {
-    return (m.deliverables ?? []).some(d => d.status !== 'verified')
-  }
-  return false
-}
-
 function matchesFilter(m: Match, f: Filter, unreadMatchIds: Set<string>): boolean {
+  const state = deriveMatchState(m)
   switch (f) {
     case 'unread':      return unreadMatchIds.has(m.id)
-    case 'in_progress': return ['accepted', 'posted', 'active'].includes(m.status)
+    case 'in_progress': return !m.closed_at
     case 'visited':     return (m.scan_count ?? 0) > 0
-    case 'todo':        return isTodo(m)
-    case 'submitted':   return m.status === 'posted'
-    case 'done':        return m.status === 'verified' || m.status === 'completed'
+    case 'todo':        return state === 'in_progress'
+    case 'submitted':   return state === 'needs_review'
+    case 'done':        return state === 'closed'
     case 'one_off':     return m.invite?.invite_type !== 'retainer'
     case 'retainer':    return m.invite?.invite_type === 'retainer'
     default:            return true
@@ -42,16 +36,18 @@ const FILTERS: { value: Filter; label: string }[] = [
 ]
 
 const EMPTY: Record<Filter, string> = {
-  all:         'No matches yet.',
-  unread:      'No unread messages right now.',
-  in_progress: 'No in-progress matches.',
+  all:         'No collabs yet — browse what\'s available and claim one.',
+  unread:      'All caught up — no unread messages.',
+  in_progress: 'Nothing in progress right now.',
   visited:     'No visits recorded yet.',
-  todo:        'Nothing to action right now.',
-  submitted:   'No posts awaiting verification.',
-  done:        'No completed matches yet.',
-  one_off:     'No one-off matches.',
-  retainer:    'No retainer matches.',
+  todo:        'You\'re all caught up — nothing needs action.',
+  submitted:   'No posts pending verification.',
+  done:        'No completed collabs yet.',
+  one_off:     'No one-off collabs.',
+  retainer:    'No retainer collabs.',
 }
+
+const STATE_ORDER: Record<string, number> = { in_progress: 0, needs_review: 1, up_to_date: 2, closed: 3 }
 
 export function CreatorMatchesClient({ currentUserId, initialFilter }: { currentUserId: string; initialFilter?: Filter }) {
   const [matches, setMatches] = useState<Match[]>([])
@@ -74,11 +70,9 @@ export function CreatorMatchesClient({ currentUserId, initialFilter }: { current
     setMatches(prev => prev.map(m => m.id === updated.id ? { ...m, ...updated } : m))
   }
 
-  // Sort: to-do first, done last
-  const sorted = [...matches].sort((a, b) => {
-    const rank = (m: Match) => isTodo(m) ? 0 : (m.status === 'posted' ? 1 : 2)
-    return rank(a) - rank(b)
-  })
+  const sorted = [...matches].sort((a, b) =>
+    (STATE_ORDER[deriveMatchState(a)] ?? 4) - (STATE_ORDER[deriveMatchState(b)] ?? 4)
+  )
 
   const filtered = sorted.filter(m => matchesFilter(m, filter, unreadMatchIds))
 

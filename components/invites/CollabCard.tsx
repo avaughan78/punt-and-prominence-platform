@@ -7,19 +7,17 @@ import { Button } from '@/components/ui/Button'
 import { EditInviteModal } from '@/components/invites/EditInviteModal'
 import { InlineMessageThread } from '@/components/matches/InlineMessageThread'
 import { formatGBP } from '@/lib/utils'
+import { deriveMatchState } from '@/lib/types'
 import type { Invite, MatchPreview } from '@/lib/types'
 
-const STATUS_META: Record<string, { bg: string; text: string; label: string }> = {
-  accepted:  { bg: 'rgba(245,184,0,0.12)',   text: '#b45309', label: 'Awaiting visit' },
-  posted:    { bg: 'rgba(192,132,252,0.12)', text: '#9333ea', label: 'Post submitted' },
-  verified:  { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a', label: 'Verified' },
-  active:    { bg: 'rgba(107,230,176,0.12)', text: '#059669', label: 'Active' },
-  completed: { bg: 'rgba(148,163,184,0.12)', text: '#64748b', label: 'Completed' },
+const STATE_META: Record<string, { bg: string; text: string; label: string }> = {
+  in_progress:  { bg: 'rgba(245,184,0,0.12)',   text: '#b45309', label: 'Awaiting posts' },
+  needs_review: { bg: 'rgba(192,132,252,0.12)', text: '#9333ea', label: 'Needs review' },
+  up_to_date:   { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a', label: 'Up to date' },
+  closed:       { bg: 'rgba(148,163,184,0.12)', text: '#64748b', label: 'Closed' },
 }
 
-const STATUS_PRIORITY: Record<string, number> = {
-  posted: 0, accepted: 1, active: 2, verified: 3, completed: 4,
-}
+const STATE_ORDER: Record<string, number> = { needs_review: 0, in_progress: 1, up_to_date: 2, closed: 3 }
 
 function fmt(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}m`
@@ -40,12 +38,13 @@ interface CreatorRowProps {
   expandPostsTrigger?: number
   expandMsgsTrigger?: number
   hasUnreadMessages?: boolean
-  onStatusUpdated: (matchId: string, status: string) => void
+  onMatchClosed: (matchId: string) => void
+  onMatchReopened: (matchId: string) => void
   onDeliverableVerified: (matchId: string, deliverableId: string) => void
   onUnreadChange?: (matchId: string, count: number) => void
 }
 
-function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPostsOpen, expandPostsTrigger, expandMsgsTrigger, hasUnreadMessages, onStatusUpdated, onDeliverableVerified, onUnreadChange }: CreatorRowProps) {
+function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPostsOpen, expandPostsTrigger, expandMsgsTrigger, hasUnreadMessages, onMatchClosed, onMatchReopened, onDeliverableVerified, onUnreadChange }: CreatorRowProps) {
   const [msgOpen, setMsgOpen]           = useState(false)
   const [postsOpen, setPostsOpen]       = useState(initialPostsOpen ?? false)
   const [unread, setUnread]             = useState(0)
@@ -53,22 +52,15 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
   const [verifyingDid, setVerifyingDid] = useState<string | null>(null)
   const msgRef = useRef<HTMLDivElement>(null)
 
-  const meta = STATUS_META[match.status] ?? STATUS_META.posted
-  const creator = match.creator
-  const handle = creator?.instagram_handle
-  const name = creator?.display_name ?? 'Creator'
-  const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
-  const isFulfilled = match.status === 'verified'
-  const isCompleted = match.status === 'completed'
-  const isDone = isFulfilled || isCompleted
-
+  const state       = deriveMatchState(match)
+  const meta        = STATE_META[state] ?? STATE_META.in_progress
+  const creator     = match.creator
+  const handle      = creator?.instagram_handle
+  const name        = creator?.display_name ?? 'Creator'
+  const initials    = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+  const isClosed    = state === 'closed'
   const deliverables = match.deliverables ?? []
-  const legacyUrl = match.post_url && deliverables.length === 0 ? match.post_url : null
-  const hasPosts = deliverables.length > 0 || !!legacyUrl
-  const allDeliverablesVerified = deliverables.length > 0
-    ? deliverables.every(d => d.status === 'verified')
-    : !!legacyUrl
-  const canFulfil = match.status === 'posted' && allDeliverablesVerified
+  const hasPosts    = deliverables.length > 0
 
   useEffect(() => {
     fetch(`/api/matches/${match.id}/messages/unread`)
@@ -78,7 +70,7 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
   }, [match.id])
 
   useEffect(() => {
-    if ((expandPostsTrigger ?? 0) > 0 && match.status === 'posted') setPostsOpen(true)
+    if ((expandPostsTrigger ?? 0) > 0 && hasPosts) setPostsOpen(true)
   }, [expandPostsTrigger])
 
   useEffect(() => {
@@ -90,18 +82,37 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
     }
   }, [expandMsgsTrigger])
 
-  async function updateStatus(status: string) {
+  async function closeMatch() {
     setLoading(true)
     const res = await fetch(`/api/matches/${match.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ action: 'close' }),
     })
-    const data = await res.json()
-    if (!res.ok) toast.error(data.error ?? 'Failed to update')
-    else {
-      toast.success('Updated')
-      onStatusUpdated(match.id, status)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? 'Failed to close match')
+    } else {
+      toast.success('Match closed')
+      onMatchClosed(match.id)
+      window.dispatchEvent(new Event('badges-refresh'))
+    }
+    setLoading(false)
+  }
+
+  async function reopenMatch() {
+    setLoading(true)
+    const res = await fetch(`/api/matches/${match.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reopen' }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? 'Failed to reopen match')
+    } else {
+      toast.success('Match reopened')
+      onMatchReopened(match.id)
       window.dispatchEvent(new Event('badges-refresh'))
     }
     setLoading(false)
@@ -137,8 +148,6 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
     }
   }
 
-  const statusLabel = match.status === 'accepted' && isRetainer ? 'Awaiting activation' : meta.label
-
   return (
     <div ref={msgRef}>
       <div className="flex items-center gap-3 px-4 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}>
@@ -163,7 +172,7 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
         </Link>
 
         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0" style={{ background: meta.bg, color: meta.text, fontFamily: "'JetBrains Mono', monospace" }}>
-          {statusLabel}
+          {meta.label}
         </span>
 
         {hasPosts && (
@@ -178,27 +187,16 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
           </button>
         )}
 
-        {isRetainer && match.status === 'accepted' && (
-          <Button size="sm" loading={loading} onClick={() => updateStatus('active')} className="flex-shrink-0">Activate</Button>
-        )}
-
-        {(canFulfil || isFulfilled) && !isCompleted && (
-          <button
-            onClick={() => updateStatus(isFulfilled ? 'posted' : 'verified')}
-            disabled={loading}
-            title={isFulfilled ? 'Un-fulfil creator' : 'Mark creator as fulfilled'}
-            className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-50"
-            style={{ background: isFulfilled ? '#22c55e' : 'transparent', border: isFulfilled ? 'none' : '1.5px solid #d1d5db' }}
-          >
-            <Check className="w-3 h-3" style={{ color: isFulfilled ? 'white' : '#9ca3af' }} />
-          </button>
-        )}
-
-        {isCompleted && (
-          <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#22c55e' }}>
-            <Check className="w-3 h-3 text-white" />
-          </div>
-        )}
+        {/* Close / reopen toggle */}
+        <button
+          onClick={isClosed ? reopenMatch : closeMatch}
+          disabled={loading}
+          title={isClosed ? 'Reopen this match' : 'Close this match as complete'}
+          className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-50"
+          style={{ background: isClosed ? '#22c55e' : 'transparent', border: isClosed ? 'none' : '1.5px solid #d1d5db' }}
+        >
+          <Check className="w-3 h-3" style={{ color: isClosed ? 'white' : '#9ca3af' }} />
+        </button>
 
         <button
           onClick={toggleMsg}
@@ -215,17 +213,9 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
 
       {postsOpen && hasPosts && (
         <div className="px-4 py-3 flex flex-col gap-2" style={{ background: 'rgba(192,132,252,0.04)', borderTop: '1px solid rgba(192,132,252,0.1)' }}>
-          {legacyUrl && (
-            <div className="flex items-center gap-3 py-1">
-              <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold" style={{ background: '#C084FC', color: '#1C2B3A' }}>1</div>
-              <a href={legacyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-blue-500 hover:underline flex-1 truncate">
-                <ExternalLink className="w-3 h-3 flex-shrink-0" />View post
-              </a>
-            </div>
-          )}
           {deliverables.map((d, idx) => (
             <div key={d.id} className="flex items-center gap-3 py-1">
-              <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold" style={{ background: d.status === 'verified' ? '#6BE6B0' : '#C084FC', color: '#1C2B3A' }}>
+              <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold" style={{ background: d.verified_at ? '#6BE6B0' : '#C084FC', color: '#1C2B3A' }}>
                 {d.month_number ?? idx + 1}
               </div>
               <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-blue-500 hover:underline flex-1 truncate">
@@ -235,7 +225,7 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
               <span className="text-[10px] text-gray-400 flex-shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                 {d.verified_at ? `verified ${fmtDate(d.verified_at)}` : fmtDate(d.created_at)}
               </span>
-              {d.status === 'verified' ? (
+              {d.verified_at ? (
                 <Check className="w-4 h-4 flex-shrink-0" style={{ color: '#22c55e' }} />
               ) : (
                 <Button size="sm" loading={verifyingDid === d.id} onClick={() => verifyDeliverable(d.id)}>Verify</Button>
@@ -299,10 +289,9 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
     })
   }, [])
 
-  const isRetainer     = invite.invite_type === 'retainer'
-  const isFull         = invite.slots_claimed >= invite.slots_total
-  const isActive       = invite.is_active
-  const hasLiveMatches = matches.some(m => !['verified', 'completed'].includes(m.status))
+  const isRetainer = invite.invite_type === 'retainer'
+  const isFull     = invite.slots_claimed >= invite.slots_total
+  const isActive   = invite.is_active
 
   const cardBorderStyle: React.CSSProperties = !isActive
     ? { background: '#ffffff', border: '1.5px solid #94a3b8' }
@@ -339,15 +328,25 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
     else { toast.error('Failed to delete collab'); setDeleting(false) }
   }
 
-  function handleStatusUpdated(matchId: string, status: string) {
-    setMatches(prev => prev.map(m => m.id === matchId ? { ...m, status: status as MatchPreview['status'] } : m))
+  function handleMatchClosed(matchId: string) {
+    const updatedMatches = matches.map(m => m.id === matchId ? { ...m, closed_at: new Date().toISOString() } : m)
+    setMatches(updatedMatches)
+    onUpdated({ ...invite, matches: updatedMatches })
+  }
+
+  function handleMatchReopened(matchId: string) {
+    const updatedMatches = matches.map(m => m.id === matchId ? { ...m, closed_at: null } : m)
+    setMatches(updatedMatches)
+    onUpdated({ ...invite, matches: updatedMatches })
   }
 
   function handleDeliverableVerified(matchId: string, deliverableId: string) {
-    setMatches(prev => prev.map(m => m.id === matchId ? {
+    const updatedMatches = matches.map(m => m.id === matchId ? {
       ...m,
-      deliverables: (m.deliverables ?? []).map(d => d.id === deliverableId ? { ...d, status: 'verified' as const, verified_at: new Date().toISOString() } : d),
-    } : m))
+      deliverables: (m.deliverables ?? []).map(d => d.id === deliverableId ? { ...d, verified_at: new Date().toISOString() } : d),
+    } : m)
+    setMatches(updatedMatches)
+    onUpdated({ ...invite, matches: updatedMatches })
     window.dispatchEvent(new Event('deliverable-verified'))
   }
 
@@ -357,17 +356,16 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
 
   const totalUnread = Object.values(unreadByMatch).reduce((a, b) => a + b, 0)
 
-  const sortedMatches = [...matches].sort((a, b) => (STATUS_PRIORITY[a.status] ?? 3) - (STATUS_PRIORITY[b.status] ?? 3))
+  const sortedMatches = [...matches].sort((a, b) =>
+    (STATE_ORDER[deriveMatchState(a)] ?? 4) - (STATE_ORDER[deriveMatchState(b)] ?? 4)
+  )
 
-  const verifyCount = matches
-    .filter(m => m.status === 'posted')
-    .reduce((sum, m) => {
-      const delivs = m.deliverables ?? []
-      if (delivs.length === 0 && m.post_url) return sum + 1
-      return sum + delivs.filter(d => d.status !== 'verified').length
-    }, 0)
+  const verifyCount = matches.reduce((sum, m) => {
+    if (m.closed_at) return sum
+    return sum + (m.deliverables ?? []).filter(d => !d.verified_at).length
+  }, 0)
 
-  const verifiedCount = matches.filter(m => m.status === 'verified' || m.status === 'completed').length
+  const closedCount = matches.filter(m => !!m.closed_at).length
   const value = isRetainer ? (invite.fee_gbp ?? 0) : invite.value_gbp
 
   return (
@@ -450,8 +448,7 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                     </button>
                     <button
                       onClick={() => { setMenuOpen(false); handleToggle() }}
-                      disabled={toggling || (isActive && hasLiveMatches)}
-                      title={isActive && hasLiveMatches ? 'Cannot close — creators still in progress' : undefined}
+                      disabled={toggling}
                       className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
@@ -491,9 +488,9 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                 {invite.posts_per_month}p/mo
               </span>
             )}
-            {verifiedCount > 0 && (
+            {closedCount > 0 && (
               <span className="text-xs font-semibold shrink-0" style={{ color: '#16a34a', fontFamily: "'JetBrains Mono', monospace" }}>
-                {verifiedCount} verified
+                {closedCount} closed
               </span>
             )}
             {onViewDetail && (
@@ -542,7 +539,8 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                 expandPostsTrigger={postsTrigger}
                 expandMsgsTrigger={msgsTrigger}
                 hasUnreadMessages={(unreadByMatch[m.id] ?? 0) > 0}
-                onStatusUpdated={handleStatusUpdated}
+                onMatchClosed={handleMatchClosed}
+                onMatchReopened={handleMatchReopened}
                 onDeliverableVerified={handleDeliverableVerified}
                 onUnreadChange={handleUnreadChange}
               />

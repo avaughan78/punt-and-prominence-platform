@@ -10,7 +10,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
     .from('matches')
     .select(`
       punt_code,
-      status,
+      closed_at,
       invite:offers(
         title,
         invite_type,
@@ -32,7 +32,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
   const bizName = biz?.business_name ?? biz?.display_name ?? ''
   const initial = creator?.display_name?.[0]?.toUpperCase() ?? '?'
 
-  const isActive = !['verified', 'completed'].includes(data.status)
+  const isActive = !data.closed_at
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' }}>

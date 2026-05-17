@@ -42,22 +42,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const { data: match } = await supabase
     .from('matches')
-    .select('id, status, invite:offers(invite_type), business:profiles!matches_business_id_fkey(display_name, business_name, email), invite_title:offers(title)')
+    .select('id, closed_at, invite:offers(invite_type), business:profiles!matches_business_id_fkey(display_name, business_name, email), invite_title:offers(title)')
     .eq('id', id)
     .eq('creator_id', user.id)
     .single()
 
   if (!match) return NextResponse.json({ error: 'Match not found' }, { status: 404 })
+  if (match.closed_at) return NextResponse.json({ error: 'This collab has been closed' }, { status: 400 })
 
   const invite = match.invite as unknown as { invite_type: string } | null
   const isRetainer = invite?.invite_type === 'retainer'
 
-  if (isRetainer && match.status !== 'active') {
-    return NextResponse.json({ error: 'Match is not active' }, { status: 400 })
-  }
-  if (!isRetainer && !['accepted', 'posted'].includes(match.status)) {
-    return NextResponse.json({ error: 'Cannot submit posts for this match' }, { status: 400 })
-  }
   if (isRetainer && !month_number) {
     return NextResponse.json({ error: 'month_number required for retainer posts' }, { status: 400 })
   }
@@ -80,26 +75,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Auto-advance one-off match from accepted → posted on first submission
-  if (!isRetainer && match.status === 'accepted') {
-    await supabase
-      .from('matches')
-      .update({ status: 'posted' })
-      .eq('id', id)
+  const business = match.business as unknown as { display_name: string; business_name: string | null; email: string } | null
+  const inviteTitle = match.invite_title as unknown as { title: string } | null
 
-    // Notify the business
-    const business = match.business as unknown as { display_name: string; business_name: string | null; email: string } | null
-    const inviteTitle = match.invite_title as unknown as { title: string } | null
-    if (business?.email) {
-      emailMatchPosted({
-        businessEmail: business.email,
-        businessName: business.business_name ?? business.display_name,
-        creatorName: user.user_metadata?.display_name ?? 'A creator',
-        offerTitle: inviteTitle?.title ?? 'Collab',
-        postUrl: post_url,
-      })
-    }
+  if (business?.email) {
+    emailMatchPosted({
+      businessEmail: business.email,
+      businessName: business.business_name ?? business.display_name,
+      creatorName: user.user_metadata?.display_name ?? 'A creator',
+      offerTitle: isRetainer && month_number
+        ? `${inviteTitle?.title ?? 'Collab'} — Month ${month_number}`
+        : inviteTitle?.title ?? 'Collab',
+      postUrl: post_url,
+    })
   }
 
-  return NextResponse.json({ deliverable: data, matchStatus: !isRetainer && match.status === 'accepted' ? 'posted' : match.status }, { status: 201 })
+  return NextResponse.json(data, { status: 201 })
 }

@@ -9,20 +9,30 @@ export async function GET() {
   const role = user.user_metadata?.role
 
   // ── Posts to review (business only) ───────────────────────────────────────
-  // Count unverified deliverables (mirrors verifyCount logic in CollabCard)
+  // Count unverified deliverables on non-closed matches
   let posts = 0
+  let postsDetail: { creatorHandle: string | null; creatorName: string; offerTitle: string }[] = []
   if (role === 'business') {
-    const { data: postedMatches } = await supabase
+    const { data: openMatches } = await supabase
       .from('matches')
-      .select('id, post_url, deliverables:match_deliverables(id, status)')
+      .select('id, deliverables:match_deliverables(id, verified_at), creator:profiles!matches_creator_id_fkey(display_name, instagram_handle), offer:offers(title)')
       .eq('business_id', user.id)
-      .eq('status', 'posted')
+      .is('closed_at', null)
 
-    posts = (postedMatches ?? []).reduce((sum, m) => {
-      const delivs = (m.deliverables ?? []) as { id: string; status: string }[]
-      if (delivs.length === 0) return sum + (m.post_url ? 1 : 0)
-      return sum + delivs.filter(d => d.status !== 'verified').length
+    const matchesWithUnverified = (openMatches ?? []).filter(m =>
+      (m.deliverables as { id: string; verified_at: string | null }[]).some(d => !d.verified_at)
+    )
+
+    posts = matchesWithUnverified.reduce((sum, m) => {
+      const delivs = m.deliverables as { id: string; verified_at: string | null }[]
+      return sum + delivs.filter(d => !d.verified_at).length
     }, 0)
+
+    postsDetail = matchesWithUnverified.map(m => {
+      const c = m.creator as unknown as { display_name: string; instagram_handle: string | null } | null
+      const o = m.offer as unknown as { title: string } | null
+      return { creatorHandle: c?.instagram_handle ?? null, creatorName: c?.display_name ?? 'Creator', offerTitle: o?.title ?? 'Collab' }
+    })
   }
 
   // ── Unread messages (both roles) ───────────────────────────────────────────
@@ -63,5 +73,5 @@ export async function GET() {
     unreadMatchIds = [...unreadMatchIdSet]
   }
 
-  return NextResponse.json({ posts, messages, unreadMatchIds })
+  return NextResponse.json({ posts, messages, unreadMatchIds, postsDetail })
 }

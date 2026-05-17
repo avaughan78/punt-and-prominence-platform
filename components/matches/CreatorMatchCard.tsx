@@ -7,30 +7,28 @@ import { Input } from '@/components/ui/Input'
 import { InlineMessageThread } from '@/components/matches/InlineMessageThread'
 import { formatGBP, normalizeUrl } from '@/lib/utils'
 import { PuntQRCode } from '@/components/ui/PuntQRCode'
+import { deriveMatchState } from '@/lib/types'
 import type { Match, MatchDeliverable } from '@/lib/types'
 
-const BORDER_COLOR: Record<string, string> = {
-  accepted:  '#F5B800',
-  posted:    '#C084FC',
-  verified:  '#22c55e',
-  active:    '#6BE6B0',
-  completed: '#94a3b8',
+const STATE_PILL: Record<string, { bg: string; text: string; label: string }> = {
+  in_progress:  { bg: 'rgba(245,184,0,0.1)',    text: '#b45309', label: 'Awaiting posts' },
+  needs_review: { bg: 'rgba(192,132,252,0.12)', text: '#9333ea', label: 'Posts pending' },
+  up_to_date:   { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a', label: 'All verified' },
+  closed:       { bg: 'rgba(148,163,184,0.12)', text: '#64748b', label: 'Closed' },
 }
 
-const STATUS_PILL: Record<string, { bg: string; text: string; label: string }> = {
-  accepted:  { bg: 'rgba(245,184,0,0.1)',    text: '#b45309', label: 'Awaiting visit' },
-  posted:    { bg: 'rgba(192,132,252,0.12)', text: '#9333ea', label: 'Post submitted' },
-  verified:  { bg: 'rgba(34,197,94,0.1)',    text: '#16a34a', label: 'Verified' },
-  active:    { bg: 'rgba(107,230,176,0.12)', text: '#059669', label: 'Active' },
-  completed: { bg: 'rgba(148,163,184,0.12)', text: '#64748b', label: 'Completed' },
+const STATE_BORDER: Record<string, string> = {
+  in_progress:  '#F5B800',
+  needs_review: '#C084FC',
+  up_to_date:   '#22c55e',
+  closed:       '#94a3b8',
 }
 
-function nextStepLabel(status: string, isRetainer: boolean): string {
-  if (status === 'accepted')  return isRetainer ? 'Awaiting business activation' : 'Visit the venue, then add your post links below'
-  if (status === 'posted')    return 'Posts submitted · awaiting verification'
-  if (status === 'verified')  return 'Verified and complete'
-  if (status === 'active')    return 'Submit your monthly post'
-  if (status === 'completed') return 'Arrangement complete'
+function nextStepLabel(state: string, isRetainer: boolean): string {
+  if (state === 'in_progress')  return isRetainer ? 'Submit your monthly post below' : 'Add your post links below'
+  if (state === 'needs_review') return 'Posts submitted · awaiting verification'
+  if (state === 'up_to_date')   return 'All posts verified'
+  if (state === 'closed')       return 'Collab complete'
   return ''
 }
 
@@ -57,10 +55,12 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
   const [addPostUrlError, setAddPostUrlError]       = useState('')
   const [addPostLoading, setAddPostLoading]         = useState(false)
 
-  const isRetainer  = match.invite?.invite_type === 'retainer'
-  const isDone      = match.status === 'verified' || match.status === 'completed'
-  const borderColor = BORDER_COLOR[match.status] ?? '#94a3b8'
-  const pill        = STATUS_PILL[match.status] ?? STATUS_PILL.accepted
+  const state      = deriveMatchState(match)
+  const isRetainer = match.invite?.invite_type === 'retainer'
+  const isDone     = state === 'closed'
+  const pill       = STATE_PILL[state] ?? STATE_PILL.in_progress
+  const borderColor = STATE_BORDER[state] ?? '#94a3b8'
+  const needsAction = !isDone && state === 'in_progress'
 
   const invite       = match.invite
   const business     = invite?.business ?? match.business
@@ -71,8 +71,6 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
   const bizLat       = invite?.business?.latitude ?? null
   const bizLng       = invite?.business?.longitude ?? null
   const bizInitial   = bizName[0]?.toUpperCase() ?? 'B'
-
-  const needsAction = (!isRetainer && match.status === 'accepted') || (isRetainer && match.status === 'active')
 
   useEffect(() => {
     fetch(`/api/matches/${match.id}/messages/unread`)
@@ -94,11 +92,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
     if (!res.ok) toast.error(data.error ?? 'Failed to submit')
     else {
       toast.success('Post submitted')
-      onUpdated({
-        ...match,
-        status: (data.matchStatus ?? match.status) as Match['status'],
-        deliverables: [...(match.deliverables ?? []), data.deliverable],
-      })
+      onUpdated({ ...match, deliverables: [...(match.deliverables ?? []), data] })
       setShowAddPost(false)
       setAddPostUrl('')
       setAddPostUrlError('')
@@ -298,7 +292,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
                 className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                 style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
               >
-                {!isRetainer && match.status === 'accepted' ? 'Visit & post ↗' : 'Submit post ↗'}
+                Add post ↗
               </span>
             )}
 
@@ -330,7 +324,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
           >
             <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: borderColor }} />
             <p className="text-sm font-medium text-gray-600 flex-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-              {nextStepLabel(match.status, isRetainer)}
+              {nextStepLabel(state, isRetainer)}
             </p>
             {isDone && (
               <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: '#22c55e' }}>
@@ -366,27 +360,27 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
           )}
 
           {/* One-off: deliverables */}
-          {!isRetainer && (match.status === 'accepted' || match.status === 'posted' || match.status === 'verified') && (
+          {!isRetainer && (
             <div className="px-5 py-4 flex flex-col gap-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
               {(match.deliverables ?? []).map((d, idx) => (
                 <div key={d.id} className="flex flex-col gap-2">
                   <div
                     className="flex items-center gap-3 rounded-xl px-3 py-2.5"
                     style={{
-                      background: d.status === 'verified' ? 'rgba(107,230,176,0.08)' : 'rgba(0,0,0,0.02)',
-                      border: `1px solid ${d.status === 'verified' ? 'rgba(107,230,176,0.25)' : 'rgba(0,0,0,0.07)'}`,
+                      background: d.verified_at ? 'rgba(107,230,176,0.08)' : 'rgba(0,0,0,0.02)',
+                      border: `1px solid ${d.verified_at ? 'rgba(107,230,176,0.25)' : 'rgba(0,0,0,0.07)'}`,
                     }}
                   >
                     <div
                       className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
-                      style={{ background: d.status === 'verified' ? '#6BE6B0' : '#C084FC', color: '#1C2B3A' }}
+                      style={{ background: d.verified_at ? '#6BE6B0' : '#C084FC', color: '#1C2B3A' }}
                     >
                       {idx + 1}
                     </div>
                     <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="flex-1 text-sm text-blue-500 hover:underline truncate">
                       Post {idx + 1}
                     </a>
-                    {d.status === 'verified' ? (
+                    {d.verified_at ? (
                       <Check className="w-4 h-4 flex-shrink-0" style={{ color: '#22c55e' }} />
                     ) : (
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -434,7 +428,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
                 </div>
               ))}
 
-              {(match.status === 'accepted' || match.status === 'posted') && (
+              {!isDone && (
                 showAddPost ? (
                   <div className="flex flex-col gap-2 mt-1">
                     <div>
@@ -463,10 +457,10 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
           )}
 
           {/* Retainer: deliverables */}
-          {isRetainer && match.status !== 'accepted' && (
+          {isRetainer && (
             <div className="px-5 py-4 flex flex-col gap-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-              {(match.deliverables ?? []).length === 0 && match.status === 'active' && (
-                <p className="text-xs text-gray-400 italic">No posts submitted yet for this month.</p>
+              {(match.deliverables ?? []).length === 0 && !isDone && (
+                <p className="text-xs text-gray-400 italic">No posts submitted yet.</p>
               )}
               {[...(match.deliverables ?? [])]
                 .sort((a, b) => (a.month_number ?? 0) - (b.month_number ?? 0))
@@ -475,20 +469,20 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
                     <div
                       className="flex items-center gap-3 rounded-xl px-3 py-2.5"
                       style={{
-                        background: d.status === 'verified' ? 'rgba(107,230,176,0.08)' : 'rgba(0,0,0,0.02)',
-                        border: `1px solid ${d.status === 'verified' ? 'rgba(107,230,176,0.25)' : 'rgba(0,0,0,0.07)'}`,
+                        background: d.verified_at ? 'rgba(107,230,176,0.08)' : 'rgba(0,0,0,0.02)',
+                        border: `1px solid ${d.verified_at ? 'rgba(107,230,176,0.25)' : 'rgba(0,0,0,0.07)'}`,
                       }}
                     >
                       <div
                         className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
-                        style={{ background: d.status === 'verified' ? '#6BE6B0' : '#F5B800', color: '#1C2B3A' }}
+                        style={{ background: d.verified_at ? '#6BE6B0' : '#F5B800', color: '#1C2B3A' }}
                       >
                         {d.month_number}
                       </div>
                       <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="flex-1 text-sm text-blue-500 hover:underline truncate">
                         Month {d.month_number} post
                       </a>
-                      {d.status === 'verified' ? (
+                      {d.verified_at ? (
                         <Check className="w-4 h-4 flex-shrink-0" style={{ color: '#22c55e' }} />
                       ) : (
                         <div className="flex items-center gap-2 flex-shrink-0">
@@ -536,7 +530,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
                   </div>
                 ))}
 
-              {match.status === 'active' && (
+              {!isDone && (
                 showSubmitMonth === null ? (
                   <Button
                     size="sm"
@@ -591,9 +585,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
                   Show to staff on arrival
                 </p>
               </div>
-              {(match.status === 'accepted' || (isRetainer && match.status === 'active')) && (
-                <PuntQRCode puntCode={match.punt_code} size={88} />
-              )}
+              {!isDone && <PuntQRCode puntCode={match.punt_code} size={88} />}
             </div>
 
             {isRetainer && (invite?.posts_per_month != null || invite?.duration_months != null) && (

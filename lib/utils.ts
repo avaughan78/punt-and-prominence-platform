@@ -19,24 +19,24 @@ export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export function statusLabel(status: string): string {
+export function stateLabel(state: string): string {
   const labels: Record<string, string> = {
-    accepted: 'Awaiting content',
-    posted: 'Post submitted',
-    verified: 'Verified',
-    active: 'Active',
-    completed: 'Completed',
+    in_progress:  'Awaiting posts',
+    needs_review: 'Needs review',
+    up_to_date:   'Up to date',
+    closed:       'Closed',
   }
-  return labels[status] ?? status
+  return labels[state] ?? state
 }
 
-export function statusColor(status: string): string {
+export function stateColor(state: string): string {
   const colors: Record<string, string> = {
-    accepted: '#F5B800',
-    posted: '#C084FC',
-    verified: '#22c55e',
+    in_progress:  '#F5B800',
+    needs_review: '#C084FC',
+    up_to_date:   '#22c55e',
+    closed:       '#94a3b8',
   }
-  return colors[status] ?? '#6b7280'
+  return colors[state] ?? '#6b7280'
 }
 
 export function normalizeUrl(value: string): string | null {

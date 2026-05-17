@@ -1,14 +1,13 @@
-import { cn } from '@/lib/utils'
-import { statusColor, statusLabel } from '@/lib/utils'
+import { cn, stateColor, stateLabel } from '@/lib/utils'
 import { Utensils, ShoppingBag, Sparkles, Zap, Heart, Tag } from 'lucide-react'
 
 interface BadgeProps {
-  status: string
+  state: string
   className?: string
 }
 
-export function StatusBadge({ status, className }: BadgeProps) {
-  const color = statusColor(status)
+export function StatusBadge({ state, className }: BadgeProps) {
+  const color = stateColor(state)
   return (
     <span
       className={cn('inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold', className)}
@@ -19,7 +18,7 @@ export function StatusBadge({ status, className }: BadgeProps) {
         border: `1px solid ${color}40`,
       }}
     >
-      {statusLabel(status)}
+      {stateLabel(state)}
     </span>
   )
 }
