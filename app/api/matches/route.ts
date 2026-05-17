@@ -116,7 +116,6 @@ export async function POST(req: Request) {
           description: `Punt & Prominence — ${(offer as { title?: string }).title}`,
           metadata: { match_id: data.id, offer_id },
           transfer_data: { destination: creator.stripe_account_id },
-          on_behalf_of: creator.stripe_account_id,
         })
         await supabase
           .from('matches')

@@ -58,7 +58,6 @@ export async function POST(req: Request) {
     capture_method: 'manual', // hold funds, don't charge yet
     confirm: true,
     off_session: true,
-    on_behalf_of: creator.stripe_account_id,
     description: `Punt & Prominence — ${offer.title}`,
     metadata: { match_id, offer_id: match.offer_id },
     transfer_data: { destination: creator.stripe_account_id },
