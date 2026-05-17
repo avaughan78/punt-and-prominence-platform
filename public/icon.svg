@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="115" fill="#1C2B3A"/>
+  <!--
+    Exact Lucide Star proportions (inner/outer ratio ~0.47), scaled by 18x centred on 256,256.
+    Stroke-width 28 matches the Lucide 2px stroke at this scale.
+  -->
   <polygon
-    points="256,62 301,200 446,200 328,285 374,424 256,338 138,424 184,285 66,200 211,200"
+    points="256,76 312,189 436,207 346,295 367,418 256,360 145,418 166,295 76,207 200,189"
     fill="none"
     stroke="#F5B800"
-    stroke-width="22"
+    stroke-width="28"
     stroke-linejoin="round"
+    stroke-linecap="round"
   />
 </svg>

@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Punt & Prominence',
     short_name: 'Punt & Prominence',
     description: "Cambridge's local creator marketplace",
-    start_url: '/',
+    start_url: '/login',
     display: 'standalone',
     background_color: '#1C2B3A',
     theme_color: '#1C2B3A',
