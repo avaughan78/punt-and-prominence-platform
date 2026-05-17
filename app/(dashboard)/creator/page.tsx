@@ -14,15 +14,15 @@ export default async function CreatorDashboard() {
   const [{ data: profile }, { data: invites }, { data: matches }] = await Promise.all([
     supabase.from('profiles').select('instagram_handle, is_approved').eq('id', user!.id).single(),
     supabase.from('offers').select('id, slots_total, slots_claimed').eq('is_active', true),
-    supabase.from('matches').select('id, offer_id, status, scan_count').eq('creator_id', user!.id),
+    supabase.from('matches').select('id, offer_id, closed_at, scan_count').eq('creator_id', user!.id),
   ])
 
   if (!profile?.instagram_handle) redirect('/creator/onboarding')
 
   const claimedOfferIds  = new Set((matches ?? []).map(m => m.offer_id).filter(Boolean))
   const availableInvites = (invites ?? []).filter(o => o.slots_claimed < o.slots_total && !claimedOfferIds.has(o.id)).length
-  const inProgress = matches?.filter(m => ['accepted', 'posted', 'active'].includes(m.status)).length ?? 0
-  const completed  = matches?.filter(m => ['verified', 'completed'].includes(m.status)).length ?? 0
+  const inProgress = matches?.filter(m => !m.closed_at).length ?? 0
+  const completed  = matches?.filter(m => !!m.closed_at).length ?? 0
   const visits     = matches?.filter(m => (m.scan_count ?? 0) > 0).length ?? 0
 
   return (

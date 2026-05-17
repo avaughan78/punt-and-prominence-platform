@@ -13,7 +13,7 @@ export async function GET() {
   if (role === 'business') {
     const { data, error } = await supabase
       .from('offers')
-      .select('*, business:profiles!offers_business_id_fkey(id, display_name, business_name, address_line, category, latitude, longitude, avatar_url, instagram_handle), matches(id, status, punt_code, created_at, post_url, scan_count, creator:profiles!matches_creator_id_fkey(id, display_name, instagram_handle, avatar_url, follower_count), deliverables:match_deliverables(id, match_id, month_number, post_url, status, verified_at, created_at))')
+      .select('*, business:profiles!offers_business_id_fkey(id, display_name, business_name, address_line, category, latitude, longitude, avatar_url, instagram_handle), matches(id, closed_at, punt_code, created_at, scan_count, first_scanned_at, creator:profiles!matches_creator_id_fkey(id, display_name, instagram_handle, avatar_url, follower_count), deliverables:match_deliverables(id, match_id, month_number, post_url, verified_at, created_at))')
       .eq('business_id', user.id)
       .order('created_at', { ascending: false })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
