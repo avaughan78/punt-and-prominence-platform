@@ -123,9 +123,17 @@ export async function POST(req: Request) {
           .update({ stripe_payment_intent_id: intent.id, payout_status: 'pending' })
           .eq('id', data.id)
       }
-    } catch (err) {
-      console.error('[Stripe] Failed to hold payment for match', data.id, err)
-      // Don't block match creation — flag for manual follow-up
+    } catch (err: unknown) {
+      const stripeErr = err as { message?: string; code?: string; type?: string }
+      console.error('[Stripe] Failed to hold payment for match', data.id, {
+        message: stripeErr?.message,
+        code: stripeErr?.code,
+        type: stripeErr?.type,
+      })
+      // Store the error on the match so it's visible in logs
+      await supabase.from('matches').update({
+        notes: `Stripe error: ${stripeErr?.message ?? 'unknown'} (${stripeErr?.code ?? stripeErr?.type ?? 'no code'})`,
+      }).eq('id', data.id)
     }
   }
 
