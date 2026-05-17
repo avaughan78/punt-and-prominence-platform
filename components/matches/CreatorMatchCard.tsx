@@ -183,38 +183,25 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       <div
         role="button"
         onClick={() => setOpen(o => !o)}
-        className="cursor-pointer hover:brightness-[0.985] transition-all"
+        className="cursor-pointer active:opacity-90 transition-opacity"
       >
-        {/* Header band */}
-        <div className="relative shrink-0" style={{ height: '64px' }}>
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.07) 0%, rgba(253,29,29,0.06) 60%, rgba(252,176,69,0.04) 100%)' }} />
-
-          {/* Title + chevron */}
-          <div className="absolute inset-0 flex items-center pl-20 pr-4 gap-3 overflow-hidden">
-            <h3
-              className="font-bold text-sm leading-snug line-clamp-2 flex-1 text-right"
-              style={{ fontFamily: "'Bricolage Grotesque', sans-serif", color: '#1C2B3A' }}
-            >
-              {invite?.title ?? 'Collab'}
-            </h3>
-            <ChevronDown
-              className="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200"
-              style={{ transform: open ? 'rotate(180deg)' : 'none' }}
-            />
-          </div>
-
-          {/* Business avatar — overlaps band/body boundary */}
-          <div className="absolute left-4" style={{ bottom: 0, transform: 'translateY(50%)' }}>
+        {/* Header: pure flex row — no absolute positioning */}
+        <div
+          className="flex items-center gap-3 px-4 py-3"
+          style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.07) 0%, rgba(253,29,29,0.06) 60%, rgba(252,176,69,0.04) 100%)' }}
+        >
+          {/* Business avatar — inline */}
+          <div className="shrink-0">
             <div
               className="p-[2.5px] rounded-full"
               style={{ background: bizInstagram ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(0,0,0,0.1)' }}
             >
               <div className="p-[2px] bg-white rounded-full">
                 {bizAvatarUrl ? (
-                  <img src={bizAvatarUrl} alt={bizName} className="w-12 h-12 rounded-full object-cover block" />
+                  <img src={bizAvatarUrl} alt={bizName} className="w-10 h-10 rounded-full object-cover block" />
                 ) : (
                   <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
                     style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)' }}
                   >
                     {bizInitial}
@@ -223,10 +210,25 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
               </div>
             </div>
           </div>
+
+          {/* Title — bounded by flex-1 min-w-0 */}
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <h3
+              className="font-bold text-sm leading-snug line-clamp-2"
+              style={{ fontFamily: "'Bricolage Grotesque', sans-serif", color: '#1C2B3A' }}
+            >
+              {invite?.title ?? 'Collab'}
+            </h3>
+          </div>
+
+          <ChevronDown
+            className="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200"
+            style={{ transform: open ? 'rotate(180deg)' : 'none' }}
+          />
         </div>
 
         {/* Always-visible info body */}
-        <div className="px-4 pt-9 pb-3 flex flex-col gap-2">
+        <div className="px-4 pt-3 pb-3 flex flex-col gap-2">
 
           {/* Business name + value */}
           <div className="flex items-center justify-between gap-3">
