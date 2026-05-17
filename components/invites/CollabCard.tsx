@@ -32,23 +32,19 @@ function fmtDate(dt: string) {
 interface CreatorRowProps {
   match: MatchPreview
   isRetainer: boolean
-  collabTitle: string
   currentUserId: string
   initialPostsOpen?: boolean
   expandPostsTrigger?: number
   expandMsgsTrigger?: number
   hasUnreadMessages?: boolean
-  onMatchClosed: (matchId: string) => void
-  onMatchReopened: (matchId: string) => void
   onDeliverableVerified: (matchId: string, deliverableId: string) => void
   onUnreadChange?: (matchId: string, count: number) => void
 }
 
-function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPostsOpen, expandPostsTrigger, expandMsgsTrigger, hasUnreadMessages, onMatchClosed, onMatchReopened, onDeliverableVerified, onUnreadChange }: CreatorRowProps) {
+function CreatorRow({ match, isRetainer, currentUserId, initialPostsOpen, expandPostsTrigger, expandMsgsTrigger, hasUnreadMessages, onDeliverableVerified, onUnreadChange }: CreatorRowProps) {
   const [msgOpen, setMsgOpen]           = useState(false)
   const [postsOpen, setPostsOpen]       = useState(initialPostsOpen ?? false)
   const [unread, setUnread]             = useState(0)
-  const [loading, setLoading]           = useState(false)
   const [verifyingDid, setVerifyingDid] = useState<string | null>(null)
   const msgRef = useRef<HTMLDivElement>(null)
 
@@ -58,7 +54,6 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
   const handle      = creator?.instagram_handle
   const name        = creator?.display_name ?? 'Creator'
   const initials    = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
-  const isClosed    = state === 'closed'
   const deliverables = match.deliverables ?? []
   const hasPosts    = deliverables.length > 0
 
@@ -81,42 +76,6 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
       window.dispatchEvent(new Event('badges-refresh'))
     }
   }, [expandMsgsTrigger])
-
-  async function closeMatch() {
-    setLoading(true)
-    const res = await fetch(`/api/matches/${match.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'close' }),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      toast.error(data.error ?? 'Failed to close match')
-    } else {
-      toast.success('Match closed')
-      onMatchClosed(match.id)
-      window.dispatchEvent(new Event('badges-refresh'))
-    }
-    setLoading(false)
-  }
-
-  async function reopenMatch() {
-    setLoading(true)
-    const res = await fetch(`/api/matches/${match.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'reopen' }),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      toast.error(data.error ?? 'Failed to reopen match')
-    } else {
-      toast.success('Match reopened')
-      onMatchReopened(match.id)
-      window.dispatchEvent(new Event('badges-refresh'))
-    }
-    setLoading(false)
-  }
 
   async function verifyDeliverable(did: string) {
     setVerifyingDid(did)
@@ -186,17 +145,6 @@ function CreatorRow({ match, isRetainer, collabTitle, currentUserId, initialPost
             <ChevronDown className="w-3 h-3 transition-transform duration-150" style={{ transform: postsOpen ? 'rotate(180deg)' : 'none' }} />
           </button>
         )}
-
-        {/* Close / reopen toggle */}
-        <button
-          onClick={isClosed ? reopenMatch : closeMatch}
-          disabled={loading}
-          title={isClosed ? 'Reopen this match' : 'Close this match as complete'}
-          className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-50"
-          style={{ background: isClosed ? '#22c55e' : 'transparent', border: isClosed ? 'none' : '1.5px solid #d1d5db' }}
-        >
-          <Check className="w-3 h-3" style={{ color: isClosed ? 'white' : '#9ca3af' }} />
-        </button>
 
         <button
           onClick={toggleMsg}
@@ -326,18 +274,6 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
     const res = await fetch(`/api/invites/${invite.id}`, { method: 'DELETE' })
     if (res.ok) onDelete(invite.id)
     else { toast.error('Failed to delete collab'); setDeleting(false) }
-  }
-
-  function handleMatchClosed(matchId: string) {
-    const updatedMatches = matches.map(m => m.id === matchId ? { ...m, closed_at: new Date().toISOString() } : m)
-    setMatches(updatedMatches)
-    onUpdated({ ...invite, matches: updatedMatches })
-  }
-
-  function handleMatchReopened(matchId: string) {
-    const updatedMatches = matches.map(m => m.id === matchId ? { ...m, closed_at: null } : m)
-    setMatches(updatedMatches)
-    onUpdated({ ...invite, matches: updatedMatches })
   }
 
   function handleDeliverableVerified(matchId: string, deliverableId: string) {
@@ -533,14 +469,11 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                 key={m.id}
                 match={m}
                 isRetainer={isRetainer}
-                collabTitle={invite.title}
                 currentUserId={currentUserId}
                 initialPostsOpen={initialOpenMatchId === m.id}
                 expandPostsTrigger={postsTrigger}
                 expandMsgsTrigger={msgsTrigger}
                 hasUnreadMessages={(unreadByMatch[m.id] ?? 0) > 0}
-                onMatchClosed={handleMatchClosed}
-                onMatchReopened={handleMatchReopened}
                 onDeliverableVerified={handleDeliverableVerified}
                 onUnreadChange={handleUnreadChange}
               />

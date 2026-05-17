@@ -13,22 +13,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params
   const body = await req.json()
 
-  // Toggle-only (pause/activate) — fast path
+  // Toggle-only (open/close collab) — fast path, cascades closed_at to matches
   if (Object.keys(body).length === 1 && 'is_active' in body) {
-    // Block pausing when active creators are mid-collab
-    if (!body.is_active) {
-      const { data: activeMatches } = await supabase
-        .from('matches')
-        .select('id')
-        .eq('offer_id', id)
-        .not('status', 'in', '("verified","completed")')
-      if (activeMatches && activeMatches.length > 0) {
-        return NextResponse.json(
-          { error: `Cannot pause — ${activeMatches.length} creator${activeMatches.length !== 1 ? 's' : ''} still in progress. Verify or complete all matches first.` },
-          { status: 400 }
-        )
-      }
-    }
     const { data, error } = await supabase
       .from('offers')
       .update({ is_active: body.is_active })
@@ -37,6 +23,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       .select()
       .single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // Cascade: closing the collab closes all its matches; reopening clears that
+    const admin = createAdminClient()
+    await admin
+      .from('matches')
+      .update({ closed_at: body.is_active ? null : new Date().toISOString() })
+      .eq('offer_id', id)
+
     return NextResponse.json(data)
   }
 
@@ -89,7 +83,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       .from('matches')
       .select('id')
       .eq('offer_id', id)
-      .in('status', ['accepted', 'posted', 'active'])
+      .is('closed_at', null)
 
     if (activeMatches && activeMatches.length > 0) {
       const admin = createAdminClient()
