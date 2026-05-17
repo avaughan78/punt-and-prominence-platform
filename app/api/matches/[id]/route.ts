@@ -48,7 +48,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (action === 'close') {
     const creator = match.creator as unknown as { id: string; display_name: string; email: string } | null
     const business = match.business as unknown as { id: string; display_name: string; business_name: string | null } | null
-    const offer = match.offer as unknown as { title: string; value_gbp: number; compensation_type: string } | null
+    const offerRaw = match.offer
+    const offer = (Array.isArray(offerRaw) ? offerRaw[0] : offerRaw) as { title: string; value_gbp: number; compensation_type: string } | null
 
     // Capture held payment and transfer to creator
     if (
