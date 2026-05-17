@@ -21,9 +21,9 @@ export default async function BusinessCreatorProfilePage({ params }: { params: P
   const { data: rawMatches } = await supabase
     .from('matches')
     .select(`
-      id, offer_id, status, created_at, post_url,
+      id, offer_id, closed_at, created_at,
       offer:offers(title, value_gbp, fee_gbp, invite_type, category),
-      deliverables:match_deliverables(id, month_number, post_url, status)
+      deliverables:match_deliverables(id, month_number, post_url, verified_at)
     `)
     .eq('creator_id', id)
 

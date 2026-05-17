@@ -13,9 +13,9 @@ export default async function CreatorProfilePreviewPage() {
       id, display_name, instagram_handle, tiktok_handle, avatar_url,
       follower_count, tiktok_follower_count, bio, website_url,
       matches:matches!matches_creator_id_fkey(
-        id, status, created_at, post_url,
+        id, closed_at, created_at,
         offer:offers(title, value_gbp, fee_gbp, invite_type, category),
-        deliverables:match_deliverables(id, month_number, post_url, status)
+        deliverables:match_deliverables(id, month_number, post_url, verified_at)
       )
     `)
     .eq('id', user.id)

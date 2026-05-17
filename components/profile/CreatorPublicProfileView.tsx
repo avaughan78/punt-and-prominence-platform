@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { BadgeCheck, ArrowLeft, ExternalLink, Eye, ChevronDown, Globe } from 'lucide-react'
 import { CategoryBadge } from '@/components/ui/Badge'
 import { formatGBP, formatDate } from '@/lib/utils'
+import { deriveMatchState } from '@/lib/types'
 
 function InstagramIcon({ className, style }: { className?: string; style?: CSSProperties }) {
   return (
@@ -37,12 +38,11 @@ function fmt(n: number): string {
   return String(n)
 }
 
-const STATUS_META: Record<string, { label: string; bg: string; text: string }> = {
-  accepted:  { label: 'In progress', bg: 'rgba(245,184,0,0.12)',   text: '#b45309' },
-  posted:    { label: 'Posted',  bg: 'rgba(192,132,252,0.12)', text: '#9333ea' },
-  verified:  { label: 'Verified',    bg: 'rgba(34,197,94,0.1)',    text: '#16a34a' },
-  active:    { label: 'Active',      bg: 'rgba(107,230,176,0.12)', text: '#059669' },
-  completed: { label: 'Completed',   bg: 'rgba(148,163,184,0.12)', text: '#64748b' },
+const STATE_META: Record<string, { label: string; bg: string; text: string }> = {
+  in_progress:  { label: 'In progress', bg: 'rgba(245,184,0,0.12)',   text: '#b45309' },
+  needs_review: { label: 'Posts pending', bg: 'rgba(192,132,252,0.12)', text: '#9333ea' },
+  up_to_date:   { label: 'All verified', bg: 'rgba(34,197,94,0.1)',    text: '#16a34a' },
+  closed:       { label: 'Completed',    bg: 'rgba(148,163,184,0.12)', text: '#64748b' },
 }
 
 export interface CreatorPublicData {
@@ -59,17 +59,16 @@ export interface CreatorPublicData {
 
 export interface PublicDeliverable {
   id: string
-  month_number: number
+  month_number: number | null
   post_url: string
-  status: string
+  verified_at: string | null
 }
 
 export interface PublicMatch {
   id: string
   offer_id: string | null
-  status: string
+  closed_at: string | null
   created_at: string
-  post_url: string | null
   offer: {
     title: string
     value_gbp: number
@@ -96,12 +95,12 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
 
   const allPosts: { url: string; title: string; date: string; verified: boolean; matchId: string }[] = []
   for (const m of matches) {
-    if (m.post_url && (m.status === 'posted' || m.status === 'verified')) {
-      allPosts.push({ url: m.post_url, title: m.offer?.title ?? 'Collab', date: m.created_at, verified: m.status === 'verified', matchId: m.id })
-    }
     for (const d of m.deliverables ?? []) {
       if (d.post_url) {
-        allPosts.push({ url: d.post_url, title: `${m.offer?.title ?? 'Retainer'} · Month ${d.month_number}`, date: m.created_at, verified: d.status === 'verified', matchId: m.id })
+        const title = d.month_number != null
+          ? `${m.offer?.title ?? 'Collab'} · Month ${d.month_number}`
+          : (m.offer?.title ?? 'Collab')
+        allPosts.push({ url: d.post_url, title, date: m.created_at, verified: !!d.verified_at, matchId: m.id })
       }
     }
   }
@@ -109,8 +108,8 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
   const visiblePosts = allPosts.slice(0, postsVisible)
 
   const totalMatches = matches.length
-  const verifiedMatches = matches.filter(m => m.status === 'verified' || m.status === 'completed').length
-  const activeMatches = matches.filter(m => !['verified', 'completed'].includes(m.status)).length
+  const verifiedMatches = matches.filter(m => !!m.closed_at).length
+  const activeMatches = matches.filter(m => !m.closed_at).length
 
   const initials = creator.display_name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
   const igUrl = creator.instagram_handle ? `https://instagram.com/${creator.instagram_handle}` : null
@@ -422,7 +421,8 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
             {[...matches]
               .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
               .map((m, i) => {
-                const meta = STATUS_META[m.status] ?? STATUS_META.accepted
+                const state = deriveMatchState({ closed_at: m.closed_at, deliverables: m.deliverables })
+                const meta = STATE_META[state] ?? STATE_META.in_progress
                 const isRetainer = m.offer?.invite_type === 'retainer'
                 const value = isRetainer ? (m.offer?.fee_gbp ?? 0) : (m.offer?.value_gbp ?? 0)
                 return (

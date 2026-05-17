@@ -26,10 +26,10 @@ function matchesFilter(m: Match, f: Filter, unreadMatchIds: Set<string>): boolea
 const FILTERS: { value: Filter; label: string }[] = [
   { value: 'all',         label: 'All' },
   { value: 'unread',      label: 'Unread' },
-  { value: 'in_progress', label: 'In progress' },
-  { value: 'visited',     label: 'Visited' },
   { value: 'todo',        label: 'To do' },
   { value: 'submitted',   label: 'Submitted' },
+  { value: 'in_progress', label: 'Active' },
+  { value: 'visited',     label: 'Visited' },
   { value: 'done',        label: 'Done' },
   { value: 'one_off',     label: 'One-off' },
   { value: 'retainer',    label: 'Retainer' },
@@ -38,7 +38,7 @@ const FILTERS: { value: Filter; label: string }[] = [
 const EMPTY: Record<Filter, string> = {
   all:         'No collabs yet — browse what\'s available and claim one.',
   unread:      'All caught up — no unread messages.',
-  in_progress: 'Nothing in progress right now.',
+  in_progress: 'No active collabs right now.',
   visited:     'No visits recorded yet.',
   todo:        'You\'re all caught up — nothing needs action.',
   submitted:   'No posts pending verification.',
@@ -47,7 +47,7 @@ const EMPTY: Record<Filter, string> = {
   retainer:    'No retainer collabs.',
 }
 
-const STATE_ORDER: Record<string, number> = { in_progress: 0, needs_review: 1, up_to_date: 2, closed: 3 }
+const STATE_ORDER: Record<string, number> = { needs_review: 0, in_progress: 1, up_to_date: 2, closed: 3 }
 
 export function CreatorMatchesClient({ currentUserId, initialFilter }: { currentUserId: string; initialFilter?: Filter }) {
   const [matches, setMatches] = useState<Match[]>([])
