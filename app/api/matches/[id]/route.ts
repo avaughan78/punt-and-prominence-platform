@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { emailMatchVerified } from '@/lib/email'
-import { stripe } from '@/lib/stripe'
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -22,7 +21,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { data: match } = await supabase
     .from('matches')
     .select(`
-      offer_id, closed_at, punt_code, stripe_payment_intent_id, payout_status,
+      offer_id, closed_at, punt_code,
       creator:profiles!matches_creator_id_fkey(id, display_name, email),
       business:profiles!matches_business_id_fkey(id, display_name, business_name)
     `)
@@ -54,29 +53,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       .select('title, value_gbp, compensation_type')
       .eq('id', matchTyped.offer_id)
       .single()
-
-    // Debug — remove after confirming capture works
-    await supabase.from('matches').update({
-      notes: `debug: offer_id=${matchTyped.offer_id} comp=${offer?.compensation_type} pi=${match.stripe_payment_intent_id ?? 'null'} status=${match.payout_status}`,
-    }).eq('id', id)
-
-    // Capture held payment and transfer to creator
-    if (
-      offer?.compensation_type === 'paid' &&
-      match.stripe_payment_intent_id &&
-      match.payout_status === 'pending'
-    ) {
-      try {
-        await stripe.paymentIntents.capture(match.stripe_payment_intent_id)
-        await supabase.from('matches').update({ payout_status: 'paid', notes: null }).eq('id', id)
-      } catch (err: unknown) {
-        const e = err as { message?: string; code?: string }
-        console.error('[Stripe] Capture failed on close for match', id, e?.message, e?.code)
-        await supabase.from('matches').update({
-          notes: `Stripe capture error: ${e?.message ?? 'unknown'} (${e?.code ?? 'no code'})`,
-        }).eq('id', id)
-      }
-    }
 
     if (creator?.email) {
       emailMatchVerified({

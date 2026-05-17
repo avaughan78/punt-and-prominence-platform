@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { writeAuditLog } from '@/lib/audit'
+import { stripe } from '@/lib/stripe'
 
 const EDITABLE = ['title', 'description', 'requirements', 'value_gbp', 'fee_gbp', 'slots_total', 'expires_at', 'posts_per_month', 'duration_months']
 
@@ -30,6 +31,33 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       .from('matches')
       .update({ closed_at: body.is_active ? null : new Date().toISOString() })
       .eq('offer_id', id)
+
+    // On close: capture held Stripe payments for any paid matches
+    if (!body.is_active && data.compensation_type === 'paid') {
+      const { data: pendingMatches } = await admin
+        .from('matches')
+        .select('id, stripe_payment_intent_id')
+        .eq('offer_id', id)
+        .eq('payout_status', 'pending')
+        .not('stripe_payment_intent_id', 'is', null)
+
+      if (pendingMatches && pendingMatches.length > 0) {
+        await Promise.allSettled(
+          pendingMatches.map(async (m) => {
+            try {
+              await stripe.paymentIntents.capture(m.stripe_payment_intent_id as string)
+              await admin.from('matches').update({ payout_status: 'paid' }).eq('id', m.id)
+            } catch (err: unknown) {
+              const e = err as { message?: string; code?: string }
+              console.error('[Stripe] Capture failed for match', m.id, e?.message, e?.code)
+              await admin.from('matches').update({
+                notes: `Stripe capture error: ${e?.message ?? 'unknown'} (${e?.code ?? 'no code'})`,
+              }).eq('id', m.id)
+            }
+          })
+        )
+      }
+    }
 
     return NextResponse.json(data)
   }
