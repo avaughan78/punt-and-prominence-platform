@@ -66,8 +66,19 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
       fetch('/api/invites').then(r => r.json()),
       fetch('/api/messages/unread').then(r => r.json()),
     ]).then(([inviteData, unreadData]) => {
-      setCollabs(Array.isArray(inviteData) ? inviteData : [])
-      setUnreadMatchIds(new Set(unreadData.unreadMatchIds ?? []))
+      const invites: Invite[] = Array.isArray(inviteData) ? inviteData : []
+      const unreadIds = new Set<string>(unreadData.unreadMatchIds ?? [])
+      setCollabs(invites)
+      setUnreadMatchIds(unreadIds)
+      // Freeze snapshot so items don't vanish as you work through a linked filter
+      if (initialFilter && initialFilter !== 'all') {
+        const sortedInvites = [...invites].sort((a, b) => {
+          if (a.is_active && !b.is_active) return -1
+          if (!a.is_active && b.is_active) return 1
+          return 0
+        })
+        setFrozenIds(new Set(sortedInvites.filter(inv => matchesFilter(inv, initialFilter, unreadIds)).map(inv => inv.id)))
+      }
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [])
