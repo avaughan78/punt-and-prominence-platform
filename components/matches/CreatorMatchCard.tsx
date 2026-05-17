@@ -176,7 +176,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
 
   return (
     <div
-      className="rounded-2xl overflow-hidden"
+      className="rounded-2xl overflow-hidden min-w-0 w-full"
       style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)', ...cardBorderStyle }}
     >
       {/* ── Clickable card face ── */}
@@ -235,7 +235,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
                 {bizName}
               </p>
               {bizAddress && (
-                <div className="flex items-center gap-1 mt-0.5" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center gap-1 mt-0.5 min-w-0" onClick={e => e.stopPropagation()}>
                   <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
                   {bizLat && bizLng ? (
                     <a
