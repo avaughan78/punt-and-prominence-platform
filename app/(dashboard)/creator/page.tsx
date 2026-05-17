@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { StatCard } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { CreatorDashboardAlerts } from '@/components/layout/CreatorDashboardAlerts'
+import { deriveMatchState } from '@/lib/types'
 import { Search, AlertCircle, Clock } from 'lucide-react'
 
 export default async function CreatorDashboard() {
@@ -14,7 +15,7 @@ export default async function CreatorDashboard() {
   const [{ data: profile }, { data: invites }, { data: matches }] = await Promise.all([
     supabase.from('profiles').select('instagram_handle, is_approved').eq('id', user!.id).single(),
     supabase.from('offers').select('id, slots_total, slots_claimed').eq('is_active', true),
-    supabase.from('matches').select('id, offer_id, closed_at, scan_count').eq('creator_id', user!.id),
+    supabase.from('matches').select('id, offer_id, closed_at, deliverables:match_deliverables(verified_at)').eq('creator_id', user!.id),
   ])
 
   if (!profile?.instagram_handle) redirect('/creator/onboarding')
@@ -22,12 +23,12 @@ export default async function CreatorDashboard() {
   const claimedOfferIds  = new Set((matches ?? []).map(m => m.offer_id).filter(Boolean))
   const availableInvites = (invites ?? []).filter(o => o.slots_claimed < o.slots_total && !claimedOfferIds.has(o.id)).length
   const inProgress = matches?.filter(m => !m.closed_at).length ?? 0
+  const todo       = matches?.filter(m => deriveMatchState(m as Parameters<typeof deriveMatchState>[0]) === 'in_progress').length ?? 0
   const completed  = matches?.filter(m => !!m.closed_at).length ?? 0
-  const visits     = matches?.filter(m => (m.scan_count ?? 0) > 0).length ?? 0
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
+      <div className="mb-3 sm:mb-6">
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Dashboard</h1>
         <p className="text-sm text-gray-500 mt-0.5">Browse Cambridge collabs and manage your matches.</p>
       </div>
@@ -61,14 +62,14 @@ export default async function CreatorDashboard() {
         </Link>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 sm:mb-8">
         <StatCard label="Available collabs" value={availableInvites} href="/creator/browse" />
         <StatCard label="In progress" value={inProgress} accent="#C084FC" href="/creator/matches?filter=in_progress" />
+        <StatCard label="To do" value={todo} accent="#F5B800" href="/creator/matches?filter=todo" />
         <StatCard label="Completed" value={completed} accent="#22c55e" href="/creator/matches?filter=done" />
-        <StatCard label="Visits confirmed" value={visits} accent="#6BE6B0" href="/creator/matches?filter=visited" />
       </div>
 
-      <div className="rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"
+      <div className="rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4"
         style={{ border: '1.5px solid transparent', background: 'linear-gradient(#f9f6ff, #fff8f6) padding-box, linear-gradient(135deg, rgba(131,58,180,0.35) 0%, rgba(253,29,29,0.25) 60%, rgba(252,176,69,0.2) 100%) border-box' }}>
         <div className="flex-1">
           <p className="font-semibold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>

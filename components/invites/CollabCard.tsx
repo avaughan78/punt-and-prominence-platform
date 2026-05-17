@@ -223,10 +223,12 @@ function CreatorRow({ match, isRetainer, currentUserId, initialPostsOpen, expand
               <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold" style={{ background: d.verified_at ? '#6BE6B0' : '#C084FC', color: '#1C2B3A' }}>
                 {d.month_number ?? idx + 1}
               </div>
-              <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-blue-500 hover:underline flex-1 truncate">
-                <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                {isRetainer ? `Month ${d.month_number}` : `Post ${idx + 1}`}
-              </a>
+              <div className="flex-1 min-w-0">
+                <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-blue-500 hover:underline">
+                  <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                  {isRetainer ? `Month ${d.month_number}` : `Post ${idx + 1}`}
+                </a>
+              </div>
               <span className="text-[10px] text-gray-400 flex-shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                 {d.verified_at ? `verified ${fmtDate(d.verified_at)}` : fmtDate(d.created_at)}
               </span>

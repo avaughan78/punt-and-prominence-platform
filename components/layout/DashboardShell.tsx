@@ -184,7 +184,7 @@ export function DashboardShell({ children, role, displayName }: Props) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 px-4 py-6 sm:px-6 md:px-8 md:py-8 pb-24 md:pb-8">
+        <main className="flex-1 px-4 py-6 sm:px-6 md:px-8 md:py-8 pb-28 md:pb-8">
           {children}
         </main>
       </div>
@@ -192,7 +192,7 @@ export function DashboardShell({ children, role, displayName }: Props) {
       {/* Mobile bottom nav */}
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex"
-        style={{ background: '#1C2B3A', borderTop: '1px solid rgba(255,255,255,0.06)' }}
+        style={{ background: '#1C2B3A', borderTop: '1px solid rgba(255,255,255,0.06)', paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         {navItems.map(item => {
           const active = pathname === item.href || (item.href !== '/business' && item.href !== '/creator' && pathname.startsWith(item.href))

@@ -24,7 +24,7 @@ export default async function BusinessDashboard() {
       .eq('business_id', user!.id)
       .order('created_at', { ascending: false })
       .limit(5),
-    supabase.from('matches').select('closed_at, scan_count').eq('business_id', user!.id),
+    supabase.from('matches').select('closed_at, deliverables:match_deliverables(verified_at)').eq('business_id', user!.id),
   ])
 
   if (!profile?.business_name) redirect('/business/onboarding')
@@ -34,12 +34,12 @@ export default async function BusinessDashboard() {
   const activeOffers    = offers?.filter(o => o.is_active).length ?? 0
   const creatorsMatched = allMatches.length
   const inProgress      = allMatches.filter(m => !m.closed_at).length
+  const needsReview     = allMatches.filter(m => deriveMatchState(m as Parameters<typeof deriveMatchState>[0]) === 'needs_review').length
   const fulfilled       = allMatches.filter(m => !!m.closed_at).length
-  const visits          = allMatches.filter(m => (m.scan_count ?? 0) > 0).length
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-3 sm:mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Dashboard</h1>
           <p className="text-sm text-gray-500 mt-0.5">Welcome back. Here&apos;s your activity.</p>
@@ -69,17 +69,17 @@ export default async function BusinessDashboard() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4 sm:mb-8 [&>*:last-child:nth-child(odd)]:col-span-2 [&>*:last-child:nth-child(odd)]:md:col-span-1">
         <StatCard label="Open collabs" value={activeOffers} href="/business/invites?filter=open" />
         <StatCard label="Creators matched" value={creatorsMatched} accent="#6BE6B0" href="/business/invites" />
-        <StatCard label="In progress" value={inProgress} accent="#C084FC" href="/business/invites?filter=in_progress" />
-        <StatCard label="Visits confirmed" value={visits} accent="#F5B800" href="/business/invites?filter=visited" />
-        <StatCard label="Fulfilled" value={fulfilled} accent="#22c55e" href="/business/invites?filter=fulfilled" />
+        <StatCard label="Needs review" value={needsReview} accent="#9333ea" href="/business/invites?filter=needs_review" />
+        <StatCard label="Awaiting content" value={inProgress} accent="#F5B800" href="/business/invites?filter=awaiting_content" />
+        <StatCard label="Fulfilled" value={fulfilled} accent="#22c55e" href="/business/invites?filter=closed" />
       </div>
 
       {/* Recent activity */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
           <h2 className="font-semibold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Recent activity</h2>
           <Link href="/business/invites" className="text-xs text-gray-400 hover:text-gray-600">View all →</Link>
         </div>
@@ -110,7 +110,7 @@ export default async function BusinessDashboard() {
                   <div className="flex-1 min-w-0">
                     <Link
                       href={`/business/invites?open=${offerId}`}
-                      className="text-sm font-medium text-[#1C2B3A] truncate block hover:underline"
+                      className="text-sm font-medium text-[#1C2B3A] hover:underline"
                     >
                       {offer?.title}
                     </Link>

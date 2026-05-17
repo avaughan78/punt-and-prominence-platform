@@ -246,19 +246,19 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
               {bizAddress && (
                 <div className="flex items-center gap-1 mt-0.5" onClick={e => e.stopPropagation()}>
                   <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
-                  <div className="min-w-0 flex-1 overflow-hidden">
+                  <div className="min-w-0 flex-1 overflow-hidden truncate">
                     {bizLat && bizLng ? (
                       <a
                         href={`https://www.google.com/maps/search/?api=1&query=${bizLat},${bizLng}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block text-xs text-blue-500 hover:underline truncate"
+                        className="text-xs text-blue-500 hover:underline"
                         onClick={e => e.stopPropagation()}
                       >
                         {bizAddress}
                       </a>
                     ) : (
-                      <span className="block text-xs text-gray-400 truncate">{bizAddress}</span>
+                      <span className="text-xs text-gray-400">{bizAddress}</span>
                     )}
                   </div>
                 </div>
@@ -374,9 +374,11 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
                     >
                       {idx + 1}
                     </div>
-                    <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="flex-1 text-sm text-blue-500 hover:underline truncate">
-                      Post {idx + 1}
-                    </a>
+                    <div className="flex-1 min-w-0">
+                      <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline">
+                        Post {idx + 1}
+                      </a>
+                    </div>
                     {d.verified_at ? (
                       <Check className="w-4 h-4 flex-shrink-0" style={{ color: '#22c55e' }} />
                     ) : (
@@ -476,9 +478,11 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
                       >
                         {d.month_number}
                       </div>
-                      <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="flex-1 text-sm text-blue-500 hover:underline truncate">
-                        Month {d.month_number} post
-                      </a>
+                      <div className="flex-1 min-w-0">
+                        <a href={d.post_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline">
+                          Month {d.month_number} post
+                        </a>
+                      </div>
                       {d.verified_at ? (
                         <Check className="w-4 h-4 flex-shrink-0" style={{ color: '#22c55e' }} />
                       ) : (
