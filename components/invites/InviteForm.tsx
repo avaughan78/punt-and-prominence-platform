@@ -158,13 +158,13 @@ export function InviteForm({ instagramHandle }: { instagramHandle: string | null
                 <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                   {compensationType === 'paid' ? 'Creator fee (£)' : 'Value (£)'}
                 </label>
-                <div className="flex rounded-lg overflow-hidden text-[10px] font-semibold" style={{ border: '1px solid rgba(0,0,0,0.1)' }}>
+                <div className="flex rounded-lg overflow-hidden text-xs font-semibold" style={{ border: '1px solid rgba(0,0,0,0.1)' }}>
                   {(['gifting', 'paid'] as const).map(opt => (
                     <button
                       key={opt}
                       type="button"
                       onClick={() => setCompensationType(opt)}
-                      className="px-2 py-0.5 capitalize transition-colors"
+                      className="px-3 py-1 capitalize transition-colors"
                       style={{
                         background: compensationType === opt ? '#1C2B3A' : 'white',
                         color: compensationType === opt ? 'white' : 'rgba(0,0,0,0.4)',
