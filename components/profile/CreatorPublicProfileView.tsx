@@ -214,19 +214,21 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
 
           {/* Name + category */}
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="min-w-0 flex-1">
               <h1
-                className="text-2xl font-bold text-[#1C2B3A] leading-tight"
+                className="text-2xl font-bold text-[#1C2B3A] leading-tight truncate"
                 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
               >
                 {creator.display_name}
               </h1>
               {creator.instagram_handle && (
-                <p className="text-sm mt-0.5" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
+                <p className="text-sm mt-0.5 truncate" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
                   @{creator.instagram_handle}
-                  {creator.tiktok_handle && (
-                    <span className="ml-2 opacity-60">· @{creator.tiktok_handle}</span>
-                  )}
+                </p>
+              )}
+              {creator.tiktok_handle && (
+                <p className="text-sm truncate opacity-60" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
+                  @{creator.tiktok_handle}
                 </p>
               )}
             </div>
@@ -254,7 +256,7 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
                     <p className="text-xl font-extrabold text-[#1C2B3A] leading-none" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                       {fmt(creator.follower_count!)}
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide truncate" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                       {creator.instagram_handle ? `@${creator.instagram_handle}` : 'followers'}
                     </p>
                   </div>
@@ -274,8 +276,8 @@ export function CreatorPublicProfileView({ creator, matches, backHref, backLabel
                     <p className="text-xl font-extrabold text-[#1C2B3A] leading-none" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                       {fmt(creator.tiktok_follower_count!)}
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                      {creator.tiktok_handle ? `@${creator.tiktok_handle}` : 'followers'}
+                    <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide truncate" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      {creator.tiktok_handle ? `@${creator.tiktok_handle}` : 'TikTok followers'}
                     </p>
                   </div>
                   <ExternalLink className="w-3 h-3 shrink-0 opacity-30" />

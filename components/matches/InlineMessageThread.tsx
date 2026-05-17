@@ -35,7 +35,12 @@ export function InlineMessageThread({ matchId, currentUserId }: Props) {
   useEffect(() => {
     fetch(`/api/matches/${matchId}/messages`)
       .then(r => r.json())
-      .then(d => { setMessages(Array.isArray(d) ? d : []); setLoaded(true) })
+      .then(d => {
+        setMessages(Array.isArray(d) ? d : [])
+        setLoaded(true)
+        // Fire after the server marks the thread as read (read upsert happens inside the GET)
+        window.dispatchEvent(new Event('badges-refresh'))
+      })
   }, [matchId])
 
   // Scroll within the thread container only — never scroll the page

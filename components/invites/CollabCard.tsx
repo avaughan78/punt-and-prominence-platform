@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { MessageCircle, Pencil, Trash2, Check, ChevronDown, ImageIcon, ExternalLink, Info, Users, MoreVertical, Lock, LockOpen } from 'lucide-react'
+import { MessageCircle, Pencil, Trash2, Check, ChevronDown, ImageIcon, ExternalLink, Info, Users, MoreVertical, Lock, LockOpen, Bell } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { EditInviteModal } from '@/components/invites/EditInviteModal'
@@ -41,11 +41,15 @@ interface CreatorRowProps {
   onUnreadChange?: (matchId: string, count: number) => void
 }
 
+const NUDGE_THRESHOLD_MS = 48 * 60 * 60 * 1000
+
 function CreatorRow({ match, isRetainer, currentUserId, initialPostsOpen, expandPostsTrigger, expandMsgsTrigger, hasUnreadMessages, onDeliverableVerified, onUnreadChange }: CreatorRowProps) {
   const [msgOpen, setMsgOpen]           = useState(false)
   const [postsOpen, setPostsOpen]       = useState(initialPostsOpen ?? false)
   const [unread, setUnread]             = useState(0)
   const [verifyingDid, setVerifyingDid] = useState<string | null>(null)
+  const [nudged, setNudged]             = useState(false)
+  const [nudging, setNudging]           = useState(false)
   const msgRef = useRef<HTMLDivElement>(null)
 
   const state       = deriveMatchState(match)
@@ -56,6 +60,22 @@ function CreatorRow({ match, isRetainer, currentUserId, initialPostsOpen, expand
   const initials    = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
   const deliverables = match.deliverables ?? []
   const hasPosts    = deliverables.length > 0
+
+  const ageMs = Date.now() - new Date(match.created_at).getTime()
+  const showNudge = !match.closed_at && !hasPosts && ageMs > NUDGE_THRESHOLD_MS
+
+  async function sendNudge() {
+    setNudging(true)
+    const res = await fetch(`/api/matches/${match.id}/nudge`, { method: 'POST' })
+    if (res.ok) {
+      setNudged(true)
+      toast.success('Nudge sent')
+    } else {
+      const d = await res.json().catch(() => ({}))
+      toast.error(d.error ?? 'Failed to send nudge')
+    }
+    setNudging(false)
+  }
 
   useEffect(() => {
     fetch(`/api/matches/${match.id}/messages/unread`)
@@ -133,6 +153,23 @@ function CreatorRow({ match, isRetainer, currentUserId, initialPostsOpen, expand
         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0" style={{ background: meta.bg, color: meta.text, fontFamily: "'JetBrains Mono', monospace" }}>
           {meta.label}
         </span>
+
+        {showNudge && (
+          nudged ? (
+            <span className="text-[10px] font-semibold text-gray-400 flex-shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>nudged</span>
+          ) : (
+            <button
+              onClick={() => sendNudge()}
+              disabled={nudging}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all flex-shrink-0 disabled:opacity-40"
+              style={{ background: 'rgba(245,184,0,0.1)', color: '#b45309' }}
+              title="Send a check-in message to this creator"
+            >
+              <Bell className="w-3 h-3" />
+              Nudge
+            </button>
+          )
+        )}
 
         {hasPosts && (
           <button
