@@ -83,7 +83,7 @@ export function CreatorMatchesClient({ currentUserId, initialFilter }: { current
   const todoCount = counts.todo
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto" style={{ overflowX: 'clip' }}>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
           My Collabs

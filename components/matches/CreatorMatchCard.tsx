@@ -190,7 +190,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
           <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.07) 0%, rgba(253,29,29,0.06) 60%, rgba(252,176,69,0.04) 100%)' }} />
 
           {/* Title + chevron */}
-          <div className="absolute inset-0 flex items-center pl-20 pr-4 gap-3">
+          <div className="absolute inset-0 flex items-center pl-20 pr-4 gap-3 overflow-hidden">
             <h3
               className="font-bold text-sm leading-snug line-clamp-2 flex-1 text-right"
               style={{ fontFamily: "'Bricolage Grotesque', sans-serif", color: '#1C2B3A' }}
