@@ -83,7 +83,7 @@ export function CreatorMatchesClient({ currentUserId, initialFilter }: { current
   const todoCount = counts.todo
 
   return (
-    <div className="max-w-2xl mx-auto overflow-x-hidden">
+    <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
           My Collabs
@@ -106,7 +106,7 @@ export function CreatorMatchesClient({ currentUserId, initialFilter }: { current
         <>
           {matches.length > 0 && (
             <div
-              className="flex gap-1.5 mb-5 overflow-x-auto -mx-4 px-4 pb-2 md:mx-0 md:px-0 md:pb-0 md:flex-wrap md:overflow-visible"
+              className="flex gap-1.5 mb-5 overflow-x-auto md:overflow-visible md:flex-wrap"
               style={{ scrollbarWidth: 'none' } as React.CSSProperties}
             >
               {FILTERS.filter(f => f.value === 'all' || counts[f.value] > 0).map(f => {
