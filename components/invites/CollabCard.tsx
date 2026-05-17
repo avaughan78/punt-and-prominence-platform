@@ -88,10 +88,15 @@ function CreatorRow({ match, isRetainer, currentUserId, initialPostsOpen, expand
   }
 
   useEffect(() => {
-    fetch(`/api/matches/${match.id}/messages/unread`)
-      .then(r => r.json())
-      .then(d => setUnread(d.count ?? 0))
-      .catch(() => {})
+    function refreshUnread() {
+      fetch(`/api/matches/${match.id}/messages/unread`)
+        .then(r => r.json())
+        .then(d => setUnread(d.count ?? 0))
+        .catch(() => {})
+    }
+    refreshUnread()
+    window.addEventListener('badges-refresh', refreshUnread)
+    return () => window.removeEventListener('badges-refresh', refreshUnread)
   }, [match.id])
 
   useEffect(() => {
