@@ -65,6 +65,7 @@ export function InlineMessageThread({ matchId, currentUserId }: Props) {
       const msg = await res.json()
       setMessages(prev => [...prev, msg])
       setDraft('')
+      window.dispatchEvent(new Event('badges-refresh'))
     }
     setSending(false)
   }

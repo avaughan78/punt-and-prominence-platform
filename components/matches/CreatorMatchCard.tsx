@@ -96,6 +96,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       setShowAddPost(false)
       setAddPostUrl('')
       setAddPostUrlError('')
+      window.dispatchEvent(new Event('badges-refresh'))
     }
     setAddPostLoading(false)
   }
@@ -150,6 +151,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
       setShowSubmitMonth(null)
       setSubmitUrl('')
       setSubmitUrlError('')
+      window.dispatchEvent(new Event('badges-refresh'))
     }
     setDeliverableLoading(null)
   }
