@@ -21,6 +21,7 @@ export function InviteForm({ instagramHandle }: { instagramHandle: string | null
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [inviteType, setInviteType] = useState<'one_off' | 'retainer'>('one_off')
+  const [compensationType, setCompensationType] = useState<'gifting' | 'paid'>('gifting')
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -59,6 +60,7 @@ export function InviteForm({ instagramHandle }: { instagramHandle: string | null
           category: form.category,
           requirements: form.requirements || null,
           invite_type: 'one_off',
+          compensation_type: compensationType,
           value_gbp: parseFloat(form.value_gbp),
           slots_total: parseInt(form.slots_total),
           expires_at: form.expires_at || null,
@@ -151,17 +153,39 @@ export function InviteForm({ instagramHandle }: { instagramHandle: string | null
       {inviteType === 'one_off' ? (
         <>
           <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Value (£)"
-              type="number"
-              placeholder="25.00"
-              min="1"
-              step="0.01"
-              value={form.value_gbp}
-              onChange={e => set('value_gbp', e.target.value)}
-              hint="Estimated value of the experience"
-              required
-            />
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  {compensationType === 'paid' ? 'Creator fee (£)' : 'Value (£)'}
+                </label>
+                <div className="flex rounded-lg overflow-hidden text-[10px] font-semibold" style={{ border: '1px solid rgba(0,0,0,0.1)' }}>
+                  {(['gifting', 'paid'] as const).map(opt => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setCompensationType(opt)}
+                      className="px-2 py-0.5 capitalize transition-colors"
+                      style={{
+                        background: compensationType === opt ? '#1C2B3A' : 'white',
+                        color: compensationType === opt ? 'white' : 'rgba(0,0,0,0.4)',
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <Input
+                type="number"
+                placeholder="25.00"
+                min="1"
+                step="0.01"
+                value={form.value_gbp}
+                onChange={e => set('value_gbp', e.target.value)}
+                hint={compensationType === 'paid' ? 'Actual cash paid to creator' : 'Estimated value of the experience'}
+                required
+              />
+            </div>
             <Input
               label="Creator slots"
               type="number"
