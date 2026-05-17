@@ -1,6 +1,8 @@
 'use client'
 import { useState, type CSSProperties } from 'react'
-import { MapPin, Pencil, ExternalLink, Globe } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { MapPin, Pencil, ExternalLink, Globe, LogOut } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 function InstagramIcon({ className, style }: { className?: string; style?: CSSProperties }) {
   return (
@@ -24,6 +26,11 @@ interface Props {
 export function BusinessProfilePage({ profile: initial, userId, isComplete }: Props) {
   const [editing, setEditing] = useState(!isComplete)
   const [profile, setProfile] = useState(initial)
+  const router = useRouter()
+  async function handleSignOut() {
+    await createClient().auth.signOut()
+    router.push('/login')
+  }
 
   const bizName = profile.business_name || profile.display_name
   const initials = bizName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
@@ -209,7 +216,17 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
         </div>
       </div>
 
-      <div className="mt-10">
+      <div className="mt-10 flex flex-col gap-4">
+        <div className="pt-6" style={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-[#1C2B3A] transition-colors"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
+            <LogOut className="w-4 h-4" />
+            Sign out
+          </button>
+        </div>
         <CloseAccountSection />
       </div>
     </div>

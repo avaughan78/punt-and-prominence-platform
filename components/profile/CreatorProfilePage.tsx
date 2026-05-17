@@ -1,7 +1,9 @@
 'use client'
 import { useState, type CSSProperties } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Pencil, Globe, BadgeCheck, Eye, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Pencil, Globe, BadgeCheck, Eye, AlertCircle, CheckCircle2, LogOut } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { ProfileForm, type ProfileFormData } from './ProfileForm'
 import { CloseAccountSection } from '@/components/account/CloseAccountSection'
 
@@ -39,6 +41,11 @@ interface Props {
 export function CreatorProfilePage({ profile: initial, userId, isComplete, isApproved }: Props) {
   const [editing, setEditing] = useState(!isComplete)
   const [profile, setProfile] = useState(initial)
+  const router = useRouter()
+  async function handleSignOut() {
+    await createClient().auth.signOut()
+    router.push('/login')
+  }
 
   const initials = profile.display_name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
   const hasIg       = !!profile.instagram_handle && (profile.follower_count ?? 0) > 0
@@ -418,7 +425,17 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
         </div>
       </div>
 
-      <div className="mt-10">
+      <div className="mt-10 flex flex-col gap-4">
+        <div className="pt-6" style={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-[#1C2B3A] transition-colors"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
+            <LogOut className="w-4 h-4" />
+            Sign out
+          </button>
+        </div>
         <CloseAccountSection />
       </div>
     </div>
