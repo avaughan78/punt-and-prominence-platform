@@ -220,21 +220,21 @@ export default function BusinessCreatorsPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+      <div className="flex items-start justify-between gap-3 mb-6 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-[#1C2B3A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Creators</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {loading ? 'Loading…' : `${creators.length} approved creator${creators.length !== 1 ? 's' : ''} on the platform`}
           </p>
         </div>
-        <div className="relative">
+        <div className="relative w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           <input
             type="search"
             placeholder="Search creators…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 pr-4 py-2 text-sm rounded-xl border border-black/10 outline-none focus:border-[#F5B800] w-52 transition-colors"
+            className="pl-9 pr-4 py-2 text-sm rounded-xl border border-black/10 outline-none focus:border-[#F5B800] w-full sm:w-52 transition-colors"
             style={{ fontFamily: "'Inter', sans-serif" }}
           />
         </div>
@@ -251,7 +251,7 @@ export default function BusinessCreatorsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {filtered.map(creator => (
             <CreatorCard key={creator.id} creator={creator} />
           ))}

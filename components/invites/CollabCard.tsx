@@ -129,71 +129,76 @@ function CreatorRow({ match, isRetainer, currentUserId, initialPostsOpen, expand
 
   return (
     <div ref={msgRef}>
-      <div className="flex items-center gap-3 px-4 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}>
-        <Link href={`/business/creators/${creator?.id}`} className="flex items-center gap-3 flex-1 min-w-0 group">
-          <div className="p-[2px] rounded-full flex-shrink-0" style={{ background: handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(0,0,0,0.1)' }}>
-            {creator?.avatar_url ? (
-              <img src={creator.avatar_url} alt={name} className="w-8 h-8 rounded-full object-cover block" style={{ border: '2px solid white' }} />
-            ) : (
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)', border: '2px solid white' }}>
-                {initials}
-              </div>
-            )}
-          </div>
-          <div className="min-w-0">
-            <p className="font-bold text-sm text-[#1C2B3A] truncate group-hover:underline underline-offset-2" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-              {handle ? `@${handle}` : name}
-            </p>
-            {creator?.follower_count != null && (
-              <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(creator.follower_count)} followers</p>
-            )}
-          </div>
-        </Link>
+      <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#ffffff' }}>
+        {/* Row 1: avatar + name + action buttons */}
+        <div className="flex items-center gap-2">
+          <Link href={`/business/creators/${creator?.id}`} className="flex items-center gap-2 flex-1 min-w-0 group">
+            <div className="p-[2px] rounded-full flex-shrink-0" style={{ background: handle ? 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' : 'rgba(0,0,0,0.1)' }}>
+              {creator?.avatar_url ? (
+                <img src={creator.avatar_url} alt={name} className="w-8 h-8 rounded-full object-cover block" style={{ border: '2px solid white' }} />
+              ) : (
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #1C2B3A, #6BE6B0)', border: '2px solid white' }}>
+                  {initials}
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-sm text-[#1C2B3A] truncate group-hover:underline underline-offset-2" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                {handle ? `@${handle}` : name}
+              </p>
+              {creator?.follower_count != null && (
+                <p className="text-[10px] text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(creator.follower_count)} followers</p>
+              )}
+            </div>
+          </Link>
 
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0" style={{ background: meta.bg, color: meta.text, fontFamily: "'JetBrains Mono', monospace" }}>
-          {meta.label}
-        </span>
-
-        {showNudge && (
-          nudged ? (
-            <span className="text-[10px] font-semibold text-gray-400 flex-shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>nudged</span>
-          ) : (
+          {hasPosts && (
             <button
-              onClick={() => sendNudge()}
-              disabled={nudging}
-              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all flex-shrink-0 disabled:opacity-40"
-              style={{ background: 'rgba(245,184,0,0.1)', color: '#b45309' }}
-              title="Send a check-in message to this creator"
+              onClick={() => setPostsOpen(o => !o)}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all flex-shrink-0"
+              style={{ background: postsOpen ? 'rgba(192,132,252,0.2)' : 'rgba(192,132,252,0.12)', color: '#9333ea', fontFamily: "'JetBrains Mono', monospace" }}
             >
-              <Bell className="w-3 h-3" />
-              Nudge
+              <ImageIcon className="w-3 h-3" />
+              {deliverables.length > 0 ? deliverables.length : ''}
+              <ChevronDown className="w-3 h-3 transition-transform duration-150" style={{ transform: postsOpen ? 'rotate(180deg)' : 'none' }} />
             </button>
-          )
-        )}
+          )}
 
-        {hasPosts && (
           <button
-            onClick={() => setPostsOpen(o => !o)}
+            onClick={toggleMsg}
             className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all flex-shrink-0"
-            style={{ background: postsOpen ? 'rgba(192,132,252,0.2)' : 'rgba(192,132,252,0.12)', color: '#9333ea', fontFamily: "'JetBrains Mono', monospace" }}
+            style={{
+              background: msgOpen ? '#1C2B3A' : unread > 0 ? '#F5B800' : 'rgba(28,43,58,0.06)',
+              color: msgOpen ? 'white' : unread > 0 ? '#1C2B3A' : '#6b7280',
+            }}
           >
-            <ImageIcon className="w-3 h-3" />
-            {deliverables.length > 0 ? deliverables.length : ''}
-            <ChevronDown className="w-3 h-3 transition-transform duration-150" style={{ transform: postsOpen ? 'rotate(180deg)' : 'none' }} />
+            <MessageCircle className="w-3 h-3" />
+            {unread > 0 && !msgOpen ? unread : ''}
           </button>
-        )}
+        </div>
 
-        <button
-          onClick={toggleMsg}
-          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all flex-shrink-0"
-          style={{
-            background: msgOpen ? '#1C2B3A' : unread > 0 ? '#F5B800' : 'rgba(28,43,58,0.06)',
-            color: msgOpen ? 'white' : unread > 0 ? '#1C2B3A' : '#6b7280',
-          }}
-        >
-          <MessageCircle className="w-3 h-3" />
-          {unread > 0 && !msgOpen ? unread : ''}
-        </button>
+        {/* Row 2: status pill + nudge (below name, always visible) */}
+        <div className="flex items-center gap-2 mt-2 pl-10">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ background: meta.bg, color: meta.text, fontFamily: "'JetBrains Mono', monospace" }}>
+            {meta.label}
+          </span>
+          {showNudge && (
+            nudged ? (
+              <span className="text-[10px] font-semibold text-gray-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>nudged</span>
+            ) : (
+              <button
+                onClick={() => sendNudge()}
+                disabled={nudging}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all disabled:opacity-40"
+                style={{ background: 'rgba(245,184,0,0.1)', color: '#b45309' }}
+                title="Send a check-in message to this creator"
+              >
+                <Bell className="w-3 h-3" />
+                Nudge
+              </button>
+            )
+          )}
+        </div>
       </div>
 
       {postsOpen && hasPosts && (

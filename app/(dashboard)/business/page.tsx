@@ -104,7 +104,7 @@ export default async function BusinessDashboard() {
               return (
                 <div
                   key={match.id}
-                  className="flex items-center gap-4 px-4 py-3 bg-white"
+                  className="flex items-center gap-3 px-4 py-3 bg-white"
                   style={{ borderBottom: i < matches.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}
                 >
                   <div className="flex-1 min-w-0">
@@ -125,8 +125,8 @@ export default async function BusinessDashboard() {
                       )} · {formatDate(match.created_at)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-xs font-mono text-gray-400">{match.punt_code}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="hidden sm:inline text-xs font-mono text-gray-400">{match.punt_code}</span>
                     {offer && <span className="text-xs font-semibold" style={{ color: '#F5B800' }}>{formatGBP(offer.value_gbp)}</span>}
                     <StatusBadge state={state} />
                   </div>
