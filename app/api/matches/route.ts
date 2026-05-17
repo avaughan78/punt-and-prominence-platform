@@ -4,6 +4,7 @@ import { generatePuntCode } from '@/lib/utils'
 import { emailMatchClaimed } from '@/lib/email'
 import { writeAuditLog } from '@/lib/audit'
 import { isCreatorProfileComplete } from '@/lib/profileComplete'
+import { stripe } from '@/lib/stripe'
 
 export async function GET() {
   const supabase = await createClient()
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
   // Get the offer to find business_id and check slots
   const { data: offer, error: offerErr } = await supabase
     .from('offers')
-    .select('id, title, business_id, slots_total, slots_claimed, is_active')
+    .select('id, title, business_id, slots_total, slots_claimed, is_active, compensation_type, value_gbp')
     .eq('id', offer_id)
     .single()
 
@@ -80,6 +81,50 @@ export async function POST(req: Request) {
   if (error) {
     if (error.code === '23505') return NextResponse.json({ error: 'You have already claimed this offer' }, { status: 400 })
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // For paid collabs — hold payment on the business card immediately
+  if ((offer as { compensation_type?: string }).compensation_type === 'paid') {
+    try {
+      const { data: biz } = await supabase
+        .from('profiles')
+        .select('stripe_customer_id, stripe_payment_method_id')
+        .eq('id', offer.business_id)
+        .single()
+
+      const { data: creator } = await supabase
+        .from('profiles')
+        .select('stripe_account_id, stripe_onboarding_complete')
+        .eq('id', user.id)
+        .single()
+
+      if (
+        biz?.stripe_customer_id &&
+        biz?.stripe_payment_method_id &&
+        creator?.stripe_account_id &&
+        creator?.stripe_onboarding_complete
+      ) {
+        const amountPence = Math.round(((offer as { value_gbp?: number }).value_gbp ?? 0) * 100)
+        const intent = await stripe.paymentIntents.create({
+          amount: amountPence,
+          currency: 'gbp',
+          customer: biz.stripe_customer_id,
+          payment_method: biz.stripe_payment_method_id,
+          capture_method: 'manual',
+          confirm: true,
+          description: `Punt & Prominence — ${(offer as { title?: string }).title}`,
+          metadata: { match_id: data.id, offer_id },
+          transfer_data: { destination: creator.stripe_account_id },
+        })
+        await supabase
+          .from('matches')
+          .update({ stripe_payment_intent_id: intent.id, payout_status: 'pending' })
+          .eq('id', data.id)
+      }
+    } catch (err) {
+      console.error('[Stripe] Failed to hold payment for match', data.id, err)
+      // Don't block match creation — flag for manual follow-up
+    }
   }
 
   // Notify the business (fire and forget)
