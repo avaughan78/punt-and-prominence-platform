@@ -82,7 +82,7 @@ export function DashboardShell({ children, role, displayName }: Props) {
         {/* Logo */}
         <div className="px-6 py-5 border-b border-white/5">
           <Link href="/" className="flex items-center gap-2">
-            <Star className="w-4 h-4" fill="#F5B800" style={{ color: '#F5B800' }} />
+            <Star className="w-4 h-4" style={{ color: '#F5B800' }} />
             <span className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.9)', fontFamily: "'JetBrains Mono', monospace" }}>
               Punt &amp; Prominence
             </span>
@@ -166,7 +166,7 @@ export function DashboardShell({ children, role, displayName }: Props) {
           style={{ background: '#1C2B3A', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
           <Link href="/" className="flex items-center gap-2">
-            <Star className="w-3.5 h-3.5" fill="#F5B800" style={{ color: '#F5B800' }} />
+            <Star className="w-3.5 h-3.5" style={{ color: '#F5B800' }} />
             <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.9)', fontFamily: "'JetBrains Mono', monospace" }}>
               Punt &amp; Prominence
             </span>

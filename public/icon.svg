@@ -1,12 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="115" fill="#1C2B3A"/>
-  <!--
-    5-pointed star, one tip up.
-    Centre (256, 262), outer radius 200, inner radius 76 (ratio 0.38 — sharp, icon-friendly).
-    Points computed as: outer at -90°,-18°,54°,126°,198°; inner at -54°,18°,90°,162°,234°.
-  -->
   <polygon
     points="256,62 301,200 446,200 328,285 374,424 256,338 138,424 184,285 66,200 211,200"
-    fill="#F5B800"
+    fill="none"
+    stroke="#F5B800"
+    stroke-width="22"
+    stroke-linejoin="round"
   />
 </svg>
