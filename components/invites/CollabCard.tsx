@@ -317,7 +317,12 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
 
   async function handleToggle() {
     const closing = isActive
-    if (closing && !confirm(`Close "${invite.title}"? It will no longer accept new creators.`)) return
+    if (closing) {
+      const paymentNote = invite.compensation_type === 'paid'
+        ? ' Any held payments will be released to creators.'
+        : ''
+      if (!confirm(`Close "${invite.title}"?${paymentNote} It will no longer accept new creators.`)) return
+    }
     setToggling(true)
     const res = await fetch(`/api/invites/${invite.id}`, {
       method: 'PATCH',
