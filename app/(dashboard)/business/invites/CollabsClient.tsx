@@ -57,6 +57,7 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
   const [collabs, setCollabs] = useState<Invite[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>(initialFilter ?? 'all')
+  const [frozenIds, setFrozenIds] = useState<Set<string> | null>(null)
   const [detailCollab, setDetailCollab] = useState<Invite | null>(null)
   const [unreadMatchIds, setUnreadMatchIds] = useState<Set<string>>(new Set())
 
@@ -98,7 +99,19 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
     return 0
   })
 
-  const filtered = sorted.filter(inv => matchesFilter(inv, filter, unreadMatchIds))
+  function applyFilter(newFilter: Filter) {
+    if (newFilter === 'all') {
+      setFrozenIds(null)
+    } else {
+      setFrozenIds(new Set(sorted.filter(inv => matchesFilter(inv, newFilter, unreadMatchIds)).map(inv => inv.id)))
+    }
+    setFilter(newFilter)
+  }
+
+  // Use the frozen snapshot while a filter is active so items don't disappear as you work through them
+  const filtered = frozenIds
+    ? sorted.filter(inv => frozenIds.has(inv.id))
+    : sorted.filter(inv => matchesFilter(inv, filter, unreadMatchIds))
 
   const counts: Record<Filter, number> = {
     all:              collabs.length,
@@ -165,7 +178,7 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
                 return (
                   <button
                     key={f.value}
-                    onClick={() => setFilter(f.value)}
+                    onClick={() => applyFilter(f.value)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                     style={{
                       background: active
@@ -193,7 +206,7 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
               {filter === 'all' && isProfileComplete ? (
                 <Link href="/business/invites/new"><Button variant="secondary">Post your first collab</Button></Link>
               ) : filter !== 'all' ? (
-                <button onClick={() => setFilter('all')} className="text-xs text-gray-400 hover:text-[#1C2B3A] underline transition-colors">
+                <button onClick={() => applyFilter('all')} className="text-xs text-gray-400 hover:text-[#1C2B3A] underline transition-colors">
                   Show all collabs
                 </button>
               ) : null}

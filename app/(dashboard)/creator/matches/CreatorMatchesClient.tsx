@@ -53,6 +53,7 @@ export function CreatorMatchesClient({ currentUserId, initialFilter }: { current
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter]   = useState<Filter>(initialFilter ?? 'all')
+  const [frozenIds, setFrozenIds] = useState<Set<string> | null>(null)
   const [unreadMatchIds, setUnreadMatchIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -85,7 +86,19 @@ export function CreatorMatchesClient({ currentUserId, initialFilter }: { current
     (STATE_ORDER[deriveMatchState(a)] ?? 4) - (STATE_ORDER[deriveMatchState(b)] ?? 4)
   )
 
-  const filtered = sorted.filter(m => matchesFilter(m, filter, unreadMatchIds))
+  function applyFilter(newFilter: Filter) {
+    if (newFilter === 'all') {
+      setFrozenIds(null)
+    } else {
+      setFrozenIds(new Set(sorted.filter(m => matchesFilter(m, newFilter, unreadMatchIds)).map(m => m.id)))
+    }
+    setFilter(newFilter)
+  }
+
+  // Frozen snapshot keeps items visible while you work through them; clears when filter changes
+  const filtered = frozenIds
+    ? sorted.filter(m => frozenIds.has(m.id))
+    : sorted.filter(m => matchesFilter(m, filter, unreadMatchIds))
 
   const counts = Object.fromEntries(
     FILTERS.map(f => [f.value, f.value === 'all' ? matches.length : matches.filter(m => matchesFilter(m, f.value, unreadMatchIds)).length])
@@ -126,7 +139,7 @@ export function CreatorMatchesClient({ currentUserId, initialFilter }: { current
                 return (
                   <button
                     key={f.value}
-                    onClick={() => setFilter(f.value)}
+                    onClick={() => applyFilter(f.value)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex-shrink-0"
                     style={{
                       background: active ? (isUnread ? '#F5B800' : '#1C2B3A') : isUnread ? 'rgba(245,184,0,0.1)' : 'rgba(28,43,58,0.06)',
@@ -157,7 +170,7 @@ export function CreatorMatchesClient({ currentUserId, initialFilter }: { current
                 </Link>
               ) : (
                 <button
-                  onClick={() => setFilter('all')}
+                  onClick={() => applyFilter('all')}
                   className="text-xs text-gray-400 hover:text-[#1C2B3A] underline transition-colors"
                 >
                   Show all matches
