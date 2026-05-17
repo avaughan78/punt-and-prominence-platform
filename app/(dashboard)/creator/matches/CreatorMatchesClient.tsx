@@ -61,8 +61,17 @@ export function CreatorMatchesClient({ currentUserId, initialFilter }: { current
       fetch('/api/matches').then(r => r.json()),
       fetch('/api/messages/unread').then(r => r.json()),
     ]).then(([matchData, unreadData]) => {
-      setMatches(Array.isArray(matchData) ? matchData : [])
-      setUnreadMatchIds(new Set(unreadData.unreadMatchIds ?? []))
+      const loaded: Match[] = Array.isArray(matchData) ? matchData : []
+      const unreadIds = new Set<string>(unreadData.unreadMatchIds ?? [])
+      setMatches(loaded)
+      setUnreadMatchIds(unreadIds)
+      // Freeze snapshot so items don't vanish as you work through a linked filter
+      if (initialFilter && initialFilter !== 'all') {
+        const sortedLoaded = [...loaded].sort((a, b) =>
+          (STATE_ORDER[deriveMatchState(a)] ?? 4) - (STATE_ORDER[deriveMatchState(b)] ?? 4)
+        )
+        setFrozenIds(new Set(sortedLoaded.filter(m => matchesFilter(m, initialFilter, unreadIds)).map(m => m.id)))
+      }
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [])
