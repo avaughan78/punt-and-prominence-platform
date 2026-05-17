@@ -228,7 +228,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
         </div>
 
         {/* Always-visible info body */}
-        <div className="px-4 pt-3 pb-3 flex flex-col gap-2">
+        <div className="px-4 pt-3 pb-3 flex flex-col gap-2 overflow-hidden">
 
           {/* Business name + value */}
           <div className="flex items-center justify-between gap-3">
@@ -237,21 +237,23 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
                 {bizName}
               </p>
               {bizAddress && (
-                <div className="flex items-center gap-1 mt-0.5 overflow-hidden" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center gap-1 mt-0.5" onClick={e => e.stopPropagation()}>
                   <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
-                  {bizLat && bizLng ? (
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${bizLat},${bizLng}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-500 hover:underline truncate min-w-0"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      {bizAddress}
-                    </a>
-                  ) : (
-                    <span className="text-xs text-gray-400 truncate min-w-0">{bizAddress}</span>
-                  )}
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    {bizLat && bizLng ? (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${bizLat},${bizLng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-xs text-blue-500 hover:underline truncate"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        {bizAddress}
+                      </a>
+                    ) : (
+                      <span className="block text-xs text-gray-400 truncate">{bizAddress}</span>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
