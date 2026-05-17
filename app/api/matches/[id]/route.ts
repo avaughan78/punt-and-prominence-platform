@@ -60,8 +60,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         await stripe.paymentIntents.capture(match.stripe_payment_intent_id)
         await supabase.from('matches').update({ payout_status: 'paid' }).eq('id', id)
       } catch (err: unknown) {
-        const e = err as { message?: string }
-        console.error('[Stripe] Capture failed on close for match', id, e?.message)
+        const e = err as { message?: string; code?: string }
+        console.error('[Stripe] Capture failed on close for match', id, e?.message, e?.code)
+        await supabase.from('matches').update({
+          notes: `Stripe capture error: ${e?.message ?? 'unknown'} (${e?.code ?? 'no code'})`,
+        }).eq('id', id)
       }
     }
 
