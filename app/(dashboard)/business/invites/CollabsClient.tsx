@@ -71,6 +71,17 @@ export function CollabsClient({ currentUserId, isProfileComplete, openCollabId, 
     }).catch(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    function refreshUnread() {
+      fetch('/api/messages/unread')
+        .then(r => r.json())
+        .then(d => setUnreadMatchIds(new Set(d.unreadMatchIds ?? [])))
+        .catch(() => {})
+    }
+    window.addEventListener('badges-refresh', refreshUnread)
+    return () => window.removeEventListener('badges-refresh', refreshUnread)
+  }, [])
+
   function handleToggle(id: string, active: boolean) {
     setCollabs(prev => prev.map(o => o.id === id ? { ...o, is_active: active } : o))
   }

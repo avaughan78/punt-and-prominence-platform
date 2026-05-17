@@ -66,6 +66,17 @@ export function CreatorMatchesClient({ currentUserId, initialFilter }: { current
     }).catch(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    function refreshUnread() {
+      fetch('/api/messages/unread')
+        .then(r => r.json())
+        .then(d => setUnreadMatchIds(new Set(d.unreadMatchIds ?? [])))
+        .catch(() => {})
+    }
+    window.addEventListener('badges-refresh', refreshUnread)
+    return () => window.removeEventListener('badges-refresh', refreshUnread)
+  }, [])
+
   function handleUpdated(updated: Match) {
     setMatches(prev => prev.map(m => m.id === updated.id ? { ...m, ...updated } : m))
   }
