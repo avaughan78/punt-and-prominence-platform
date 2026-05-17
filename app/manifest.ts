@@ -14,7 +14,7 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-      { src: '/icons/apple-icon.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
+      { src: '/icons/apple-touch-icon-v2.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
     ],
   }
 }

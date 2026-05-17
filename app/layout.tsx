@@ -10,7 +10,7 @@ export const metadata: Metadata = {
       { url: '/icons/icon-32.png', sizes: '32x32', type: 'image/png' },
       { url: '/icons/icon-16.png', sizes: '16x16', type: 'image/png' },
     ],
-    apple: '/icons/apple-icon.png',
+    apple: '/icons/apple-touch-icon-v2.png',
   },
 }
 
