@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { stripe } from '@/lib/stripe'
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string; did: string }> }) {
   const supabase = await createClient()
@@ -81,7 +82,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     // Business verifies a deliverable
     const { data: match } = await supabase
       .from('matches')
-      .select('id')
+      .select('id, stripe_payment_intent_id, payout_status, offers(compensation_type)')
       .eq('id', id)
       .eq('business_id', user.id)
       .single()
@@ -95,6 +96,29 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       .select()
       .single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // Trigger payout for paid collabs
+    const offer = (Array.isArray(match.offers) ? match.offers[0] : match.offers) as { compensation_type: string } | null
+    if (
+      offer?.compensation_type === 'paid' &&
+      match.stripe_payment_intent_id &&
+      match.payout_status === 'pending'
+    ) {
+      try {
+        await stripe.paymentIntents.capture(match.stripe_payment_intent_id)
+        await supabase
+          .from('matches')
+          .update({ payout_status: 'paid' })
+          .eq('id', id)
+      } catch (err) {
+        console.error('[Stripe] Payout failed for match', id, err)
+        // Don't fail the verification — flag for manual review
+        await supabase
+          .from('matches')
+          .update({ payout_status: 'none' })
+          .eq('id', id)
+      }
+    }
 
     return NextResponse.json(data)
   }

@@ -1,11 +1,101 @@
 'use client'
-import { useState, type CSSProperties } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, type CSSProperties } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Pencil, Globe, BadgeCheck, Eye, AlertCircle, CheckCircle2, LogOut } from 'lucide-react'
+import { Pencil, Globe, BadgeCheck, Eye, AlertCircle, CheckCircle2, LogOut, Banknote, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { ProfileForm, type ProfileFormData } from './ProfileForm'
 import { CloseAccountSection } from '@/components/account/CloseAccountSection'
+import { toast } from 'sonner'
+
+function PayoutSection() {
+  const searchParams = useSearchParams()
+  const [status, setStatus] = useState<'loading' | 'none' | 'pending' | 'complete'>('loading')
+  const [connecting, setConnecting] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/stripe/connect')
+      .then(r => r.json())
+      .then(d => setStatus(d.complete ? 'complete' : d.connected ? 'pending' : 'none'))
+      .catch(() => setStatus('none'))
+  }, [])
+
+  useEffect(() => {
+    if (searchParams.get('stripe') === 'success') {
+      setStatus('loading')
+      fetch('/api/stripe/connect')
+        .then(r => r.json())
+        .then(d => {
+          setStatus(d.complete ? 'complete' : 'pending')
+          if (d.complete) toast.success('Payout account connected!')
+        })
+    }
+    if (searchParams.get('stripe') === 'refresh') {
+      toast('Please complete your payout setup')
+    }
+  }, [searchParams])
+
+  async function handleConnect() {
+    setConnecting(true)
+    const res = await fetch('/api/stripe/connect', { method: 'POST' })
+    const data = await res.json()
+    if (data.url) {
+      window.location.href = data.url
+    } else {
+      toast.error('Could not start payout setup')
+      setConnecting(false)
+    }
+  }
+
+  return (
+    <div className="pt-6" style={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+      <div className="flex items-start gap-3 mb-3">
+        <Banknote className="w-4 h-4 mt-0.5 text-gray-400 shrink-0" />
+        <div>
+          <p className="text-sm font-semibold text-[#1C2B3A]">Payout account</p>
+          <p className="text-xs text-gray-400 mt-0.5">Required to receive payment for paid collabs.</p>
+        </div>
+      </div>
+
+      {status === 'loading' && (
+        <div className="flex items-center gap-2 text-xs text-gray-400 ml-7">
+          <Loader2 className="w-3 h-3 animate-spin" /> Checking…
+        </div>
+      )}
+
+      {status === 'complete' && (
+        <div className="ml-7 flex items-center gap-2 text-xs font-medium" style={{ color: '#059669' }}>
+          <CheckCircle2 className="w-3.5 h-3.5" /> Connected — payouts enabled
+        </div>
+      )}
+
+      {status === 'pending' && (
+        <div className="ml-7 flex flex-col gap-2">
+          <p className="text-xs text-amber-600">Setup incomplete — finish connecting your bank to receive payments.</p>
+          <button
+            onClick={handleConnect}
+            disabled={connecting}
+            className="flex items-center gap-1.5 text-xs font-semibold text-[#1C2B3A] hover:underline disabled:opacity-50"
+          >
+            {connecting ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+            Continue setup →
+          </button>
+        </div>
+      )}
+
+      {status === 'none' && (
+        <button
+          onClick={handleConnect}
+          disabled={connecting}
+          className="ml-7 flex items-center gap-1.5 text-xs font-semibold text-[#1C2B3A] hover:underline disabled:opacity-50"
+        >
+          {connecting ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+          Connect bank account →
+        </button>
+      )}
+    </div>
+  )
+}
 
 function InstagramIcon({ className, style }: { className?: string; style?: CSSProperties }) {
   return (
@@ -426,6 +516,7 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
       </div>
 
       <div className="mt-10 flex flex-col gap-4">
+        <PayoutSection />
         <div className="pt-6" style={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
           <button
             onClick={handleSignOut}
