@@ -217,19 +217,21 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
         <div className="px-6 pt-12 pb-6 flex flex-col gap-5">
 
           {/* Name + handle */}
-          <div>
+          <div className="min-w-0">
             <h2
-              className="text-2xl font-bold text-[#1C2B3A] leading-tight"
+              className="text-2xl font-bold text-[#1C2B3A] leading-tight truncate"
               style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
             >
               {profile.display_name}
             </h2>
             {profile.instagram_handle && (
-              <p className="text-sm mt-0.5" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
+              <p className="text-sm mt-0.5 truncate" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
                 @{profile.instagram_handle}
-                {profile.tiktok_handle && (
-                  <span className="ml-2 opacity-60">· @{profile.tiktok_handle}</span>
-                )}
+              </p>
+            )}
+            {profile.tiktok_handle && (
+              <p className="text-sm truncate opacity-60" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>
+                @{profile.tiktok_handle}
               </p>
             )}
           </div>
@@ -333,13 +335,13 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
           {(profile.instagram_handle || profile.tiktok_handle || profile.website_url) && (
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-3" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Links</p>
-              <div className="flex gap-3 flex-wrap">
+              <div className="flex flex-col gap-2">
                 {profile.instagram_handle && (
                   <a
                     href={`https://instagram.com/${profile.instagram_handle}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80 max-w-[200px]"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all hover:opacity-80"
                     style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.08), rgba(253,29,29,0.08), rgba(252,176,69,0.08))', border: '1px solid rgba(131,58,180,0.2)', color: '#833ab4', fontFamily: "'Inter', sans-serif" }}
                   >
                     <InstagramIcon className="w-4 h-4 shrink-0" style={{ color: '#833ab4' }} />
@@ -351,7 +353,7 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
                     href={`https://tiktok.com/@${profile.tiktok_handle}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80 max-w-[200px]"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all hover:opacity-80"
                     style={{ background: 'rgba(1,1,1,0.05)', border: '1px solid rgba(0,0,0,0.12)', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}
                   >
                     <TikTokIcon className="w-4 h-4 shrink-0 text-[#1C2B3A]" />
@@ -363,7 +365,7 @@ export function CreatorProfilePage({ profile: initial, userId, isComplete, isApp
                     href={profile.website_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80 max-w-[200px] text-blue-600"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all hover:opacity-80 text-blue-600"
                     style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.18)', fontFamily: "'Inter', sans-serif" }}
                   >
                     <Globe className="w-4 h-4 shrink-0" />
