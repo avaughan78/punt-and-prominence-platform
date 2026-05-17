@@ -40,7 +40,7 @@ export function BusinessDashboardAlerts() {
   return (
     <>
       {data.posts > 0 && (
-        <Link href="/business/invites?filter=review">
+        <Link href="/business/invites?filter=needs_review">
           <div
             className="flex items-start gap-3 rounded-2xl px-4 py-3 mb-4 cursor-pointer hover:opacity-90 transition-opacity"
             style={{ background: 'rgba(192,132,252,0.08)', border: '1.5px solid rgba(192,132,252,0.3)' }}
