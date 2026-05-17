@@ -124,12 +124,12 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
 
           {/* Name + category row */}
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-[#1C2B3A] leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-2xl font-bold text-[#1C2B3A] leading-tight truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                 {bizName}
               </h2>
               {profile.display_name && profile.business_name && (
-                <p className="text-sm text-gray-400 mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>{profile.display_name}</p>
+                <p className="text-sm text-gray-400 mt-0.5 truncate" style={{ fontFamily: "'Inter', sans-serif" }}>{profile.display_name}</p>
               )}
             </div>
             {profile.category && <CategoryBadge category={profile.category} />}
@@ -178,13 +178,13 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
           {(profile.instagram_handle || profile.website_url) && (
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-3" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Links</p>
-              <div className="flex gap-3 flex-wrap">
+              <div className="flex flex-col gap-2">
                 {profile.instagram_handle && (
                   <a
                     href={`https://instagram.com/${profile.instagram_handle}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80 max-w-[200px]"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all hover:opacity-80"
                     style={{ background: 'linear-gradient(135deg, rgba(131,58,180,0.08), rgba(253,29,29,0.08), rgba(252,176,69,0.08))', border: '1px solid rgba(131,58,180,0.2)', color: '#833ab4', fontFamily: "'Inter', sans-serif" }}
                   >
                     <InstagramIcon className="w-4 h-4 shrink-0" style={{ color: '#833ab4' }} />
@@ -196,7 +196,7 @@ export function BusinessProfilePage({ profile: initial, userId, isComplete }: Pr
                     href={profile.website_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-blue-600 transition-all hover:opacity-80 max-w-[200px]"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-blue-600 transition-all hover:opacity-80"
                     style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.18)', fontFamily: "'Inter', sans-serif" }}
                   >
                     <Globe className="w-3.5 h-3.5 shrink-0" />
