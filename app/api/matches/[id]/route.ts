@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { emailMatchVerified } from '@/lib/email'
+import { stripe } from '@/lib/stripe'
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -21,8 +22,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { data: match } = await supabase
     .from('matches')
     .select(`
-      closed_at, punt_code,
-      offer:offers(title, value_gbp),
+      closed_at, punt_code, stripe_payment_intent_id, payout_status,
+      offer:offers(title, value_gbp, compensation_type),
       creator:profiles!matches_creator_id_fkey(id, display_name, email),
       business:profiles!matches_business_id_fkey(id, display_name, business_name)
     `)
@@ -47,7 +48,23 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (action === 'close') {
     const creator = match.creator as unknown as { id: string; display_name: string; email: string } | null
     const business = match.business as unknown as { id: string; display_name: string; business_name: string | null } | null
-    const offer = match.offer as unknown as { title: string; value_gbp: number } | null
+    const offer = match.offer as unknown as { title: string; value_gbp: number; compensation_type: string } | null
+
+    // Capture held payment and transfer to creator
+    if (
+      offer?.compensation_type === 'paid' &&
+      match.stripe_payment_intent_id &&
+      match.payout_status === 'pending'
+    ) {
+      try {
+        await stripe.paymentIntents.capture(match.stripe_payment_intent_id)
+        await supabase.from('matches').update({ payout_status: 'paid' }).eq('id', id)
+      } catch (err: unknown) {
+        const e = err as { message?: string }
+        console.error('[Stripe] Capture failed on close for match', id, e?.message)
+      }
+    }
+
     if (creator?.email) {
       emailMatchVerified({
         creatorEmail: creator.email,
