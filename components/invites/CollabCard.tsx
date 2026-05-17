@@ -29,6 +29,16 @@ function fmtDate(dt: string) {
   return new Date(dt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
+function deriveCollabSummaryPill(isActive: boolean, matches: MatchPreview[]): { label: string; bg: string; color: string } {
+  if (!isActive) return { label: 'Closed', bg: 'rgba(148,163,184,0.12)', color: '#64748b' }
+  const active = matches.filter(m => !m.closed_at)
+  if (active.length === 0) return { label: 'Open · awaiting matches', bg: 'rgba(96,165,250,0.12)', color: '#1d4ed8' }
+  const states = active.map(m => deriveMatchState(m))
+  if (states.includes('needs_review'))  return { label: 'Open · needs review',   bg: 'rgba(192,132,252,0.12)', color: '#9333ea' }
+  if (states.includes('in_progress'))  return { label: 'Open · awaiting posts',  bg: 'rgba(245,184,0,0.12)',   color: '#b45309' }
+  return { label: 'Open · up to date', bg: 'rgba(34,197,94,0.1)', color: '#16a34a' }
+}
+
 interface CreatorRowProps {
   match: MatchPreview
   isRetainer: boolean
@@ -279,9 +289,10 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
     })
   }, [])
 
-  const isRetainer = invite.invite_type === 'retainer'
-  const isFull     = invite.slots_claimed >= invite.slots_total
-  const isActive   = invite.is_active
+  const isRetainer  = invite.invite_type === 'retainer'
+  const isFull      = invite.slots_claimed >= invite.slots_total
+  const isActive    = invite.is_active
+  const summaryPill = deriveCollabSummaryPill(isActive, matches)
 
   const cardBorderStyle: React.CSSProperties = !isActive
     ? { background: '#ffffff', border: '1.5px solid #94a3b8' }
@@ -380,19 +391,15 @@ export function CollabCard({ invite, currentUserId, initialOpen, initialOpenMatc
                 >
                   {isRetainer ? 'Retainer' : 'One-off'}
                 </span>
-                {!isActive && (
-                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(0,0,0,0.08)', color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>
-                    Closed
-                  </span>
-                )}
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                  style={{ background: summaryPill.bg, color: summaryPill.color, fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  {summaryPill.label}
+                </span>
                 {isActive && isFull && (
-                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(34,197,94,0.15)', color: '#15803d', fontFamily: "'JetBrains Mono', monospace" }}>
+                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(0,0,0,0.06)', color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>
                     Full
-                  </span>
-                )}
-                {isActive && !isFull && (
-                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md" style={{ background: 'rgba(245,184,0,0.18)', color: '#92400e', fontFamily: "'JetBrains Mono', monospace" }}>
-                    Open
                   </span>
                 )}
               </div>
