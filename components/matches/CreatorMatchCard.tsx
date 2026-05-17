@@ -228,9 +228,9 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
         {/* Always-visible info body */}
         <div className="px-4 pt-9 pb-3 flex flex-col gap-2">
 
-          {/* Business name + value badge */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
+          {/* Business name + value */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
               <p className="font-semibold text-sm text-[#1C2B3A] truncate" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                 {bizName}
               </p>
@@ -254,34 +254,20 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
               )}
             </div>
 
-            <div
-              className="shrink-0 px-3 py-1.5 rounded-xl text-right"
-              style={{
-                background: isRetainer ? 'rgba(107,230,176,0.08)' : 'rgba(245,184,0,0.08)',
-                border: `1px solid ${isRetainer ? 'rgba(107,230,176,0.25)' : 'rgba(245,184,0,0.25)'}`,
-              }}
-            >
-              <p className="font-bold text-lg leading-none" style={{ color: isRetainer ? '#059669' : '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+            <div className="shrink-0 text-right">
+              <p className="font-bold text-base leading-none" style={{ color: isRetainer ? '#059669' : '#b45309', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                 {isRetainer ? formatGBP(invite?.fee_gbp ?? 0) : formatGBP(invite?.value_gbp ?? 0)}
               </p>
-              <p className="text-[10px] text-gray-400 mt-0.5">{isRetainer ? '/month' : 'value'}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                {isRetainer ? '/mo' : 'value'}
+              </p>
             </div>
           </div>
 
-          {/* Pills + badges row */}
-          <div className="flex items-center gap-2 flex-wrap">
+          {/* Status pill + badges — single non-wrapping row */}
+          <div className="flex items-center gap-2 overflow-hidden">
             <span
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
-              style={{
-                background: isRetainer ? 'rgba(107,230,176,0.15)' : 'rgba(245,184,0,0.1)',
-                color: isRetainer ? '#059669' : '#b45309',
-              }}
-            >
-              {isRetainer ? 'Retainer' : 'One-off'}
-            </span>
-
-            <span
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
               style={{ background: pill.bg, color: pill.text, fontFamily: "'JetBrains Mono', monospace" }}
             >
               {pill.label}
@@ -289,7 +275,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
 
             {needsAction && (
               <span
-                className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
                 style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
               >
                 Add post ↗
@@ -303,7 +289,7 @@ export function CreatorMatchCard({ match, currentUserId, onUpdated }: Props) {
                   setOpen(true)
                   if (!msgOpen) { setMsgOpen(true); setUnread(0); window.dispatchEvent(new Event('badges-refresh')) }
                 }}
-                className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 hover:opacity-80 transition-opacity ml-auto"
                 style={{ background: '#F5B800', color: '#1C2B3A' }}
               >
                 <MessageCircle className="w-3 h-3" />

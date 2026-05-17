@@ -105,7 +105,10 @@ export function CreatorMatchesClient({ currentUserId, initialFilter }: { current
       ) : (
         <>
           {matches.length > 0 && (
-            <div className="flex gap-1.5 flex-wrap mb-5">
+            <div
+              className="flex gap-1.5 mb-5 overflow-x-auto -mx-4 px-4 pb-2 md:mx-0 md:px-0 md:pb-0 md:flex-wrap md:overflow-visible"
+              style={{ scrollbarWidth: 'none' } as React.CSSProperties}
+            >
               {FILTERS.filter(f => f.value === 'all' || counts[f.value] > 0).map(f => {
                 const active   = filter === f.value
                 const isUnread = f.value === 'unread'
@@ -113,7 +116,7 @@ export function CreatorMatchesClient({ currentUserId, initialFilter }: { current
                   <button
                     key={f.value}
                     onClick={() => setFilter(f.value)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex-shrink-0"
                     style={{
                       background: active ? (isUnread ? '#F5B800' : '#1C2B3A') : isUnread ? 'rgba(245,184,0,0.1)' : 'rgba(28,43,58,0.06)',
                       color: active ? (isUnread ? '#1C2B3A' : 'white') : isUnread ? '#b45309' : '#6b7280',
