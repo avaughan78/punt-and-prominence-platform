@@ -21,7 +21,6 @@ export function InviteForm({ instagramHandle }: { instagramHandle: string | null
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [inviteType, setInviteType] = useState<'one_off' | 'retainer'>('one_off')
-  const [compensationType, setCompensationType] = useState<'gifting' | 'paid'>('gifting')
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -60,7 +59,6 @@ export function InviteForm({ instagramHandle }: { instagramHandle: string | null
           category: form.category,
           requirements: form.requirements || null,
           invite_type: 'one_off',
-          compensation_type: compensationType,
           value_gbp: parseFloat(form.value_gbp),
           slots_total: parseInt(form.slots_total),
           expires_at: form.expires_at || null,
@@ -71,7 +69,6 @@ export function InviteForm({ instagramHandle }: { instagramHandle: string | null
           category: form.category,
           requirements: form.requirements || null,
           invite_type: 'retainer',
-          compensation_type: compensationType,
           value_gbp: 0,
           fee_gbp: parseFloat(form.fee_gbp),
           posts_per_month: parseInt(form.posts_per_month),
@@ -125,42 +122,6 @@ export function InviteForm({ instagramHandle }: { instagramHandle: string | null
         </div>
       </div>
 
-      {/* Compensation type toggle */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-          Compensation
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          {([
-            { value: 'gifting', label: 'Gifting', sub: 'Offer an experience or product' },
-            { value: 'paid', label: 'Paid', sub: 'Pay the creator a cash fee' },
-          ] as const).map(opt => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => setCompensationType(opt.value)}
-              className="flex flex-col items-start p-3 rounded-xl text-left transition-all"
-              style={{
-                border: compensationType === opt.value
-                  ? `2px solid ${opt.value === 'paid' ? '#F5B800' : '#1C2B3A'}`
-                  : '1.5px solid rgba(0,0,0,0.1)',
-                background: compensationType === opt.value
-                  ? opt.value === 'paid' ? 'rgba(245,184,0,0.06)' : 'rgba(28,43,58,0.04)'
-                  : 'white',
-              }}
-            >
-              <span className="text-sm font-semibold text-[#1C2B3A]">{opt.label}</span>
-              <span className="text-xs text-gray-400 mt-0.5">{opt.sub}</span>
-            </button>
-          ))}
-        </div>
-        {compensationType === 'paid' && (
-          <p className="text-xs text-gray-400 mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
-            Payment is settled directly between you and the creator once their post is verified.
-          </p>
-        )}
-      </div>
-
       <Input
         label="Title"
         placeholder={inviteType === 'retainer' ? 'e.g. Monthly food content partnership' : 'e.g. Complimentary brunch for two'}
@@ -191,14 +152,14 @@ export function InviteForm({ instagramHandle }: { instagramHandle: string | null
         <>
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label={compensationType === 'paid' ? 'Creator fee (£)' : 'Value (£)'}
+              label="Value (£)"
               type="number"
               placeholder="25.00"
               min="1"
               step="0.01"
               value={form.value_gbp}
               onChange={e => set('value_gbp', e.target.value)}
-              hint={compensationType === 'paid' ? 'Cash paid to creator on verification' : 'Estimated value of the experience'}
+              hint="Estimated value of the experience"
               required
             />
             <Input
@@ -223,14 +184,13 @@ export function InviteForm({ instagramHandle }: { instagramHandle: string | null
           <p className="text-xs font-semibold text-[#1C2B3A] uppercase tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Retainer terms</p>
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label={compensationType === 'paid' ? 'Monthly fee (£)' : 'Monthly value (£)'}
+              label="Monthly fee (£)"
               type="number"
               placeholder="200"
               min="1"
               step="1"
               value={form.fee_gbp}
               onChange={e => set('fee_gbp', e.target.value)}
-              hint={compensationType === 'paid' ? 'Cash paid to creator on each verified post' : 'Estimated value per month'}
               required
             />
             <Input
