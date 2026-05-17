@@ -156,7 +156,7 @@ export function InviteCard({ invite, mode, isApproved = true, isProfileComplete 
             <p className="font-bold text-lg leading-none" style={{ color: isRetainer ? '#059669' : '#F5B800', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
               {formatGBP(isRetainer ? (invite.fee_gbp ?? 0) : invite.value_gbp)}
             </p>
-            <p className="text-[10px] text-gray-400 mt-0.5">{isRetainer ? '/month' : 'value'}</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">{isRetainer ? '/month' : invite.compensation_type === 'paid' ? 'creator fee' : 'value'}</p>
           </div>
         </div>
 
@@ -166,6 +166,15 @@ export function InviteCard({ invite, mode, isApproved = true, isProfileComplete 
           {isRetainer && (
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: 'rgba(107,230,176,0.15)', color: '#059669' }}>
               Retainer
+            </span>
+          )}
+          {invite.compensation_type === 'paid' ? (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: 'rgba(245,184,0,0.15)', color: '#b45309' }}>
+              Paid
+            </span>
+          ) : (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: 'rgba(107,230,176,0.12)', color: '#059669' }}>
+              Gifting
             </span>
           )}
           {!invite.is_active && mode === 'manage' && (

@@ -54,6 +54,7 @@ export interface Invite {
   description: string
   category: InviteCategory
   invite_type: InviteType
+  compensation_type: 'gifting' | 'paid'
   value_gbp: number
   fee_gbp: number | null
   posts_per_month: number | null

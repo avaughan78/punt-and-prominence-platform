@@ -24,8 +24,8 @@ This is a prerequisite for the two items above. Requires a clear use-case descri
 
 ## Creator Discovery
 
-### "Meet our creators" browsable profiles
-Browsable creator profiles so businesses can see who they might be matched with before committing. Even 3–4 cards showing handle, niche, follower count, and % Cambridge audience would build confidence. *(Inspired by Joli)*
+### ~~"Meet our creators" browsable profiles~~ ✅ Done
+`/business/creators` and `/business/creators/[id]` already exist. Public listing at `/creators` too.
 
 ### Case studies / past collabs
 A "recent campaigns" section: business name, creator handle, and the post that came out of it. Strong social proof once first matches are complete. *(Inspired by Joli)*
@@ -39,6 +39,8 @@ Allow businesses to filter creators by content niche (food, lifestyle, fashion, 
 ---
 
 ## Creator Mobile App
+
+### ~~PWA~~ ✅ Done — manifest, icons, apple-touch-icon, safe-area nav all shipped.
 
 ### Native app for creators (Expo / React Native)
 A dedicated iOS/Android app for the creator side of the platform. The Supabase backend, auth, and all API routes would be reused as-is — only the creator-facing screens need building (Dashboard, Browse, Matches, Profile).
