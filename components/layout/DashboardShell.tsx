@@ -159,7 +159,7 @@ export function DashboardShell({ children, role, displayName }: Props) {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col md:ml-60">
+      <div className="flex-1 flex flex-col md:ml-60 min-w-0">
         {/* Mobile top bar */}
         <header
           className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3"
