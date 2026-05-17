@@ -55,6 +55,7 @@ function LoginForm() {
           <Input
             label="Password"
             type="password"
+            showPasswordToggle
             placeholder="••••••••"
             value={password}
             onChange={e => setPassword(e.target.value)}
