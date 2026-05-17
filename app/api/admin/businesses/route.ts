@@ -24,14 +24,14 @@ export async function GET() {
 
   const { data: matches } = await supabase
     .from('matches')
-    .select('id, business_id, status')
+    .select('id, business_id, closed_at')
     .in('business_id', ids)
 
   const enriched = businesses.map(b => ({
     ...b,
     active_invites: offers?.filter(o => o.business_id === b.id && o.is_active).length ?? 0,
     total_matches: matches?.filter(m => m.business_id === b.id).length ?? 0,
-    verified_matches: matches?.filter(m => m.business_id === b.id && m.status === 'verified').length ?? 0,
+    verified_matches: matches?.filter(m => m.business_id === b.id && !!m.closed_at).length ?? 0,
   }))
 
   return NextResponse.json(enriched)

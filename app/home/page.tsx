@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { Heart, MessageSquare, Star, Check, Building2, Sparkles } from 'lucide-react'
+import { Heart, MessageSquare, Star, Check, Building2, Sparkles, ArrowRight } from 'lucide-react'
 import { CreatorCard, formatFollowers, type CreatorCardData } from '@/components/creators/CreatorCard'
 
 // ─── Static data ──────────────────────────────────────────────────────────────
@@ -474,10 +474,10 @@ export default function HomePage() {
             </span>
           </div>
           <h1 className="mb-6 leading-[1.05] tracking-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2.2rem, 5.5vw, 5rem)', fontWeight: 800, color: '#ffffff' }}>
-            Local, credible creators working for your business.
+            Cambridge creators. Authentic reach. Real results.
           </h1>
           <p className="mb-8 text-base leading-relaxed max-w-md" style={{ color: 'rgb(153,153,153)', fontFamily: "'Inter', sans-serif" }}>
-            Hand verified Cambridge creators. Reviewed continuously. At your disposal.
+            Hand-verified local creators who actually live here, eat here, and post here. No inflated counts. No out-of-area fluff.
           </p>
           <div className="flex flex-wrap gap-3 mb-6">
             <Link href="/signup?role=business" className="px-6 py-3 rounded-md font-semibold text-sm transition-all hover:opacity-90" style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}>
@@ -531,8 +531,79 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Proudly Cambridge ── */}
+      {/* ── How it works ── */}
       <section className="py-24 px-6" style={{ backgroundColor: '#ffffff', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-xs font-bold tracking-widest uppercase mb-3 block" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(0,0,0,0.35)' }}>
+              The process
+            </span>
+            <h2 className="leading-tight" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 800, color: '#1C2B3A' }}>
+              Simple by design.
+            </h2>
+            <div className="w-16 h-1 rounded-full mx-auto mt-5" style={{ background: '#F5B800' }} />
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-10 md:gap-12">
+            {[
+              {
+                step: '01',
+                title: 'Post your collab',
+                body: 'Set your offer — a free visit, tasting menu, product, or discount. No setup fees, no minimums. Takes five minutes.',
+                accent: '#F5B800',
+              },
+              {
+                step: '02',
+                title: 'A creator visits',
+                body: 'Verified Cambridge creators browse and claim your collab. They visit your venue, experience it firsthand, and create authentic content.',
+                accent: '#6BE6B0',
+              },
+              {
+                step: '03',
+                title: 'Content goes live',
+                body: 'They post to their local following. You verify the post. Their audience — your future customers — sees it. Guaranteed.',
+                accent: '#C084FC',
+              },
+            ].map((s, i) => (
+              <div key={s.step} className="relative">
+                <div className="flex items-center gap-4 mb-5">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-black shrink-0"
+                    style={{ background: `${s.accent}18`, color: s.accent, fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {i + 1}
+                  </div>
+                  {i < 2 && (
+                    <div className="hidden md:block flex-1 h-px" style={{ background: 'rgba(0,0,0,0.08)' }} />
+                  )}
+                </div>
+                <h3 className="text-xl font-bold mb-3" style={{ color: '#1C2B3A', fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                  {s.title}
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: 'rgb(107,114,128)', fontFamily: "'Inter', sans-serif" }}>
+                  {s.body}
+                </p>
+                <div className="w-8 h-0.5 mt-5 rounded-full" style={{ background: s.accent }} />
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-16 rounded-2xl px-8 py-6 flex flex-col sm:flex-row items-center gap-4" style={{ background: 'rgba(245,184,0,0.06)', border: '1.5px solid rgba(245,184,0,0.2)' }}>
+            <div className="flex-1">
+              <p className="font-semibold text-[#1C2B3A] mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Zero-risk guarantee</p>
+              <p className="text-sm text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
+                If a creator visits and doesn't post within 72 hours, we reimburse the full value of what you offered. Great content, or your money back.
+              </p>
+            </div>
+            <Link href="/signup?role=business" className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm shrink-0 transition-all hover:opacity-90" style={{ background: '#F5B800', color: '#1C2B3A', fontFamily: "'Inter', sans-serif" }}>
+              Get started <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Proudly Cambridge ── */}
+      <section className="py-24 px-6" style={{ backgroundColor: '#f8f9fb', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
         <div className="max-w-5xl mx-auto">
           <div className="mb-4">
             <span className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'rgba(0,0,0,0.35)' }}>
@@ -547,7 +618,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-12 items-start">
             <div>
               <p className="text-lg leading-relaxed mb-10" style={{ color: 'rgb(107,114,128)', fontFamily: "'Inter', sans-serif" }}>
-                We&apos;re building the most focused creator network in the UK — 30 verified Cambridge creators, a combined local reach of 30,000 local followers, and just 20 founding business spots. Small by design. Effective by necessity.
+                We&apos;re building the most focused creator network in the UK. Cambridge-only creators, a genuine local audience, and a small number of founding business spots. Small by design. Effective by necessity.
               </p>
               <div className="grid grid-cols-3 gap-4 sm:gap-6">
                 {liveStats.map(s => (

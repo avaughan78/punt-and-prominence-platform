@@ -13,7 +13,7 @@ export async function GET() {
       .select(`
         id, display_name, instagram_handle, avatar_url,
         follower_count, bio, website_url,
-        matches:matches!matches_creator_id_fkey(status)
+        matches:matches!matches_creator_id_fkey(closed_at)
       `)
       .eq('role', 'creator')
       .eq('is_approved', true)
@@ -36,8 +36,8 @@ export async function GET() {
     follower_count: c.follower_count,
     bio: c.bio,
     website_url: c.website_url,
-    verified_matches: (c.matches as { status: string }[]).filter(m => m.status === 'verified').length,
-    total_matches: (c.matches as { status: string }[]).length,
+    verified_matches: (c.matches as { closed_at: string | null }[]).filter(m => !!m.closed_at).length,
+    total_matches: (c.matches as { closed_at: string | null }[]).length,
     nudged: nudgedSet.has(c.id),
   }))
 

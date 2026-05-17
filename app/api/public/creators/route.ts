@@ -9,7 +9,7 @@ export async function GET() {
     .select(`
       id, display_name, instagram_handle, tiktok_handle,
       avatar_url, follower_count, tiktok_follower_count, bio,
-      matches:matches!matches_creator_id_fkey(status)
+      matches:matches!matches_creator_id_fkey(closed_at)
     `)
     .eq('role', 'creator')
     .eq('is_approved', true)
@@ -28,8 +28,8 @@ export async function GET() {
     follower_count: c.follower_count,
     tiktok_follower_count: c.tiktok_follower_count,
     bio: c.bio,
-    verified_matches: (c.matches as { status: string }[]).filter(m => m.status === 'verified').length,
-    total_matches: (c.matches as { status: string }[]).length,
+    verified_matches: (c.matches as { closed_at: string | null }[]).filter(m => !!m.closed_at).length,
+    total_matches: (c.matches as { closed_at: string | null }[]).length,
   }))
 
   return NextResponse.json(creators)

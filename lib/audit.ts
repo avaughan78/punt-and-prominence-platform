@@ -12,6 +12,8 @@ type AuditEvent =
   | 'creator.revoked'
   | 'match.created'
   | 'match.status_changed'
+  | 'match.closed'
+  | 'match.reopened'
   | 'invite.created'
   | 'invite.updated'
   | 'invite.deleted'
