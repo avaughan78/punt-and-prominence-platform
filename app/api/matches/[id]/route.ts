@@ -22,8 +22,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { data: match } = await supabase
     .from('matches')
     .select(`
-      closed_at, punt_code, stripe_payment_intent_id, payout_status,
-      offer:offers(title, value_gbp, compensation_type),
+      offer_id, closed_at, punt_code, stripe_payment_intent_id, payout_status,
       creator:profiles!matches_creator_id_fkey(id, display_name, email),
       business:profiles!matches_business_id_fkey(id, display_name, business_name)
     `)
@@ -48,12 +47,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (action === 'close') {
     const creator = match.creator as unknown as { id: string; display_name: string; email: string } | null
     const business = match.business as unknown as { id: string; display_name: string; business_name: string | null } | null
-    const offerRaw = match.offer
-    const offer = (Array.isArray(offerRaw) ? offerRaw[0] : offerRaw) as { title: string; value_gbp: number; compensation_type: string } | null
+
+    const matchTyped = match as unknown as { offer_id: string }
+    const { data: offer } = await supabase
+      .from('offers')
+      .select('title, value_gbp, compensation_type')
+      .eq('id', matchTyped.offer_id)
+      .single()
 
     // Debug — remove after confirming capture works
     await supabase.from('matches').update({
-      notes: `debug: offerType=${typeof offerRaw} isArr=${Array.isArray(offerRaw)} comp=${offer?.compensation_type} pi=${match.stripe_payment_intent_id ?? 'null'} status=${match.payout_status}`,
+      notes: `debug: offer_id=${matchTyped.offer_id} comp=${offer?.compensation_type} pi=${match.stripe_payment_intent_id ?? 'null'} status=${match.payout_status}`,
     }).eq('id', id)
 
     // Capture held payment and transfer to creator
