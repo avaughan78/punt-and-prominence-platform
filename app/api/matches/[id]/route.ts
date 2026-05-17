@@ -51,6 +51,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const offerRaw = match.offer
     const offer = (Array.isArray(offerRaw) ? offerRaw[0] : offerRaw) as { title: string; value_gbp: number; compensation_type: string } | null
 
+    // Debug — remove after confirming capture works
+    await supabase.from('matches').update({
+      notes: `debug: offerType=${typeof offerRaw} isArr=${Array.isArray(offerRaw)} comp=${offer?.compensation_type} pi=${match.stripe_payment_intent_id ?? 'null'} status=${match.payout_status}`,
+    }).eq('id', id)
+
     // Capture held payment and transfer to creator
     if (
       offer?.compensation_type === 'paid' &&
@@ -59,7 +64,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     ) {
       try {
         await stripe.paymentIntents.capture(match.stripe_payment_intent_id)
-        await supabase.from('matches').update({ payout_status: 'paid' }).eq('id', id)
+        await supabase.from('matches').update({ payout_status: 'paid', notes: null }).eq('id', id)
       } catch (err: unknown) {
         const e = err as { message?: string; code?: string }
         console.error('[Stripe] Capture failed on close for match', id, e?.message, e?.code)
